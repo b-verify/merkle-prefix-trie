@@ -101,35 +101,23 @@ public class MerklePrefixTrieTest {
 		Assert.assertTrue(mpt.set("D".getBytes(), "3".getBytes()));		
 		Assert.assertTrue(mpt.set("E".getBytes(), "2".getBytes()));		
 		Assert.assertTrue(mpt.set("F".getBytes(), "1".getBytes()));
-		
-		System.out.println(MerklePrefixTrie.byteArrayAsBitString(mpt.getCommitment()));
-		System.out.println(mpt);
-
+	
 		// remove them 
 		Assert.assertTrue(mpt.deleteKey("B".getBytes()));
 		Assert.assertEquals(null, mpt.get("B".getBytes()));
-		System.out.println(mpt);
-
-		
 		Assert.assertTrue(mpt.deleteKey("D".getBytes()));
 		Assert.assertEquals(null, mpt.get("D".getBytes()));
-		System.out.println(mpt);
-
-		
 		Assert.assertTrue(mpt.deleteKey("F".getBytes()));
 		Assert.assertEquals(null, mpt.get("F".getBytes()));
 		
-		System.out.println(MerklePrefixTrie.byteArrayAsBitString(mpt.getCommitment()));
-		System.out.println(mpt);
-
-		
+		// make a tree with the same entries, added in a different order
 		MerklePrefixTrie mpt2 = new MerklePrefixTrie();
+		Assert.assertTrue(mpt2.set("E".getBytes(), "2".getBytes()));	
 		Assert.assertTrue(mpt2.set("A".getBytes(), "1".getBytes()));
 		Assert.assertTrue(mpt2.set("C".getBytes(), "3".getBytes()));
-		Assert.assertTrue(mpt2.set("E".getBytes(), "2".getBytes()));				
-		// this tree should be the same as 
-		System.out.println(MerklePrefixTrie.byteArrayAsBitString(mpt2.getCommitment()));
-		System.out.println(mpt2);
+		
+		// this tree should be the same 
+		Assert.assertTrue(Arrays.equals(mpt.getCommitment(), mpt2.getCommitment()));
 	}
 	
 	
@@ -179,7 +167,7 @@ public class MerklePrefixTrieTest {
 		String salt = "";
 		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(numberOfEntries, salt);
 		for(int key = 0; key < numberOfEntries; key++) {
-			String keyString = "key"+Integer.toString(key)+salt;
+			String keyString = "key"+Integer.toString(key);
 			String valueString = "value"+Integer.toString(key)+salt;
 			// trying to insert again should return false
 			Assert.assertFalse(mpt.set(keyString.getBytes(), valueString.getBytes()));
@@ -193,7 +181,10 @@ public class MerklePrefixTrieTest {
 		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(numberOfEntries, salt);
 		for(int key = 0; key < numberOfEntries; key++) {
 			String keyString = "key"+Integer.toString(key);
+			String valueString = "value"+Integer.toString(key)+salt;
+			Assert.assertTrue(Arrays.equals(mpt.get(keyString.getBytes()), valueString.getBytes()));
 			if(key > 499) {
+				System.out.println("removing key: " + keyString.getBytes()+" ("+keyString+")");
 				Assert.assertTrue(mpt.deleteKey(keyString.getBytes()));				
 			}
 		}

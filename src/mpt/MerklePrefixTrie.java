@@ -169,11 +169,6 @@ public class MerklePrefixTrie {
 		LOGGER.log(Level.FINE, "delete("+key+") - Hash= "+MerklePrefixTrie.byteArrayAsBitString(keyHash));
 		System.out.println("delete("+key+") - Hash= "+MerklePrefixTrie.byteArrayAsBitString(keyHash));
 		Node newRoot = this.deleteKeyHelper(this.root, keyHash, 0, "+");
-		if (newRoot.isLeaf()) {
-			assert newRoot.isEmpty();
-			// we guarantee that the root is an interior node
-			newRoot = new InteriorNode(new EmptyLeafNode(), new EmptyLeafNode());
-		}
 		boolean changed =  !newRoot.equals(this.root);
 		this.root = (InteriorNode) newRoot;
 		return changed;
@@ -182,14 +177,19 @@ public class MerklePrefixTrie {
 	private Node deleteKeyHelper(Node currentNode, 
 			byte[] keyHash, int currentBitIndex, String prefix) {
 		if(currentNode.isLeaf()) {
-			// if the current node is NonEmpty and matches the Key
-			if(Arrays.equals(currentNode.getKeyHash(), keyHash)){
-				// replace it with an empty node
-				return new EmptyLeafNode();
+			if(!currentNode.isEmpty()) {
+				if(Arrays.equals(currentNode.getKeyHash(), keyHash)){
+					return new EmptyLeafNode();
+				}
 			}
+			System.out.println("NOT IN TREE");
 			// otherwise the key is not in the tree and nothing needs to be done
 			return currentNode;
 		}
+		// we have to watch out to make sure that if this is the root node
+		// that we return an InteriorNode and don't propogate up an empty node
+		boolean isRoot = currentNode.equals(this.root);
+		
 		boolean bit = MerklePrefixTrie.getBit(keyHash, currentBitIndex);
 		Node leftChild = currentNode.getLeftChild();
 		Node rightChild = currentNode.getRightChild();
@@ -197,21 +197,21 @@ public class MerklePrefixTrie {
 			// delete key from the right subtree
 			Node newRightChild = this.deleteKeyHelper(rightChild, keyHash, currentBitIndex+1, prefix+"1");
 			// if left subtree is empty, we push the newRightChild up the tree
-			if(leftChild.isEmpty()) {
+			if(leftChild.isEmpty() && !isRoot) {
 				return newRightChild;
 			}
 			// if newRightChild is empty, we push the left subtree up
-			if(newRightChild.isEmpty()) {
+			if(newRightChild.isEmpty() && !isRoot) {
 				return leftChild;
 			}
 			// otherwise update the interior node
 			return new InteriorNode(leftChild, newRightChild);
 		}
 		Node newLeftChild = this.deleteKeyHelper(leftChild, keyHash, currentBitIndex+1, prefix+"0");
-		if(rightChild.isEmpty()) {
+		if(rightChild.isEmpty() && !isRoot) {
 			return newLeftChild;
 		}
-		if(newLeftChild.isEmpty()) {
+		if(newLeftChild.isEmpty() && !isRoot) {
 			return rightChild;
 		}
 		return new InteriorNode(newLeftChild, rightChild);
