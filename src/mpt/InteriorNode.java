@@ -63,7 +63,7 @@ public class InteriorNode implements Node {
 
 	@Override
 	public String toString() {
-		return new String("<InteriorNode| L: "+this.leftChild+ " R: "+this.rightChildHash+">");
+		return new String("<InteriorNode>");
 	}
 
 	@Override

@@ -65,7 +65,7 @@ public class LeafNode implements Node {
 		
 	@Override
 	public String toString() {
-		return new String("<Leaf| K: "+this.key+" V: "+this.value+">");
+		return new String("<Leaf K: "+this.key+" V: "+this.value+">");
 	}
 
 	@Override

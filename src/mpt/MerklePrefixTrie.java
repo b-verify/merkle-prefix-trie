@@ -15,7 +15,7 @@ public class MerklePrefixTrie {
 	
 	private static final Logger LOGGER = Logger.getLogger( MerklePrefixTrie.class.getName() );
 		
-	private Node root;
+	private InteriorNode root;
 	
 	/**
 	 * Create an empty Merkle Prefix Trie
@@ -25,10 +25,10 @@ public class MerklePrefixTrie {
 	}
 	
 	/**
-	 * Add a (key, value) mapping to the MPT.
+	 * Add a (key, value) mapping to the MPT. 
 	 * @param key - arbitrary bytes representing the key
 	 * @param value - arbitrary bytes representing the value
-	 * @return
+	 * @return true if the trie was modified (i.e. if the value for the key was updated)
 	 */
 	public boolean set(byte[] key, byte[] value){
 		LeafNode leafNodeToAdd = new LeafNode(key, value);
@@ -37,7 +37,7 @@ public class MerklePrefixTrie {
 		
 		Node newRoot = this.insertLeafNodeAndUpdate(this.root, leafNodeToAdd, 0, "+");
 		boolean updated = !newRoot.equals(this.root);
-		this.root = newRoot;
+		this.root = (InteriorNode) newRoot;
 		return updated;
 	}
 		
@@ -52,16 +52,16 @@ public class MerklePrefixTrie {
 	private Node insertLeafNodeAndUpdate(Node node, LeafNode nodeToAdd, int currentBitIndex, String prefix) {
 		LOGGER.log(Level.FINE, "insert and update "+prefix+" at node: "+node.toString());
 		if(node.isLeaf()) {
-			// already in the tree!
-			if(node.equals(nodeToAdd)) {
-				return node;
-			}
 			// node is an empty leaf we can just replace it 
 			if(node.isEmpty()) {
 				return nodeToAdd;
 			}
-			LeafNode ln = (LeafNode) node;
+			// this node has the same key - already in the tree
+			if(Arrays.equals(node.getKeyHash(), nodeToAdd.getKeyHash())) {
+				return nodeToAdd;
+			}
 			// otherwise have to split
+			LeafNode ln = (LeafNode) node;
 			return this.split(ln, nodeToAdd, currentBitIndex, prefix);
 		}
 		boolean bit = MerklePrefixTrie.getBit(nodeToAdd.getKeyHash(), currentBitIndex);
@@ -120,7 +120,7 @@ public class MerklePrefixTrie {
 	 */
 	public byte[] get(byte[] key) {
 		byte[] keyHash = CryptographicDigest.digest(key);
-		LOGGER.log(Level.FINE, "Searching H("+key+"): "+MerklePrefixTrie.byteArrayAsBitString(keyHash));
+		LOGGER.log(Level.FINE, "get H("+key+"): "+MerklePrefixTrie.byteArrayAsBitString(keyHash));
 		return this.getKeyHelper(this.root, keyHash, 0, "+");
 	}
 	
@@ -134,7 +134,7 @@ public class MerklePrefixTrie {
 	 * @param prefix
 	 * @return
 	 */
-	private byte[] getKeyHelper(final Node currentNode, byte[] keyHash, 
+	private byte[] getKeyHelper(Node currentNode, byte[] keyHash, 
 			int currentBitIndex, String prefix) {
 		LOGGER.log(Level.FINE, "Searching prefix "+prefix+" at node: "+currentNode);
 		if(currentNode.isLeaf()) {
@@ -156,6 +156,65 @@ public class MerklePrefixTrie {
 			return this.getKeyHelper(currentNode.getRightChild(), keyHash, currentBitIndex+1, prefix+"1");
 		}
 		return this.getKeyHelper(currentNode.getLeftChild(), keyHash, currentBitIndex+1, prefix+"0");
+	}
+	
+	/**
+	 * Remove the key from the MPT, removing any (key, value) mapping if 
+	 * it exists. 
+	 * @param key - the key to remove
+	 * @return true if the trie was modified (i.e. if the key was previously in the tree).
+	 */
+	public boolean deleteKey(byte[] key) {
+		byte[] keyHash = CryptographicDigest.digest(key);
+		LOGGER.log(Level.FINE, "delete("+key+") - Hash= "+MerklePrefixTrie.byteArrayAsBitString(keyHash));
+		System.out.println("delete("+key+") - Hash= "+MerklePrefixTrie.byteArrayAsBitString(keyHash));
+		Node newRoot = this.deleteKeyHelper(this.root, keyHash, 0, "+");
+		if (newRoot.isLeaf()) {
+			assert newRoot.isEmpty();
+			// we guarantee that the root is an interior node
+			newRoot = new InteriorNode(new EmptyLeafNode(), new EmptyLeafNode());
+		}
+		boolean changed =  !newRoot.equals(this.root);
+		this.root = (InteriorNode) newRoot;
+		return changed;
+	}
+	
+	private Node deleteKeyHelper(Node currentNode, 
+			byte[] keyHash, int currentBitIndex, String prefix) {
+		if(currentNode.isLeaf()) {
+			// if the current node is NonEmpty and matches the Key
+			if(Arrays.equals(currentNode.getKeyHash(), keyHash)){
+				// replace it with an empty node
+				return new EmptyLeafNode();
+			}
+			// otherwise the key is not in the tree and nothing needs to be done
+			return currentNode;
+		}
+		boolean bit = MerklePrefixTrie.getBit(keyHash, currentBitIndex);
+		Node leftChild = currentNode.getLeftChild();
+		Node rightChild = currentNode.getRightChild();
+		if(bit) {
+			// delete key from the right subtree
+			Node newRightChild = this.deleteKeyHelper(rightChild, keyHash, currentBitIndex+1, prefix+"1");
+			// if left subtree is empty, we push the newRightChild up the tree
+			if(leftChild.isEmpty()) {
+				return newRightChild;
+			}
+			// if newRightChild is empty, we push the left subtree up
+			if(newRightChild.isEmpty()) {
+				return leftChild;
+			}
+			// otherwise update the interior node
+			return new InteriorNode(leftChild, newRightChild);
+		}
+		Node newLeftChild = this.deleteKeyHelper(leftChild, keyHash, currentBitIndex+1, prefix+"0");
+		if(rightChild.isEmpty()) {
+			return newLeftChild;
+		}
+		if(newLeftChild.isEmpty()) {
+			return rightChild;
+		}
+		return new InteriorNode(newLeftChild, rightChild);
 	}
 	
 	/**

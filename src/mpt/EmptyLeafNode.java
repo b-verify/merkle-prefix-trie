@@ -13,7 +13,7 @@ public class EmptyLeafNode implements Node {
 	// hash is all zeros
 	public static final byte[] EMPTY_HASH = new byte[CryptographicDigest.getSizeBytes()];
 	
-	public static final String EMPTY_MSG = "<EmptyLeafNode H: "+EMPTY_HASH+">";
+	public static final String EMPTY_MSG = "<EmptyLeafNode>";
 
 	@Override
 	public byte[] getValue() {
