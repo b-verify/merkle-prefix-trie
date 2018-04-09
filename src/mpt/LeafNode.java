@@ -1,6 +1,6 @@
 package mpt;
 
-import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 import crpyto.CryptographicDigest;
 
@@ -8,7 +8,7 @@ import crpyto.CryptographicDigest;
  * IMMUTABLE
  * 
  * Represents a leaf node in a Merkle Prefix Trie (MPT). Leaf nodes
- * store values which can be arbitrary bytes. 
+ * store a key and a value, which can be arbitrary bytes.
  * @author henryaspegren
  *
  */
@@ -25,7 +25,7 @@ public class LeafNode implements Node {
 	private final byte[] value;
 	private final byte[] valueHash;
 		
-	public LeafNode(byte[] key, byte[] value) throws NoSuchAlgorithmException{
+	public LeafNode(byte[] key, byte[] value){
 		this.key = key;
 		this.keyHash = CryptographicDigest.digest(key);
 		this.value = value;
@@ -76,6 +76,15 @@ public class LeafNode implements Node {
 	@Override
 	public byte[] getKeyHash() {
 		return this.keyHash;
+	}
+	
+	@Override
+	public boolean equals(Object arg0) {
+		if(arg0 instanceof LeafNode) {
+			LeafNode ln = (LeafNode) arg0;
+			return Arrays.equals(this.keyHash, ln.keyHash) && Arrays.equals(this.valueHash, ln.valueHash);
+		}
+		return false;
 	}
 	
 }

@@ -1,6 +1,6 @@
 package mpt;
 
-import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 import crpyto.CryptographicDigest;
 
@@ -18,7 +18,7 @@ public class InteriorNode implements Node {
 	private final Node rightChild;
 	private final byte[] rightChildHash;
 	
-	public InteriorNode(Node leftChild, Node rightChild) throws NoSuchAlgorithmException {
+	public InteriorNode(Node leftChild, Node rightChild) {
 		this.leftChild = leftChild;
 		this.leftChildHash = leftChild.getHash();
 		this.rightChild = rightChild;
@@ -63,7 +63,7 @@ public class InteriorNode implements Node {
 
 	@Override
 	public String toString() {
-		return new String("<InteriorNode| H: "+this.hash+" | L: "+this.leftChild+ " R: "+this.rightChildHash+">");
+		return new String("<InteriorNode| L: "+this.leftChild+ " R: "+this.rightChildHash+">");
 	}
 
 	@Override
@@ -74,6 +74,15 @@ public class InteriorNode implements Node {
 	@Override
 	public byte[] getKeyHash() {
 		return null;
+	}
+	
+	@Override
+	public boolean equals(Object arg0) {
+		if (arg0 instanceof InteriorNode) {
+			InteriorNode in = (InteriorNode) arg0;
+			return Arrays.equals(this.hash, in.hash);
+		}
+		return false;
 	}
 
 }

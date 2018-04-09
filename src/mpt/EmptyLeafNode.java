@@ -2,6 +2,11 @@ package mpt;
 
 import crpyto.CryptographicDigest;
 
+/**
+ * 
+ * @author henryaspegren
+ *
+ */
 public class EmptyLeafNode implements Node {
 	
 
@@ -12,7 +17,7 @@ public class EmptyLeafNode implements Node {
 
 	@Override
 	public byte[] getValue() {
-		return EmptyLeafNode.EMPTY_HASH;
+		return null;
 	}
 
 	@Override
@@ -54,4 +59,13 @@ public class EmptyLeafNode implements Node {
 	public byte[] getKeyHash() {
 		return null;
 	}
+	
+	@Override
+	public boolean equals(Object arg0) {
+		if(arg0 instanceof EmptyLeafNode) {
+			return true;
+		}
+		return false;
+	}
+	
 }

@@ -1,7 +1,6 @@
 package crpyto;
 
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * 
@@ -14,10 +13,14 @@ public class CryptographicDigest {
 	private static final int SIZE_BITS = 256;
 	private static final int SIZE_BYTES = SIZE_BITS / 8;
 	
-	public static byte[] digest(byte[] input) throws NoSuchAlgorithmException {
-		MessageDigest md = MessageDigest.getInstance(HASH_FUNCTION);
-		byte[] digest = md.digest(input);
-		return digest;
+	public static byte[] digest(byte[] input) {
+		try {
+			MessageDigest md = MessageDigest.getInstance(HASH_FUNCTION);
+			byte[] digest = md.digest(input);
+			return digest;
+		}catch(Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	public static int getSizeBits() {
