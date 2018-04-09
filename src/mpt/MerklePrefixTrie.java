@@ -40,7 +40,7 @@ public class MerklePrefixTrie {
 		this.root = newRoot;
 		return updated;
 	}
-	
+		
 	/**
 	 * Recursive helper function to insert a leaf into the trie. 
 	 * @param node - location in the tree
@@ -124,6 +124,16 @@ public class MerklePrefixTrie {
 		return this.getKeyHelper(this.root, keyHash, 0, "+");
 	}
 	
+	/**
+	 * Recursive helper function to search for the keyHash. Returns when it finds a leaf. If the 
+	 * key is not in the tree it will eventually hit an EmptyLeafNode or a 
+	 * LeafNode with a different keyHash. In this case this function will return null.
+	 * @param currentNode
+	 * @param keyHash
+	 * @param currentBitIndex
+	 * @param prefix
+	 * @return
+	 */
 	private byte[] getKeyHelper(final Node currentNode, byte[] keyHash, 
 			int currentBitIndex, String prefix) {
 		LOGGER.log(Level.FINE, "Searching prefix "+prefix+" at node: "+currentNode);
