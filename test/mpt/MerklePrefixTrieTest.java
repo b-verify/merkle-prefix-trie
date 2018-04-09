@@ -183,21 +183,20 @@ public class MerklePrefixTrieTest {
 			String keyString = "key"+Integer.toString(key);
 			String valueString = "value"+Integer.toString(key)+salt;
 			Assert.assertTrue(Arrays.equals(mpt.get(keyString.getBytes()), valueString.getBytes()));
-			if(key > 499) {
-				System.out.println("removing key: " + keyString.getBytes()+" ("+keyString+")");
+			if(key > 4999) {
 				Assert.assertTrue(mpt.deleteKey(keyString.getBytes()));				
 			}
 		}
 		for(int key = 0; key < numberOfEntries; key++) {
 			String keyString = "key"+Integer.toString(key);
 			String valueString = "value"+Integer.toString(key)+salt;
-			if (key > 499) {
+			if (key > 4999) {
 				Assert.assertEquals(null, mpt.get(keyString.getBytes()));			
 			}else {
 				Assert.assertTrue(Arrays.equals(mpt.get(keyString.getBytes()), valueString.getBytes()));
 			}
 		}
-		MerklePrefixTrie mpt2 = MerklePrefixTrieTest.makeMerklePrefixTrie(500, salt);
+		MerklePrefixTrie mpt2 = MerklePrefixTrieTest.makeMerklePrefixTrie(5000, salt);
 		Assert.assertTrue(Arrays.equals(mpt.getCommitment(), mpt2.getCommitment()));
 	}
 	
