@@ -15,6 +15,10 @@ public class Stub implements Node {
 		return this.hash.clone();
 	}
 	
+	public static Stub deserialize(byte[] raw) {
+		return null;
+	}
+	
 	@Override 
 	public serialization.MptSerialization.Node serialize(){
 		serialization.MptSerialization.Node node =

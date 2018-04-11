@@ -34,12 +34,12 @@ public class LeafNode implements Node {
 		this.value = value;
 		this.valueHash = CryptographicDigest.digest(value);
 	}
-	
+		
 	public MptSerialization.Node serialize(){
 		MptSerialization.Node node = MptSerialization.Node
 				.newBuilder()
 				.setLeaf(MptSerialization.Leaf.newBuilder()
-						.setKeyHash(ByteString.copyFrom(this.keyHash))
+						.setKey(ByteString.copyFrom(this.key))
 						.setValue(ByteString.copyFrom(this.value))
 						.build())
 				.build();
@@ -97,7 +97,10 @@ public class LeafNode implements Node {
 	public boolean equals(Object arg0) {
 		if(arg0 instanceof LeafNode) {
 			LeafNode ln = (LeafNode) arg0;
-			return Arrays.equals(this.keyHash, ln.keyHash) && Arrays.equals(this.valueHash, ln.valueHash);
+			// practically speaking it would be sufficient to just check the hashes
+			// since we are using collision resistant hash functions 
+			return Arrays.equals(this.key, ln.key) && Arrays.equals(this.value, ln.value) &&
+					Arrays.equals(this.keyHash, ln.keyHash) && Arrays.equals(this.valueHash, ln.valueHash);
 		}
 		return false;
 	}

@@ -1,7 +1,5 @@
 package mpt;
 
-import java.util.Arrays;
-
 import crpyto.CryptographicDigest;
 import serialization.MptSerialization;
 
@@ -14,6 +12,7 @@ import serialization.MptSerialization;
 public class InteriorNode implements Node {
 	
 	private final byte[] hash;
+	
 	private final Node leftChild;
 	private final byte[] leftChildHash;
 	private final Node rightChild;
@@ -51,7 +50,7 @@ public class InteriorNode implements Node {
 		return node;
 		
 	}
-
+	
 	@Override
 	public byte[] getValue() {
 		return null;
@@ -101,7 +100,9 @@ public class InteriorNode implements Node {
 	public boolean equals(Object arg0) {
 		if (arg0 instanceof InteriorNode) {
 			InteriorNode in = (InteriorNode) arg0;
-			return Arrays.equals(this.hash, in.hash);
+			boolean leftEquals = this.leftChild.equals(in.leftChild);
+			boolean rightEquals = this.rightChild.equals(in.rightChild);
+			return leftEquals && rightEquals;
 		}
 		return false;
 	}

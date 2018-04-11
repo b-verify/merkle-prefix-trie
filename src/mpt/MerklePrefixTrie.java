@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+
 import crpyto.CryptographicDigest;
 
 /**
@@ -21,6 +23,15 @@ public class MerklePrefixTrie {
 	 */
 	public MerklePrefixTrie() {
 		root = new InteriorNode(new EmptyLeafNode(), new EmptyLeafNode());
+	}
+	
+	/**
+	 * Create a Merkle Prefix Trie with the root. This constructor is 
+	 * private because it assumes that the internal structure of root is correct. 
+	 * This is not safe to expose to clients
+	 */
+	private MerklePrefixTrie(InteriorNode root) {
+		this.root = root;
 	}
 	
 	/**
@@ -185,7 +196,7 @@ public class MerklePrefixTrie {
 			return currentNode;
 		}
 		// we have to watch out to make sure that if this is the root node
-		// that we return an InteriorNode and don't propogate up an empty node
+		// that we return an InteriorNode and don't propagate up an empty node
 		boolean isRoot = currentNode.equals(this.root);
 		
 		boolean bit = MerklePrefixTrie.getBit(keyHash, currentBitIndex);
@@ -223,12 +234,95 @@ public class MerklePrefixTrie {
 	 * @return
 	 */
 	public byte[] getCommitment() {
-		return root.getHash();
+		return this.root.getHash();
 	}
+	
+	/**
+	 * Efficiently serializes this MPT. The serialization
+	 * contains the minimal set of information required to reconstruct 
+	 * and authenticate this MPT when deserialized on the client.
+	 * @return
+	 */
+	public byte[] serialize() {
+		return this.root.serialize().toByteArray();
+	}
+	
+	
+	public static MerklePrefixTrie deserialize(byte[] asbytes) throws 
+		InvalidMPTSerialization	{
+		serialization.MptSerialization.MerklePrefixTrieProof mptProof;
+		try {
+			mptProof = serialization.MptSerialization.MerklePrefixTrieProof.parseFrom(asbytes);
+		}catch(InvalidProtocolBufferException e) {
+			throw new InvalidMPTSerialization(e.getMessage());
+		}
+		if(!mptProof.hasRoot()) {
+			throw new InvalidMPTSerialization("no root included");
+		}
+		Node root = MerklePrefixTrie.parseNode(mptProof.getRoot());
+		if(! ( root instanceof InteriorNode )) {
+			throw new InvalidMPTSerialization("root is not an interior node!");
+		}
+		InteriorNode rootInt = (InteriorNode) root;
+		return new MerklePrefixTrie(rootInt);
+	}
+	
+	private static Node parseNode(serialization.MptSerialization.Node nodeSerialization) throws 
+		InvalidMPTSerialization {
+		switch(nodeSerialization.getNodeCase()) {
+		case INTERIOR_NODE :
+			serialization.MptSerialization.InteriorNode in = nodeSerialization.getInteriorNode();
+			Node left, right;
+			/*
+			 * If an interior node child is not present, we assume it is an empty child
+			 */
+			if(!in.hasLeft()) {
+				left = new EmptyLeafNode();
+			}else {
+				left = MerklePrefixTrie.parseNode(in.getLeft());
+			}
+			if(!in.hasRight()) {
+				right = new EmptyLeafNode();
+			}else {
+				right = MerklePrefixTrie.parseNode(in.getRight());
+			}
+			return new InteriorNode(left, right);
+		case STUB :
+			serialization.MptSerialization.Stub stub = nodeSerialization.getStub();
+			if(stub.getHash().isEmpty()) {
+				throw new InvalidMPTSerialization("stub doesn't have a hash");
+			}
+			return new Stub(stub.getHash().toByteArray());
+		case LEAF : 
+			serialization.MptSerialization.Leaf leaf = nodeSerialization.getLeaf();
+			if(leaf.getKey().isEmpty() || leaf.getValue().isEmpty()) {
+				throw new InvalidMPTSerialization("leaf doesn't have required keyhash and value");
+			}
+			return new LeafNode(leaf.getKey().toByteArray(), leaf.getValue().toByteArray());
+		case NODE_NOT_SET : 
+			throw new InvalidMPTSerialization("no node included - fatal error");
+		}
+		return null;
+	}
+	
 	
 	@Override
 	public String toString() {
 		return this.toStringHelper("+", this.root);
+	}
+	
+	/**
+	 * Two MPTs are equal if they are STRUCTURALLY IDENTICAL which means
+	 * two trees are equal if the contain identical nodes arranged in the
+	 * same way.
+	 */
+	@Override
+	public boolean equals(Object other) {
+		if(other instanceof MerklePrefixTrie) {
+			MerklePrefixTrie othermpt = (MerklePrefixTrie) other;
+			return this.root.equals(othermpt.root);
+		}
+		return false;
 	}
 	
 	private String toStringHelper(String prefix, Node node) {
@@ -303,6 +397,11 @@ public class MerklePrefixTrie {
 		return bitString;
 	}
 	
+	/**
+	 * Print a byte array as a human readable hex string
+	 * @param raw
+	 * @return
+	 */
 	public static String byteArrayAsHexString(final byte[] raw) {
 	    final StringBuilder hex = new StringBuilder(2 * raw.length);
 	    for (final byte b : raw) {

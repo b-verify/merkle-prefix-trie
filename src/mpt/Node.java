@@ -1,15 +1,20 @@
 package mpt;
 
+/**
+ * 
+ * @author henryaspegren
+ *
+ */
 public interface Node {	
 
+	byte[] getValue();
+	
 	byte[] getHash();
 
 	byte[] getKey();
 		
 	byte[] getKeyHash();
-	
-	byte[] getValue();
-	
+		
 	boolean isLeaf();
 	
 	boolean isEmpty();

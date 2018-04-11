@@ -2392,9 +2392,13 @@ public final class MptSerialization {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>bytes keyHash = 1;</code>
+     * <pre>
+     * technically we only need to send the keyhash, but this might be more useful
+     * </pre>
+     *
+     * <code>bytes key = 1;</code>
      */
-    com.google.protobuf.ByteString getKeyHash();
+    com.google.protobuf.ByteString getKey();
 
     /**
      * <code>bytes value = 2;</code>
@@ -2419,7 +2423,7 @@ public final class MptSerialization {
       super(builder);
     }
     private Leaf() {
-      keyHash_ = com.google.protobuf.ByteString.EMPTY;
+      key_ = com.google.protobuf.ByteString.EMPTY;
       value_ = com.google.protobuf.ByteString.EMPTY;
     }
 
@@ -2456,7 +2460,7 @@ public final class MptSerialization {
             }
             case 10: {
 
-              keyHash_ = input.readBytes();
+              key_ = input.readBytes();
               break;
             }
             case 18: {
@@ -2488,13 +2492,17 @@ public final class MptSerialization {
               serialization.MptSerialization.Leaf.class, serialization.MptSerialization.Leaf.Builder.class);
     }
 
-    public static final int KEYHASH_FIELD_NUMBER = 1;
-    private com.google.protobuf.ByteString keyHash_;
+    public static final int KEY_FIELD_NUMBER = 1;
+    private com.google.protobuf.ByteString key_;
     /**
-     * <code>bytes keyHash = 1;</code>
+     * <pre>
+     * technically we only need to send the keyhash, but this might be more useful
+     * </pre>
+     *
+     * <code>bytes key = 1;</code>
      */
-    public com.google.protobuf.ByteString getKeyHash() {
-      return keyHash_;
+    public com.google.protobuf.ByteString getKey() {
+      return key_;
     }
 
     public static final int VALUE_FIELD_NUMBER = 2;
@@ -2518,8 +2526,8 @@ public final class MptSerialization {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!keyHash_.isEmpty()) {
-        output.writeBytes(1, keyHash_);
+      if (!key_.isEmpty()) {
+        output.writeBytes(1, key_);
       }
       if (!value_.isEmpty()) {
         output.writeBytes(2, value_);
@@ -2532,9 +2540,9 @@ public final class MptSerialization {
       if (size != -1) return size;
 
       size = 0;
-      if (!keyHash_.isEmpty()) {
+      if (!key_.isEmpty()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, keyHash_);
+          .computeBytesSize(1, key_);
       }
       if (!value_.isEmpty()) {
         size += com.google.protobuf.CodedOutputStream
@@ -2556,8 +2564,8 @@ public final class MptSerialization {
       serialization.MptSerialization.Leaf other = (serialization.MptSerialization.Leaf) obj;
 
       boolean result = true;
-      result = result && getKeyHash()
-          .equals(other.getKeyHash());
+      result = result && getKey()
+          .equals(other.getKey());
       result = result && getValue()
           .equals(other.getValue());
       result = result && unknownFields.equals(other.unknownFields);
@@ -2571,8 +2579,8 @@ public final class MptSerialization {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + KEYHASH_FIELD_NUMBER;
-      hash = (53 * hash) + getKeyHash().hashCode();
+      hash = (37 * hash) + KEY_FIELD_NUMBER;
+      hash = (53 * hash) + getKey().hashCode();
       hash = (37 * hash) + VALUE_FIELD_NUMBER;
       hash = (53 * hash) + getValue().hashCode();
       hash = (29 * hash) + unknownFields.hashCode();
@@ -2709,7 +2717,7 @@ public final class MptSerialization {
       }
       public Builder clear() {
         super.clear();
-        keyHash_ = com.google.protobuf.ByteString.EMPTY;
+        key_ = com.google.protobuf.ByteString.EMPTY;
 
         value_ = com.google.protobuf.ByteString.EMPTY;
 
@@ -2735,7 +2743,7 @@ public final class MptSerialization {
 
       public serialization.MptSerialization.Leaf buildPartial() {
         serialization.MptSerialization.Leaf result = new serialization.MptSerialization.Leaf(this);
-        result.keyHash_ = keyHash_;
+        result.key_ = key_;
         result.value_ = value_;
         onBuilt();
         return result;
@@ -2778,8 +2786,8 @@ public final class MptSerialization {
 
       public Builder mergeFrom(serialization.MptSerialization.Leaf other) {
         if (other == serialization.MptSerialization.Leaf.getDefaultInstance()) return this;
-        if (other.getKeyHash() != com.google.protobuf.ByteString.EMPTY) {
-          setKeyHash(other.getKeyHash());
+        if (other.getKey() != com.google.protobuf.ByteString.EMPTY) {
+          setKey(other.getKey());
         }
         if (other.getValue() != com.google.protobuf.ByteString.EMPTY) {
           setValue(other.getValue());
@@ -2811,31 +2819,43 @@ public final class MptSerialization {
         return this;
       }
 
-      private com.google.protobuf.ByteString keyHash_ = com.google.protobuf.ByteString.EMPTY;
+      private com.google.protobuf.ByteString key_ = com.google.protobuf.ByteString.EMPTY;
       /**
-       * <code>bytes keyHash = 1;</code>
+       * <pre>
+       * technically we only need to send the keyhash, but this might be more useful
+       * </pre>
+       *
+       * <code>bytes key = 1;</code>
        */
-      public com.google.protobuf.ByteString getKeyHash() {
-        return keyHash_;
+      public com.google.protobuf.ByteString getKey() {
+        return key_;
       }
       /**
-       * <code>bytes keyHash = 1;</code>
+       * <pre>
+       * technically we only need to send the keyhash, but this might be more useful
+       * </pre>
+       *
+       * <code>bytes key = 1;</code>
        */
-      public Builder setKeyHash(com.google.protobuf.ByteString value) {
+      public Builder setKey(com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   
-        keyHash_ = value;
+        key_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>bytes keyHash = 1;</code>
+       * <pre>
+       * technically we only need to send the keyhash, but this might be more useful
+       * </pre>
+       *
+       * <code>bytes key = 1;</code>
        */
-      public Builder clearKeyHash() {
+      public Builder clearKey() {
         
-        keyHash_ = getDefaultInstance().getKeyHash();
+        key_ = getDefaultInstance().getKey();
         onChanged();
         return this;
       }
@@ -3552,10 +3572,10 @@ public final class MptSerialization {
       "ion.StubH\000B\006\n\004node\"\024\n\004Stub\022\014\n\004hash\030\001 \001(\014" +
       "\"U\n\014InteriorNode\022!\n\004left\030\001 \001(\0132\023.seriali" +
       "zation.Node\022\"\n\005right\030\002 \001(\0132\023.serializati" +
-      "on.Node\"&\n\004Leaf\022\017\n\007keyHash\030\001 \001(\014\022\r\n\005valu" +
-      "e\030\002 \001(\014\":\n\025MerklePrefixTrieProof\022!\n\004root" +
-      "\030\001 \001(\0132\023.serialization.NodeB\022B\020MptSerial" +
-      "izationb\006proto3"
+      "on.Node\"\"\n\004Leaf\022\013\n\003key\030\001 \001(\014\022\r\n\005value\030\002 " +
+      "\001(\014\":\n\025MerklePrefixTrieProof\022!\n\004root\030\001 \001" +
+      "(\0132\023.serialization.NodeB\022B\020MptSerializat" +
+      "ionb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -3592,7 +3612,7 @@ public final class MptSerialization {
     internal_static_serialization_Leaf_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_serialization_Leaf_descriptor,
-        new java.lang.String[] { "KeyHash", "Value", });
+        new java.lang.String[] { "Key", "Value", });
     internal_static_serialization_MerklePrefixTrieProof_descriptor =
       getDescriptor().getMessageTypes().get(4);
     internal_static_serialization_MerklePrefixTrieProof_fieldAccessorTable = new

@@ -24,8 +24,8 @@ message Stub {
 }
 
 /**
-*	InteriorNode has left or right children,
-*	if they are not included then they are null
+*	InteriorNode has left or right children.
+*	Only non-empty children need to be included.
 */
 message InteriorNode {
 	Node left = 1;
@@ -36,7 +36,7 @@ message InteriorNode {
 *	Leaf in the tree
 */
 message Leaf{
-	bytes keyHash = 1;
+	bytes key = 1;	// technically we only need to send the keyhash, but this might be more useful
 	bytes value = 2;
 }
 
