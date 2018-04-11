@@ -2,12 +2,16 @@ syntax = "proto3";
 
 package serialization;
 
+option java_outer_classname = "MptSerialization";
 
+/**
+*	Node in the merkle prefix trie 
+*/
 message Node{
 	oneof node {
-		InteriorNode interior_node = 2;
-		Leaf leaf = 3;
-		Stub stub = 4;
+		InteriorNode interior_node = 1;
+		Leaf leaf = 2;
+		Stub stub = 3;
 	}
 }
 
@@ -36,6 +40,10 @@ message Leaf{
 	bytes value = 2;
 }
 
+/**
+*	A proof consists of a path in a 
+	merkle prefix trie.
+*/
 message MerklePrefixTrieProof{
 	Node root = 1;
 }

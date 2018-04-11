@@ -3,6 +3,7 @@ package mpt;
 import java.util.Arrays;
 
 import crpyto.CryptographicDigest;
+import serialization.MptSerialization;
 
 /**
  * IMMUTABLE
@@ -30,6 +31,26 @@ public class InteriorNode implements Node {
 		System.arraycopy(this.rightChildHash, 0, commitment, this.leftChildHash.length, this.rightChildHash.length);
 		this.hash = CryptographicDigest.digest(commitment);
 	}
+	
+	public MptSerialization.Node serialize() {
+		MptSerialization.InteriorNode.Builder builder = MptSerialization.InteriorNode.newBuilder();
+		// empty nodes are not serialized 
+		// to save space
+		if(!this.leftChild.isEmpty()) {
+			serialization.MptSerialization.Node leftChildSerialized = this.leftChild.serialize();
+			builder.setLeft(leftChildSerialized);
+		}
+		if(!this.rightChild.isEmpty()) {
+			serialization.MptSerialization.Node rightChildSerialized = this.rightChild.serialize();
+			builder.setRight(rightChildSerialized);
+		}
+		MptSerialization.Node node = MptSerialization.Node
+				.newBuilder()
+				.setInteriorNode(builder.build())
+				.build();
+		return node;
+		
+	}
 
 	@Override
 	public byte[] getValue() {
@@ -38,7 +59,7 @@ public class InteriorNode implements Node {
 
 	@Override
 	public byte[] getHash() {
-		return this.hash;
+		return this.hash.clone();
 	}
 
 	@Override
@@ -82,6 +103,11 @@ public class InteriorNode implements Node {
 			InteriorNode in = (InteriorNode) arg0;
 			return Arrays.equals(this.hash, in.hash);
 		}
+		return false;
+	}
+
+	@Override
+	public boolean isStub() {
 		return false;
 	}
 

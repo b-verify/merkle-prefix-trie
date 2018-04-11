@@ -32,7 +32,7 @@ public class EmptyLeafNode implements Node {
 
 	@Override
 	public byte[] getHash() {
-		return EmptyLeafNode.EMPTY_HASH;
+		return EmptyLeafNode.EMPTY_HASH.clone();
 	}
 
 	@Override
@@ -66,6 +66,16 @@ public class EmptyLeafNode implements Node {
 			return true;
 		}
 		return false;
+	}
+	
+	@Override 
+	public boolean isStub() {
+		return false;
+	}
+
+	@Override
+	public serialization.MptSerialization.Node serialize() {
+		throw new RuntimeException("tried to serialize an empty node - fatal error");
 	}
 	
 }

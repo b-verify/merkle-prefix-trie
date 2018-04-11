@@ -14,7 +14,6 @@ import crpyto.CryptographicDigest;
 public class MerklePrefixTrie {
 	
 	private static final Logger LOGGER = Logger.getLogger( MerklePrefixTrie.class.getName() );
-		
 	private InteriorNode root;
 	
 	/**

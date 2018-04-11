@@ -1,6 +1,10 @@
 package mpt;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -8,13 +12,41 @@ import org.junit.Test;
 public class MerklePrefixTrieTest {
 	
 	public static MerklePrefixTrie makeMerklePrefixTrie(int numberOfEntries, String salt) {
-		MerklePrefixTrie mpt = new MerklePrefixTrie();
+		return MerklePrefixTrieTest.makeMerklePrefixTrie(
+				MerklePrefixTrieTest.getKeyValuePairs(numberOfEntries, salt));
+	}
+	
+	public static List<Map.Entry<String, String>> getKeyValuePairs(int numberOfEntries, String salt){
+		List<Map.Entry<String, String>> list = new ArrayList<Map.Entry<String, String>>();
 		for(int key = 0; key < numberOfEntries; key++) {
 			String keyString = "key"+Integer.toString(key);
 			String valueString = "value"+Integer.toString(key)+salt;
-			mpt.set(keyString.getBytes(), valueString.getBytes());
+			list.add(Map.entry(keyString, valueString));
+		}
+		return list;
+	}
+	
+	public static MerklePrefixTrie makeMerklePrefixTrie(List<Map.Entry<String, String>> kvpairs) {
+		MerklePrefixTrie mpt = new MerklePrefixTrie();
+		for(Map.Entry<String, String> kvpair : kvpairs) {
+			mpt.set(kvpair.getKey().getBytes(), kvpair.getValue().getBytes());
 		}
 		return mpt;
+	}
+	
+	@Test 
+	public void testTrieInsertionsManyOrdersProduceTheSameTrie() {
+		int numberOfKeys = 10000;
+		String salt = "test";
+		List<Map.Entry<String, String>> kvpairs = MerklePrefixTrieTest.getKeyValuePairs(numberOfKeys, salt);
+		MerklePrefixTrie mptBase = MerklePrefixTrieTest.makeMerklePrefixTrie(kvpairs);
+		byte[] commitment = mptBase.getCommitment();
+		for(int iteration = 0; iteration < 10; iteration++) {
+			Collections.shuffle(kvpairs);
+			MerklePrefixTrie mpt2 = MerklePrefixTrieTest.makeMerklePrefixTrie(kvpairs);
+			byte[] commitment2 = mpt2.getCommitment();
+			Assert.assertTrue(Arrays.equals(commitment, commitment2));
+		}
 	}
 	
 	@Test

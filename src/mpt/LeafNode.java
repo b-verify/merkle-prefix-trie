@@ -2,7 +2,10 @@ package mpt;
 
 import java.util.Arrays;
 
+import com.google.protobuf.ByteString;
+
 import crpyto.CryptographicDigest;
+import serialization.MptSerialization;
 
 /**
  * IMMUTABLE
@@ -32,16 +35,26 @@ public class LeafNode implements Node {
 		this.valueHash = CryptographicDigest.digest(value);
 	}
 	
+	public MptSerialization.Node serialize(){
+		MptSerialization.Node node = MptSerialization.Node
+				.newBuilder()
+				.setLeaf(MptSerialization.Leaf.newBuilder()
+						.setKeyHash(ByteString.copyFrom(this.keyHash))
+						.setValue(ByteString.copyFrom(this.value))
+						.build())
+				.build();
+		return node;
+	}
+	
 	@Override
 	public byte[] getValue() {
-		return this.value;
+		return this.value.clone();
 	}
 		
 	@Override
 	public byte[] getHash() {
-		return this.valueHash;
+		return this.valueHash.clone();
 	}
-	
 
 	@Override
 	public Node getLeftChild() {
@@ -72,12 +85,12 @@ public class LeafNode implements Node {
 
 	@Override
 	public byte[] getKey() {
-		return this.key;
+		return this.key.clone();
 	}
 
 	@Override
 	public byte[] getKeyHash() {
-		return this.keyHash;
+		return this.keyHash.clone();
 	}
 	
 	@Override
@@ -86,6 +99,11 @@ public class LeafNode implements Node {
 			LeafNode ln = (LeafNode) arg0;
 			return Arrays.equals(this.keyHash, ln.keyHash) && Arrays.equals(this.valueHash, ln.valueHash);
 		}
+		return false;
+	}
+	
+	@Override
+	public boolean isStub() {
 		return false;
 	}
 	
