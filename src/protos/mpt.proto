@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package serialization;
+
+
+message Node{
+	oneof node {
+		InteriorNode interior_node = 2;
+		Leaf leaf = 3;
+		Stub stub = 4;
+	}
+}
+
+/**
+*	Stub is just a hash value 
+* 	(could be an InteriorNode or a Leaf)
+*/
+message Stub {
+	bytes hash = 1;
+}
+
+/**
+*	InteriorNode has left or right children,
+*	if they are not included then they are null
+*/
+message InteriorNode {
+	Node left = 1;
+	Node right = 2;
+}
+
+/**
+*	Leaf in the tree
+*/
+message Leaf{
+	bytes keyHash = 1;
+	bytes value = 2;
+}
+
+message MerklePrefixTrieProof{
+	Node root = 1;
+}

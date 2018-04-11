@@ -129,10 +129,10 @@ public class MerklePrefixTrieTest {
 		for(int key = 0; key < numberOfEntries; key++) {
 			String keyString = "key"+Integer.toString(key);
 			String valueString = "value"+Integer.toString(key)+salt;
-			System.out.println("checking key: " + keyString.getBytes()+" ("+keyString+")");
-			System.out.println("should be value: "+valueString.getBytes()+" ("+valueString+")");
+			// System.out.println("checking key: " + keyString.getBytes()+" ("+keyString+")");
+			// System.out.println("should be value: "+valueString.getBytes()+" ("+valueString+")");
 			byte[] valueBytes = mpt.get(keyString.getBytes());
-			System.out.println("value was: "+valueBytes);
+			// System.out.println("value was: "+valueBytes);
 			Assert.assertTrue(Arrays.equals(valueString.getBytes(), valueBytes));
 		}
 	}
@@ -153,10 +153,10 @@ public class MerklePrefixTrieTest {
 		for(int key = 0; key < numberOfEntries; key++) {
 			String keyString = "key"+Integer.toString(key);
 			String valueString = "value"+Integer.toString(key)+salt;
-			System.out.println("checking key: " + keyString.getBytes()+" ("+keyString+")");
-			System.out.println("should be value: "+valueString.getBytes()+" ("+valueString+")");
+			// System.out.println("checking key: " + keyString.getBytes()+" ("+keyString+")");
+			// System.out.println("should be value: "+valueString.getBytes()+" ("+valueString+")");
 			byte[] valueBytes = mpt.get(keyString.getBytes());
-			System.out.println("value was: "+valueBytes);
+			// System.out.println("value was: "+valueBytes);
 			Assert.assertTrue(Arrays.equals(valueString.getBytes(), valueBytes));
 		}
 	}
