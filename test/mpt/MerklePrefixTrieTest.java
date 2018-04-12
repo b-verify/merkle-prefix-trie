@@ -2,6 +2,8 @@ package mpt;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +13,8 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import crpyto.CryptographicDigest;
 
 public class MerklePrefixTrieTest {
 	
@@ -308,7 +312,72 @@ public class MerklePrefixTrieTest {
 	@Test
 	public void testByteArrayAsBitString() {
 		byte[] ONE = new byte[] { 1	};
+		Assert.assertEquals("00000001", MerklePrefixTrie.byteArrayAsBitString(ONE));
+		
+		byte[] TWO = new byte[] { 2 };
+		Assert.assertEquals("00000010", MerklePrefixTrie.byteArrayAsBitString(TWO));
+		
+		byte[] NINE = new byte[] { 9 };
+		Assert.assertEquals("00001001", MerklePrefixTrie.byteArrayAsBitString(NINE));
+		
+		byte[] HUNDRED = new byte[] { 100 };
+		Assert.assertEquals("01100100", MerklePrefixTrie.byteArrayAsBitString(HUNDRED));
+		
+		byte[] ONE_TWO = new byte[] {1, 2};
+		Assert.assertEquals("00000001" + "00000010", MerklePrefixTrie.byteArrayAsBitString(ONE_TWO));
 	}
+	
+	@Test
+	public void testGetBitVaried() {
+		
+		byte[] ONE_TWO = new byte[] {1, 2};
+		String binaryStr = "00000001" + "00000010";
+		int[] expected = new int[16];
+		for (int i = 0; i < 16; i++) {
+			expected[i] = Character.getNumericValue(binaryStr.charAt(i));
+		}
+		
+		
+		for (int i = 0; i < 16; i++) {
+			//System.out.println(MerklePrefixTrie.getBit(ONE_TWO, i));
+			if (expected[i] == 1) {
+				assertTrue(MerklePrefixTrie.getBit(ONE_TWO, i));
+				
+			} else if (expected[i] == 0) {
+				assertFalse(MerklePrefixTrie.getBit(ONE_TWO, i));
+				
+			} else {
+				fail("binary string contains non-binary values");
+			}
+		}
+	}
+	
+	@Test
+	public void testGetBitVariedManyBytes() {
+		
+		byte[] MANY_BYTES = new byte[] {9, 100, (byte) 200, 32};
+		String binaryStr = "00001001" + "01100100" + "11001010" + "00100000";
+		int[] expected = new int[32];
+		for (int i = 0; i < 32; i++) {
+			expected[i] = Character.getNumericValue(binaryStr.charAt(i));
+		}
+		
+		
+		for (int i = 0; i < 16; i++) {
+			System.out.println(MerklePrefixTrie.getBit(MANY_BYTES, i));
+			if (expected[i] == 1) {
+				assertTrue(MerklePrefixTrie.getBit(MANY_BYTES, i));
+				
+			} else if (expected[i] == 0) {
+				assertFalse(MerklePrefixTrie.getBit(MANY_BYTES, i));
+				
+			} else {
+				fail("binary string contains non-binary values");
+			}
+		}
+		
+	}
+	
 	
 	@Test
 	public void testCopySinglePathDepth1() {
@@ -393,16 +462,78 @@ public class MerklePrefixTrieTest {
 		MerklePrefixTrie mpt = new MerklePrefixTrie();
 		
 		//insert 10
-		byte[] first = new byte[] {2 };
+		byte[] first = new byte[] { 2 };
+		System.out.println("SETTING FIRST");
+		System.out.println(MerklePrefixTrie.byteArrayAsBitString(CryptographicDigest.digest(first)));
+		mpt.set(first, "1".getBytes());
+		System.out.println(mpt);
 		
-		//insert 0
+		
+		//insert 11
+		byte[] second = new byte[] { 3 };
+		System.out.println("SETTING SECOND");
+		System.out.println(MerklePrefixTrie.byteArrayAsBitString(CryptographicDigest.digest(second)));
+		mpt.set(second, "2".getBytes());
+		System.out.println(mpt);
+		
+		//insert 1001
+		byte[] third = new byte[] { 9 };
+		System.out.println("SETTING THIRD");
+		System.out.println(MerklePrefixTrie.byteArrayAsBitString(CryptographicDigest.digest(third)));
+		mpt.set(third, "3".getBytes());
+		System.out.println(mpt);
+		
+		
 	}
 	
 	@Test
-	public void testSetNewPrefixLongerLength() {
-		//insert 1000
+	public void testCopyPath() {
+		MerklePrefixTrie mpt = new MerklePrefixTrie();
 		
-		//insert 101
+		//insert 10
+		byte[] first = new byte[] { 2 };
+		byte[] second = new byte[] { 3 };
+		byte[] third = new byte[] { 9 };
+		mpt.set(first, "1".getBytes());
+		//System.out.println(MerklePrefixTrie.byteArrayAsBitString(CryptographicDigest.digest(second)));
+		mpt.set(second, "2".getBytes());
+		//System.out.println(mpt);
+		//System.out.println(MerklePrefixTrie.byteArrayAsBitString(CryptographicDigest.digest(third)));
+		mpt.set(third, "3".getBytes());
+		System.out.println(mpt);
+		
+		System.out.println("path to first: " + mpt.copyPath(first));
+		System.out.println("path to second: " + mpt.copyPath(second));
+		System.out.println("path to third: " + mpt.copyPath(third));
+	}
+	
+	@Test
+	public void testSetBranchFromExistingPrefix() {
+		MerklePrefixTrie mpt = new MerklePrefixTrie();
+		
+		//insert 1000
+		byte[] first = new byte[] { 8 };
+		System.out.println("SETTING FIRST");
+		System.out.println(MerklePrefixTrie.byteArrayAsBitString(CryptographicDigest.digest(first)));
+		mpt.set(first, "1".getBytes());
+		System.out.println(mpt);
+		
+		//insert 1010001
+		byte[] second = new byte[] { 81 };
+		System.out.println("SETTING SECOND");
+		System.out.println(MerklePrefixTrie.byteArrayAsBitString(CryptographicDigest.digest(second)));
+		mpt.set(second, "10".getBytes());
+		System.out.println(mpt);
+	}
+	
+	@Test
+	public void testSetExtendExistingPrefix() {
+		//insert 101011
+		
+		
+		//insert 101011110
+		
+		
 	}
 	
 	

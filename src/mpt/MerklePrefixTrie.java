@@ -67,6 +67,12 @@ public class MerklePrefixTrie {
 	 */
 	private Node insertLeafNodeAndUpdate(Node node, LeafNode nodeToAdd, int currentBitIndex, String prefix) {
 		LOGGER.log(Level.FINE, "insert and update "+prefix+" at node: "+node.toString());
+		System.out.println("inserting");
+		System.out.println("Node: " + node);
+		System.out.println("node to add: " + nodeToAdd);
+		System.out.println("curr bit index: " + currentBitIndex);
+		System.out.println("prefix: " + prefix);
+		
 		if(node.isLeaf()) {
 			// node is an empty leaf we can just replace it 
 			if(node.isEmpty()) {
@@ -78,17 +84,21 @@ public class MerklePrefixTrie {
 			}
 			// otherwise have to split
 			LeafNode ln = (LeafNode) node;
+			System.out.println("SPLITTING");
 			return this.split(ln, nodeToAdd, currentBitIndex, prefix);
 		}
+		System.out.println(MerklePrefixTrie.byteArrayAsBitString(nodeToAdd.getKeyHash()));
 		boolean bit = MerklePrefixTrie.getBit(nodeToAdd.getKeyHash(), currentBitIndex);
 		/*
 		 * Encoding: if bit is 1 -> go right 
 		 * 			 if bit is 0 -> go left
 		 */
 		if(bit) {
+			System.out.println("bit = 1");
 			Node result = this.insertLeafNodeAndUpdate(node.getRightChild(), nodeToAdd, currentBitIndex+1, prefix+"1");
 			return new InteriorNode(node.getLeftChild(), result);
 		}
+		System.out.println("bit = 0");
 		Node result = this.insertLeafNodeAndUpdate(node.getLeftChild(), nodeToAdd, currentBitIndex+1, prefix+"0");
 		return new InteriorNode(result, node.getRightChild());
 	}
@@ -280,18 +290,23 @@ public class MerklePrefixTrie {
 	 * @return Node a Node with children that form the path to a leaf in this tree
 	 */
 	private Node pathBuilder(Node currNode, byte[] key, int currIndex) {
+		System.out.println("in pathBuilder");
+		System.out.println("currNode: " + currNode);
+		System.out.println("currIndex: " + currIndex);
 		
-		
-		if (currIndex >= key.length) {
+		byte[] keyHash = CryptographicDigest.digest(key);
+		//if (currIndex >= key.length) {
+		if (currNode.isLeaf()) {
 			//base case
 			
 			//check whether destination node should be stub node or actual leaf node
 			Node end;
-			if (currNode.isLeaf()) {
-				end = new LeafNode(currNode.getKey(), currNode.getValue());
+			if (currNode.isEmpty()) {
+				//check for empty leaves
+				end = new EmptyLeafNode();
 			} else {
 				
-				end = new Stub(currNode.getHash());
+				end = new LeafNode(currNode.getKey(), currNode.getValue());
 			}
 			
 			return end;
@@ -301,15 +316,15 @@ public class MerklePrefixTrie {
 			//recursive step
 			Node childOnPath;
 			Node path;
-			boolean bit = MerklePrefixTrie.getBit(key, currIndex);
+			boolean bit = MerklePrefixTrie.getBit(keyHash, currIndex);
 			if (bit) {
 				//bit == 1 -> go right
-				childOnPath = this.pathBuilder(currNode.getRightChild(), key, currIndex + 1);
+				childOnPath = this.pathBuilder(currNode.getRightChild(), keyHash, currIndex + 1);
 				Node leftStub = new Stub(currNode.getLeftChild().getHash());
 				path = new InteriorNode(leftStub, childOnPath);
 			} else {
 				//bit == 0 -> go left
-				childOnPath = this.pathBuilder(currNode.getLeftChild(), key, currIndex + 1);
+				childOnPath = this.pathBuilder(currNode.getLeftChild(), keyHash, currIndex + 1);
 				Node rightStub = new Stub(currNode.getRightChild().getHash());
 				path = new InteriorNode(childOnPath, rightStub);
 			}
@@ -458,7 +473,11 @@ public class MerklePrefixTrie {
 	 */
 	public static boolean getBit(final byte[] bytes, int index) {
 		int byteIndex = Math.floorDiv(index, 8); 
-		int bitIndex = index % 8;
+		//int bitIndex = index % 8;
+		int bitIndex = (7 - index) % 8;
+		if (bitIndex < 0) {
+			bitIndex += 8;
+		}
 		byte b = bytes[byteIndex];
 		return MerklePrefixTrie.getBit(b, bitIndex);
 	}
