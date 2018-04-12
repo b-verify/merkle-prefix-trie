@@ -4,24 +4,39 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+
 import crpyto.CryptographicDigest;
+
+import serialization.MptSerialization;
 
 /**
  * A  Merkle Prefix Trie (MPT) 
+ * 
+ * TODO: add an interface and move the public methods and specs to the interface file
+ * 
  * @author henryaspegren
  *
  */
 public class MerklePrefixTrie {
 	
 	private static final Logger LOGGER = Logger.getLogger( MerklePrefixTrie.class.getName() );
-		
-	private InteriorNode root;
+	private Node root;
 	
 	/**
 	 * Create an empty Merkle Prefix Trie
 	 */
 	public MerklePrefixTrie() {
 		root = new InteriorNode(new EmptyLeafNode(), new EmptyLeafNode());
+	}
+	
+	/**
+	 * Create a Merkle Prefix Trie with the root. This constructor is 
+	 * private because it assumes that the internal structure of root is correct. 
+	 * This is not safe to expose to clients
+	 */
+	private MerklePrefixTrie(InteriorNode root) {
+		this.root = root;
 	}
 	
 	/**
@@ -186,7 +201,7 @@ public class MerklePrefixTrie {
 			return currentNode;
 		}
 		// we have to watch out to make sure that if this is the root node
-		// that we return an InteriorNode and don't propogate up an empty node
+		// that we return an InteriorNode and don't propagate up an empty node
 		boolean isRoot = currentNode.equals(this.root);
 		
 		boolean bit = MerklePrefixTrie.getBit(keyHash, currentBitIndex);
@@ -224,84 +239,29 @@ public class MerklePrefixTrie {
 	 * @return
 	 */
 	public byte[] getCommitment() {
-		return root.getHash();
+		return this.root.getHash();
 	}
 	
 	/**
-	 * Recursive helper function for building a path to a leaf specified by a certain key
-	 * @param currNode the node in the trie we are trying to copy from, located at the position
-	 * key[:currentIndex]
-	 * @param key - binary path to a node
-	 * @param currentIndex
-	 * @return Node a tree that contains the path to a leaf in this tree
+	 * Returns a MerklePrefixTrie that contains path to a node specified
+	 * by byte[] path to it
+	 * @param key path to a non-root node (so key cannot be empty)
+	 * @return
 	 */
-	private Node pathBuilder(Node currNode, byte[] key, int currIndex) {
-		
-		
-		if (currNode.isLeaf()) {
-			//base case
-			
-			//TODO return a separate copy object of currNode, not currNode itself
-			return currNode;
-		} else {
-			
-			//recursive
-			Node childOnPath;
-			Node result;
-			boolean bit = MerklePrefixTrie.getBit(key, currIndex);
-			if (bit) {
-				//bit == 1 -> go right
-				childOnPath = this.pathBuilder(currNode.getRightChild(), key, currIndex + 1);
-				//TODO here, currNode's left child must be truncated - we must create a copy of this node without
-				//its children
-				result = new InteriorNode(currNode.getLeftChild(), childOnPath);
-			} else {
-				//bit == 0 -> go left
-				childOnPath = this.pathBuilder(currNode.getLeftChild(), key, currIndex + 1);
-				result = new InteriorNode(childOnPath, currNode.getRightChild());
-			}
-			
-			return result;
-		}
-		
-		
-	}
-	
 	public MerklePrefixTrie copyPath(byte[] key) {
 		
 		MerklePrefixTrie copy = new MerklePrefixTrie();
 		
 		//check whether key is nonempty
 		if (key.length == 0) {
-			//empty key, return empty tree
+			//return empty tree for empty key
 			return copy;
 		}
 		
 		
-		InteriorNode newRoot = new InteriorNode(new EmptyLeafNode(), new EmptyLeafNode());
+		int currBitIndex = 0;
+		Node newRoot = this.pathBuilder(this.root, key, currBitIndex);
 		
-		int currentBitIndex = 0;
-		
-		Node currNode = newRoot;
-		//traverse through tree, add both children of nodes in the actual backbone of path
-		while (! currNode.isLeaf()) {
-			
-			//add self
-			
-			
-			//add correct child on path
-			boolean bit = MerklePrefixTrie.getBit(key, currentBitIndex);
-			if (bit) {
-				//bit == 1 -> go right
-				
-				
-				
-			} else {
-				//bit == 0 -> go left
-				
-			}
-			
-		}
 		
 		copy.forceAddRoot(newRoot);
 		
@@ -311,11 +271,148 @@ public class MerklePrefixTrie {
 		
 	}
 	
-	private void forceAddRoot(InteriorNode root) {
+	/**
+	 * Recursive helper function for building a path to a leaf specified by a certain key
+	 * @param currNode the node in the trie we are trying to copy from, located at the position
+	 * key[:currentIndex]
+	 * @param key - binary path to a leaf
+	 * @param currentIndex int s.t. path to currNode from root is key[:currIndex]
+	 * @return Node a Node with children that form the path to a leaf in this tree
+	 */
+	private Node pathBuilder(Node currNode, byte[] key, int currIndex) {
+		
+		
+		if (currIndex >= key.length) {
+			//base case
+			
+			//check whether destination node should be stub node or actual leaf node
+			Node end;
+			if (currNode.isLeaf()) {
+				end = new LeafNode(currNode.getKey(), currNode.getValue());
+			} else {
+				
+				end = new Stub(currNode.getHash());
+			}
+			
+			return end;
+			
+		} else {
+			
+			//recursive step
+			Node childOnPath;
+			Node path;
+			boolean bit = MerklePrefixTrie.getBit(key, currIndex);
+			if (bit) {
+				//bit == 1 -> go right
+				childOnPath = this.pathBuilder(currNode.getRightChild(), key, currIndex + 1);
+				Node leftStub = new Stub(currNode.getLeftChild().getHash());
+				path = new InteriorNode(leftStub, childOnPath);
+			} else {
+				//bit == 0 -> go left
+				childOnPath = this.pathBuilder(currNode.getLeftChild(), key, currIndex + 1);
+				Node rightStub = new Stub(currNode.getRightChild().getHash());
+				path = new InteriorNode(childOnPath, rightStub);
+			}
+			
+			return path;
+		}
+		
+		
+	}
+	
+	private void forceAddRoot(Node root) {
 		this.root = root;
 		
 	}
 	
+	
+	
+	/**
+	 * Efficiently serializes this MPT. The serialization
+	 * contains the minimal set of information required to reconstruct 
+	 * and authenticate this MPT when deserialized on the client.
+	 * @return
+	 */
+	public byte[] serialize() {
+		MptSerialization.Node rootSerialization = this.root.serialize();
+		MptSerialization.MerklePrefixTrieProof.Builder builder = 
+				MptSerialization.MerklePrefixTrieProof.newBuilder();
+		builder.setRoot(rootSerialization);
+		return builder.build().toByteArray();
+	}
+	
+	/**
+	 * Parses a serialized MPT from raw bytes. Throws an 
+	 * InvalidMPTSerialization if the tree cannot be deserialized properly
+	 * @param asbytes
+	 * @return
+	 * @throws InvalidMPTSerialization
+	 */
+	public static MerklePrefixTrie deserialize(byte[] asbytes) throws 
+		InvalidMPTSerialization	{
+		MptSerialization.MerklePrefixTrieProof mptProof;
+		try {
+			mptProof = MptSerialization.MerklePrefixTrieProof.parseFrom(asbytes);
+		}catch(InvalidProtocolBufferException e) {
+			throw new InvalidMPTSerialization(e.getMessage());
+		}
+		if(!mptProof.hasRoot()) {
+			throw new InvalidMPTSerialization("no root included");
+		}
+		Node root = MerklePrefixTrie.parseNode(mptProof.getRoot());
+		if(! ( root instanceof InteriorNode )) {
+			throw new InvalidMPTSerialization("root is not an interior node!");
+		}
+		InteriorNode rootInt = (InteriorNode) root;
+		return new MerklePrefixTrie(rootInt);
+	}
+	
+	/**
+	 * Helper function with recursively parses the individual serialized 
+	 * nodes into MerklePrefixTrie nodes according to the mpt.proto format.
+	 * Throws InvalidMPTSerialization if a node is not correctly formatted
+	 * and cannot be parsed
+	 * @param nodeSerialization
+	 * @return
+	 * @throws InvalidMPTSerialization
+	 */
+	private static Node parseNode(MptSerialization.Node nodeSerialization) throws 
+		InvalidMPTSerialization {
+		switch(nodeSerialization.getNodeCase()) {
+		case INTERIOR_NODE :
+			MptSerialization.InteriorNode in = nodeSerialization.getInteriorNode();
+			Node left, right;
+			/*
+			 * If an interior node child is not present, we assume it is an empty child
+			 */
+			if(!in.hasLeft()) {
+				left = new EmptyLeafNode();
+			}else {
+				left = MerklePrefixTrie.parseNode(in.getLeft());
+			}
+			if(!in.hasRight()) {
+				right = new EmptyLeafNode();
+			}else {
+				right = MerklePrefixTrie.parseNode(in.getRight());
+			}
+			return new InteriorNode(left, right);
+		case STUB :
+			MptSerialization.Stub stub = nodeSerialization.getStub();
+			if(stub.getHash().isEmpty()) {
+				throw new InvalidMPTSerialization("stub doesn't have a hash");
+			}
+			return new Stub(stub.getHash().toByteArray());
+		case LEAF : 
+			MptSerialization.Leaf leaf = nodeSerialization.getLeaf();
+			if(leaf.getKey().isEmpty() || leaf.getValue().isEmpty()) {
+				throw new InvalidMPTSerialization("leaf doesn't have required keyhash and value");
+			}
+			return new LeafNode(leaf.getKey().toByteArray(), leaf.getValue().toByteArray());
+		case NODE_NOT_SET : 
+			throw new InvalidMPTSerialization("no node included - fatal error");
+		}
+		return null;
+	}
 	
 	
 	@Override
@@ -325,13 +422,31 @@ public class MerklePrefixTrie {
 	
 	private String toStringHelper(String prefix, Node node) {
 		String result = prefix+" "+node.toString();
-		if(!node.isLeaf()) {
+		if(!node.isLeaf() && !node.isStub()) {
+			//System.out.println("curr node: "+node);
+			//System.out.println("is leaf: " + node.isLeaf());
+			//System.out.println("is stub: " + node.isStub());
 			String left = this.toStringHelper(prefix+"0", node.getLeftChild());
 			String right = this.toStringHelper(prefix+"1", node.getRightChild());
 			result = result+"\n"+left+"\n"+right;
 		}
 		return result;
 	}
+	
+	/**
+	 * Two MPTs are equal if they are STRUCTURALLY IDENTICAL which means
+	 * two trees are equal if the contain identical nodes arranged in the
+	 * same way.
+	 */
+	@Override
+	public boolean equals(Object other) {
+		if(other instanceof MerklePrefixTrie) {
+			MerklePrefixTrie othermpt = (MerklePrefixTrie) other;
+			return this.root.equals(othermpt.root);
+		}
+		return false;
+	}
+	
 
 	/**
 	 * Get the bit at index in a byte array. 
@@ -384,7 +499,8 @@ public class MerklePrefixTrie {
 	public static String byteArrayAsBitString(final byte[] bytes) {
 		String bitString = "";
 		for(byte b: bytes) {
-			for(int bitIndex = 0; bitIndex < 8; bitIndex++) {
+			//for(int bitIndex = 0; bitIndex < 8; bitIndex++) {
+			for (int bitIndex = 7; bitIndex >= 0; bitIndex--) {
 				if(MerklePrefixTrie.getBit(b, bitIndex)) {
 					bitString += "1";
 				}else {
@@ -395,6 +511,11 @@ public class MerklePrefixTrie {
 		return bitString;
 	}
 	
+	/**
+	 * Print a byte array as a human readable hex string
+	 * @param raw
+	 * @return
+	 */
 	public static String byteArrayAsHexString(final byte[] raw) {
 	    final StringBuilder hex = new StringBuilder(2 * raw.length);
 	    for (final byte b : raw) {

@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package serialization;
+
+option java_outer_classname = "MptSerialization";
+
+/**
+*	Node in the merkle prefix trie 
+*/
+message Node{
+	oneof node {
+		InteriorNode interior_node = 1;
+		Leaf leaf = 2;
+		Stub stub = 3;
+	}
+}
+
+/**
+*	Stub is just a hash value 
+* 	(could be an InteriorNode or a Leaf)
+*/
+message Stub {
+	bytes hash = 1;
+}
+
+/**
+*	InteriorNode has left or right children.
+*	Only non-empty children need to be included.
+*/
+message InteriorNode {
+	Node left = 1;
+	Node right = 2;
+}
+
+/**
+*	Leaf in the tree
+*/
+message Leaf{
+	bytes key = 1;	// technically we only need to send the keyhash, but this might be more useful
+	bytes value = 2;
+}
+
+/**
+*	A proof consists of a path in a 
+	merkle prefix trie.
+*/
+message MerklePrefixTrieProof{
+	Node root = 1;
+}

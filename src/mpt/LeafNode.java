@@ -2,7 +2,10 @@ package mpt;
 
 import java.util.Arrays;
 
+import com.google.protobuf.ByteString;
+
 import crpyto.CryptographicDigest;
+import serialization.MptSerialization;
 
 /**
  * IMMUTABLE
@@ -31,17 +34,27 @@ public class LeafNode implements Node {
 		this.value = value;
 		this.valueHash = CryptographicDigest.digest(value);
 	}
+		
+	public MptSerialization.Node serialize(){
+		MptSerialization.Node node = MptSerialization.Node
+				.newBuilder()
+				.setLeaf(MptSerialization.Leaf.newBuilder()
+						.setKey(ByteString.copyFrom(this.key))
+						.setValue(ByteString.copyFrom(this.value))
+						.build())
+				.build();
+		return node;
+	}
 	
 	@Override
 	public byte[] getValue() {
-		return this.value;
+		return this.value.clone();
 	}
 		
 	@Override
 	public byte[] getHash() {
-		return this.valueHash;
+		return this.valueHash.clone();
 	}
-	
 
 	@Override
 	public Node getLeftChild() {
@@ -65,27 +78,36 @@ public class LeafNode implements Node {
 		
 	@Override
 	public String toString() {
-		return new String("<Leaf K: "+MerklePrefixTrie.byteArrayAsHexString(this.key)+
-				" V: "+MerklePrefixTrie.byteArrayAsHexString(this.value)
+		return new String("<Leaf K: "+ MerklePrefixTrie.byteArrayAsHexString(this.key) +
+				" V: "+ MerklePrefixTrie.byteArrayAsHexString(this.value) + 
+				" Hash: " + MerklePrefixTrie.byteArrayAsHexString(this.getHash())
 				+">");
 	}
 
 	@Override
 	public byte[] getKey() {
-		return this.key;
+		return this.key.clone();
 	}
 
 	@Override
 	public byte[] getKeyHash() {
-		return this.keyHash;
+		return this.keyHash.clone();
 	}
 	
 	@Override
 	public boolean equals(Object arg0) {
 		if(arg0 instanceof LeafNode) {
 			LeafNode ln = (LeafNode) arg0;
-			return Arrays.equals(this.keyHash, ln.keyHash) && Arrays.equals(this.valueHash, ln.valueHash);
+			// practically speaking it would be sufficient to just check the hashes
+			// since we are using collision resistant hash functions 
+			return Arrays.equals(this.key, ln.key) && Arrays.equals(this.value, ln.value) &&
+					Arrays.equals(this.keyHash, ln.keyHash) && Arrays.equals(this.valueHash, ln.valueHash);
 		}
+		return false;
+	}
+	
+	@Override
+	public boolean isStub() {
 		return false;
 	}
 	

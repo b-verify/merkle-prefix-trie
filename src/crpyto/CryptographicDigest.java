@@ -34,6 +34,5 @@ public class CryptographicDigest {
 	public static String getHashFunction() {
 		return HASH_FUNCTION;
 	}
-	
-	
+		
 }

@@ -1,18 +1,23 @@
 package mpt;
 
-import java.util.Arrays;
-
 import crpyto.CryptographicDigest;
+import serialization.MptSerialization;
 
 /**
  * IMMUTABLE
  * 
+ * Represents an interior node in the MPT. An interior node has 
+ * two children, a left child and right child. Interior nodes do not store 
+ * keys or values. The hash of the interior node is H(left.getHash()||right.getHash())
+ * where left.getHash() (resp. right.getHash()) is the hash of the left (resp right) 
+ * child.
  * @author henryaspegren
  *
  */
 public class InteriorNode implements Node {
 	
 	private final byte[] hash;
+	
 	private final Node leftChild;
 	private final byte[] leftChildHash;
 	private final Node rightChild;
@@ -30,7 +35,27 @@ public class InteriorNode implements Node {
 		System.arraycopy(this.rightChildHash, 0, commitment, this.leftChildHash.length, this.rightChildHash.length);
 		this.hash = CryptographicDigest.digest(commitment);
 	}
-
+	
+	public MptSerialization.Node serialize() {
+		MptSerialization.InteriorNode.Builder builder = MptSerialization.InteriorNode.newBuilder();
+		// empty nodes are not serialized 
+		// to save space
+		if(!this.leftChild.isEmpty()) {
+			serialization.MptSerialization.Node leftChildSerialized = this.leftChild.serialize();
+			builder.setLeft(leftChildSerialized);
+		}
+		if(!this.rightChild.isEmpty()) {
+			serialization.MptSerialization.Node rightChildSerialized = this.rightChild.serialize();
+			builder.setRight(rightChildSerialized);
+		}
+		MptSerialization.Node node = MptSerialization.Node
+				.newBuilder()
+				.setInteriorNode(builder.build())
+				.build();
+		return node;
+		
+	}
+	
 	@Override
 	public byte[] getValue() {
 		return null;
@@ -38,7 +63,7 @@ public class InteriorNode implements Node {
 
 	@Override
 	public byte[] getHash() {
-		return this.hash;
+		return this.hash.clone();
 	}
 
 	@Override
@@ -80,8 +105,15 @@ public class InteriorNode implements Node {
 	public boolean equals(Object arg0) {
 		if (arg0 instanceof InteriorNode) {
 			InteriorNode in = (InteriorNode) arg0;
-			return Arrays.equals(this.hash, in.hash);
+			boolean leftEquals = this.leftChild.equals(in.leftChild);
+			boolean rightEquals = this.rightChild.equals(in.rightChild);
+			return leftEquals && rightEquals;
 		}
+		return false;
+	}
+
+	@Override
+	public boolean isStub() {
 		return false;
 	}
 
