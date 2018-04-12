@@ -8,8 +8,13 @@ import com.google.protobuf.InvalidProtocolBufferException;
 
 import crpyto.CryptographicDigest;
 
+import serialization.MptSerialization;
+
 /**
  * A  Merkle Prefix Trie (MPT) 
+ * 
+ * TODO: add an interface and move the public methods and specs to the interface file
+ * 
  * @author henryaspegren
  *
  */
@@ -244,15 +249,25 @@ public class MerklePrefixTrie {
 	 * @return
 	 */
 	public byte[] serialize() {
-		return this.root.serialize().toByteArray();
+		MptSerialization.Node rootSerialization = this.root.serialize();
+		MptSerialization.MerklePrefixTrieProof.Builder builder = 
+				MptSerialization.MerklePrefixTrieProof.newBuilder();
+		builder.setRoot(rootSerialization);
+		return builder.build().toByteArray();
 	}
 	
-	
+	/**
+	 * Parses a serialized MPT from raw bytes. Throws an 
+	 * InvalidMPTSerialization if the tree cannot be deserialized properly
+	 * @param asbytes
+	 * @return
+	 * @throws InvalidMPTSerialization
+	 */
 	public static MerklePrefixTrie deserialize(byte[] asbytes) throws 
 		InvalidMPTSerialization	{
-		serialization.MptSerialization.MerklePrefixTrieProof mptProof;
+		MptSerialization.MerklePrefixTrieProof mptProof;
 		try {
-			mptProof = serialization.MptSerialization.MerklePrefixTrieProof.parseFrom(asbytes);
+			mptProof = MptSerialization.MerklePrefixTrieProof.parseFrom(asbytes);
 		}catch(InvalidProtocolBufferException e) {
 			throw new InvalidMPTSerialization(e.getMessage());
 		}
@@ -267,11 +282,20 @@ public class MerklePrefixTrie {
 		return new MerklePrefixTrie(rootInt);
 	}
 	
-	private static Node parseNode(serialization.MptSerialization.Node nodeSerialization) throws 
+	/**
+	 * Helper function with recursively parses the individual serialized 
+	 * nodes into MerklePrefixTrie nodes according to the mpt.proto format.
+	 * Throws InvalidMPTSerialization if a node is not correctly formatted
+	 * and cannot be parsed
+	 * @param nodeSerialization
+	 * @return
+	 * @throws InvalidMPTSerialization
+	 */
+	private static Node parseNode(MptSerialization.Node nodeSerialization) throws 
 		InvalidMPTSerialization {
 		switch(nodeSerialization.getNodeCase()) {
 		case INTERIOR_NODE :
-			serialization.MptSerialization.InteriorNode in = nodeSerialization.getInteriorNode();
+			MptSerialization.InteriorNode in = nodeSerialization.getInteriorNode();
 			Node left, right;
 			/*
 			 * If an interior node child is not present, we assume it is an empty child
@@ -288,13 +312,13 @@ public class MerklePrefixTrie {
 			}
 			return new InteriorNode(left, right);
 		case STUB :
-			serialization.MptSerialization.Stub stub = nodeSerialization.getStub();
+			MptSerialization.Stub stub = nodeSerialization.getStub();
 			if(stub.getHash().isEmpty()) {
 				throw new InvalidMPTSerialization("stub doesn't have a hash");
 			}
 			return new Stub(stub.getHash().toByteArray());
 		case LEAF : 
-			serialization.MptSerialization.Leaf leaf = nodeSerialization.getLeaf();
+			MptSerialization.Leaf leaf = nodeSerialization.getLeaf();
 			if(leaf.getKey().isEmpty() || leaf.getValue().isEmpty()) {
 				throw new InvalidMPTSerialization("leaf doesn't have required keyhash and value");
 			}
@@ -311,6 +335,16 @@ public class MerklePrefixTrie {
 		return this.toStringHelper("+", this.root);
 	}
 	
+	private String toStringHelper(String prefix, Node node) {
+		String result = prefix+" "+node.toString();
+		if(!node.isLeaf()) {
+			String left = this.toStringHelper(prefix+"0", node.getLeftChild());
+			String right = this.toStringHelper(prefix+"1", node.getRightChild());
+			result = result+"\n"+left+"\n"+right;
+		}
+		return result;
+	}
+	
 	/**
 	 * Two MPTs are equal if they are STRUCTURALLY IDENTICAL which means
 	 * two trees are equal if the contain identical nodes arranged in the
@@ -325,15 +359,6 @@ public class MerklePrefixTrie {
 		return false;
 	}
 	
-	private String toStringHelper(String prefix, Node node) {
-		String result = prefix+" "+node.toString();
-		if(!node.isLeaf()) {
-			String left = this.toStringHelper(prefix+"0", node.getLeftChild());
-			String right = this.toStringHelper(prefix+"1", node.getRightChild());
-			result = result+"\n"+left+"\n"+right;
-		}
-		return result;
-	}
 
 	/**
 	 * Get the bit at index in a byte array. 

@@ -2,6 +2,15 @@ package mpt;
 
 import com.google.protobuf.ByteString;
 
+/**
+ * IMMUTABLE
+ * 
+ * A stub represents an omitted path in a MPT. Stubs only store a 
+ * hash commitment to that subtree. These can be used to construct proofs and
+ * can be swapped out for actual subtrees which match the hash
+ * @author henryaspegren
+ *
+ */
 public class Stub implements Node {
 	
 	private final byte[] hash;

@@ -6,6 +6,11 @@ import serialization.MptSerialization;
 /**
  * IMMUTABLE
  * 
+ * Represents an interior node in the MPT. An interior node has 
+ * two children, a left child and right child. Interior nodes do not store 
+ * keys or values. The hash of the interior node is H(left.getHash()||right.getHash())
+ * where left.getHash() (resp. right.getHash()) is the hash of the left (resp right) 
+ * child.
  * @author henryaspegren
  *
  */

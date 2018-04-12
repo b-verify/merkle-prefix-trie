@@ -1,7 +1,9 @@
 package mpt;
 
+import serialization.MptSerialization;
+
 /**
- * 
+ * Nodes are IMMUTABLE
  * @author henryaspegren
  *
  */
@@ -25,6 +27,6 @@ public interface Node {
 		
 	Node getRightChild();
 	
-	serialization.MptSerialization.Node serialize();
+	MptSerialization.Node serialize();
 		
 }

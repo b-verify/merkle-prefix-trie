@@ -3,7 +3,9 @@ package mpt;
 import crpyto.CryptographicDigest;
 
 /**
- * 
+ * This class represents an empty leaf in the tree. Empty leaves 
+ * do not have associated values and use the special marker
+ * hash of all 0s. 
  * @author henryaspegren
  *
  */

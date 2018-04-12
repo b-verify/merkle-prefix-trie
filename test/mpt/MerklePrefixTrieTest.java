@@ -36,12 +36,13 @@ public class MerklePrefixTrieTest {
 	
 	@Test 
 	public void testTrieInsertionsManyOrdersProduceTheSameTrie() {
-		int numberOfKeys = 10000;
+		int numberOfKeys = 1000;
+		int numberOfShuffles = 10;
 		String salt = "test";
 		List<Map.Entry<String, String>> kvpairs = MerklePrefixTrieTest.getKeyValuePairs(numberOfKeys, salt);
 		MerklePrefixTrie mptBase = MerklePrefixTrieTest.makeMerklePrefixTrie(kvpairs);
 		byte[] commitment = mptBase.getCommitment();
-		for(int iteration = 0; iteration < 10; iteration++) {
+		for(int iteration = 0; iteration <  numberOfShuffles; iteration++) {
 			Collections.shuffle(kvpairs);
 			MerklePrefixTrie mpt2 = MerklePrefixTrieTest.makeMerklePrefixTrie(kvpairs);
 			byte[] commitment2 = mpt2.getCommitment();
@@ -155,7 +156,7 @@ public class MerklePrefixTrieTest {
 	
 	@Test
 	public void testTrieInsertionsGet() {
-		int numberOfEntries = 10000;
+		int numberOfEntries = 1000;
 		String salt = "";
 		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(numberOfEntries, salt);
 		for(int key = 0; key < numberOfEntries; key++) {
@@ -171,7 +172,7 @@ public class MerklePrefixTrieTest {
 	
 	@Test 
 	public void testTrieMultipleInsertionsGetMostRecentValue() {
-		int numberOfEntries = 10000;
+		int numberOfEntries = 1000;
 		String salt = "";
 		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(numberOfEntries, salt);
 		salt = "modified";
@@ -195,7 +196,7 @@ public class MerklePrefixTrieTest {
 	
 	@Test
 	public void testTrieInsertionsAgainReturnFalse() {
-		int numberOfEntries = 10000;
+		int numberOfEntries = 1000;
 		String salt = "";
 		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(numberOfEntries, salt);
 		for(int key = 0; key < numberOfEntries; key++) {
@@ -208,28 +209,58 @@ public class MerklePrefixTrieTest {
 	
 	@Test
 	public void testTrieDeletions() {
-		int numberOfEntries = 10000;
+		int numberOfEntries = 1000;
 		String salt = "";
 		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(numberOfEntries, salt);
 		for(int key = 0; key < numberOfEntries; key++) {
 			String keyString = "key"+Integer.toString(key);
 			String valueString = "value"+Integer.toString(key)+salt;
 			Assert.assertTrue(Arrays.equals(mpt.get(keyString.getBytes()), valueString.getBytes()));
-			if(key > 4999) {
+			if(key > 499) {
 				Assert.assertTrue(mpt.deleteKey(keyString.getBytes()));				
 			}
 		}
 		for(int key = 0; key < numberOfEntries; key++) {
 			String keyString = "key"+Integer.toString(key);
 			String valueString = "value"+Integer.toString(key)+salt;
-			if (key > 4999) {
+			if (key > 499) {
 				Assert.assertEquals(null, mpt.get(keyString.getBytes()));			
 			}else {
 				Assert.assertTrue(Arrays.equals(mpt.get(keyString.getBytes()), valueString.getBytes()));
 			}
 		}
-		MerklePrefixTrie mpt2 = MerklePrefixTrieTest.makeMerklePrefixTrie(5000, salt);
+		MerklePrefixTrie mpt2 = MerklePrefixTrieTest.makeMerklePrefixTrie(500, salt);
 		Assert.assertTrue(Arrays.equals(mpt.getCommitment(), mpt2.getCommitment()));
+	}
+	
+	@Test
+	public void testTrieSerializationFullTrie() {
+		List<Map.Entry<String, String>> kvpairs = MerklePrefixTrieTest.getKeyValuePairs(1000, "test");
+		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(kvpairs);
+		byte[] asbytes = mpt.serialize();
+		try {
+			MerklePrefixTrie mptFromBytes = MerklePrefixTrie.deserialize(asbytes);
+			Assert.assertTrue(mptFromBytes.equals(mpt));
+		}catch(Exception e) {
+			Assert.fail(e.getMessage());
+		}
+		
+	}
+	
+	@Test
+	public void testEqualityBasic() {
+		List<Map.Entry<String, String>> kvpairs = MerklePrefixTrieTest.getKeyValuePairs(1000, "test");
+		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(kvpairs);
+		MerklePrefixTrie mpt2 = MerklePrefixTrieTest.makeMerklePrefixTrie(kvpairs);
+		MerklePrefixTrie mpt3 = MerklePrefixTrieTest.makeMerklePrefixTrie(kvpairs.subList(0, 500));
+		Assert.assertTrue(mpt.equals(mpt2));
+		Assert.assertFalse(mpt.equals(mpt3));
+	}
+	
+	@Test
+	public void testEqualitySymmetric() {
+		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(1000, "some salt changes the hash");
+		Assert.assertTrue(mpt.equals(mpt));
 	}
 	
 	@Test 
