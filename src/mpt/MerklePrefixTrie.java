@@ -27,7 +27,7 @@ public class MerklePrefixTrie {
 	 * Create an empty Merkle Prefix Trie
 	 */
 	public MerklePrefixTrie() {
-		root = new InteriorNode(new EmptyLeafNode(), new EmptyLeafNode());
+		this.root = new InteriorNode(new EmptyLeafNode(), new EmptyLeafNode());
 	}
 	
 	/**
@@ -327,6 +327,35 @@ public class MerklePrefixTrie {
 			throw new InvalidMPTSerializationException("no node included - fatal error");
 		}
 		return null;
+	}
+	
+	/**
+	 * Returns the height of the tree. Height is defined 
+	 * as the maximum possible distance from the leaf to the root node
+	 * (TODO: I'm not sure this should be a public method - only really 
+	 *  useful for benchmarking purposes)
+	 * @return
+	 * @throws IncompleteMPTException
+	 */
+	public int getMaxHeight() throws IncompleteMPTException{
+		return this.getHeightRecursive(this.root);
+	}
+		
+	private int getHeightRecursive(Node currentLocation) throws IncompleteMPTException {
+		// if we encounter a stub we do not have the entire tree
+		// so we cannot determine the height
+		if (currentLocation.isStub()) {
+			throw new IncompleteMPTException("stub encountered - cannot determine height of tree");
+		}
+		// each leaf is at height zero
+		if (currentLocation.isLeaf()) {
+			return 0;
+		}
+		// otherwise we are at an interior node - height is maximum of 
+		// the height of the children plus 1
+		return Math.max(
+				this.getHeightRecursive(currentLocation.getLeftChild()), 
+				this.getHeightRecursive(currentLocation.getRightChild())) + 1;
 	}
 	
 	
