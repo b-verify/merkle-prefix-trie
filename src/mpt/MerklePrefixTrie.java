@@ -264,19 +264,19 @@ public class MerklePrefixTrie {
 	 * @throws InvalidMPTSerialization
 	 */
 	public static MerklePrefixTrie deserialize(byte[] asbytes) throws 
-		InvalidMPTSerialization	{
+	InvalidMPTSerializationException	{
 		MptSerialization.MerklePrefixTrieProof mptProof;
 		try {
 			mptProof = MptSerialization.MerklePrefixTrieProof.parseFrom(asbytes);
 		}catch(InvalidProtocolBufferException e) {
-			throw new InvalidMPTSerialization(e.getMessage());
+			throw new InvalidMPTSerializationException(e.getMessage());
 		}
 		if(!mptProof.hasRoot()) {
-			throw new InvalidMPTSerialization("no root included");
+			throw new InvalidMPTSerializationException("no root included");
 		}
 		Node root = MerklePrefixTrie.parseNode(mptProof.getRoot());
 		if(! ( root instanceof InteriorNode )) {
-			throw new InvalidMPTSerialization("root is not an interior node!");
+			throw new InvalidMPTSerializationException("root is not an interior node!");
 		}
 		InteriorNode rootInt = (InteriorNode) root;
 		return new MerklePrefixTrie(rootInt);
@@ -292,7 +292,7 @@ public class MerklePrefixTrie {
 	 * @throws InvalidMPTSerialization
 	 */
 	private static Node parseNode(MptSerialization.Node nodeSerialization) throws 
-		InvalidMPTSerialization {
+	InvalidMPTSerializationException {
 		switch(nodeSerialization.getNodeCase()) {
 		case INTERIOR_NODE :
 			MptSerialization.InteriorNode in = nodeSerialization.getInteriorNode();
@@ -314,17 +314,17 @@ public class MerklePrefixTrie {
 		case STUB :
 			MptSerialization.Stub stub = nodeSerialization.getStub();
 			if(stub.getHash().isEmpty()) {
-				throw new InvalidMPTSerialization("stub doesn't have a hash");
+				throw new InvalidMPTSerializationException("stub doesn't have a hash");
 			}
 			return new Stub(stub.getHash().toByteArray());
 		case LEAF : 
 			MptSerialization.Leaf leaf = nodeSerialization.getLeaf();
 			if(leaf.getKey().isEmpty() || leaf.getValue().isEmpty()) {
-				throw new InvalidMPTSerialization("leaf doesn't have required keyhash and value");
+				throw new InvalidMPTSerializationException("leaf doesn't have required keyhash and value");
 			}
 			return new LeafNode(leaf.getKey().toByteArray(), leaf.getValue().toByteArray());
 		case NODE_NOT_SET : 
-			throw new InvalidMPTSerialization("no node included - fatal error");
+			throw new InvalidMPTSerializationException("no node included - fatal error");
 		}
 		return null;
 	}

@@ -11,3 +11,4 @@ This is a full implementation of Merkle Prefix Tries that tries to exploit effic
 
 ### Test
 `$mvn test`
+(I've made the test cases smaller to reduce time to run the tests - on my Macbook they run in ~17 seconds)
