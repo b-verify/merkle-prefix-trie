@@ -48,7 +48,7 @@ public class MerklePrefixTrie {
 	 * @param nodeToAdd - LeafNode node we want to add 
 	 * @param currentBitIndex - the bit index in the prefix trie
 	 * @param prefix - the current bit prefix 
-	 * @return
+	 * @return updated version of 'node' (i.e. location in tree)
 	 */
 	private Node insertLeafNodeAndUpdate(Node node, LeafNode nodeToAdd, int currentBitIndex, String prefix) {
 		LOGGER.log(Level.FINE, "insert and update "+prefix+" at node: "+node.toString());
@@ -227,6 +227,97 @@ public class MerklePrefixTrie {
 		return root.getHash();
 	}
 	
+	/**
+	 * Recursive helper function for building a path to a leaf specified by a certain key
+	 * @param currNode the node in the trie we are trying to copy from, located at the position
+	 * key[:currentIndex]
+	 * @param key - binary path to a node
+	 * @param currentIndex
+	 * @return Node a tree that contains the path to a leaf in this tree
+	 */
+	private Node pathBuilder(Node currNode, byte[] key, int currIndex) {
+		
+		
+		if (currNode.isLeaf()) {
+			//base case
+			
+			//TODO return a separate copy object of currNode, not currNode itself
+			return currNode;
+		} else {
+			
+			//recursive
+			Node childOnPath;
+			Node result;
+			boolean bit = MerklePrefixTrie.getBit(key, currIndex);
+			if (bit) {
+				//bit == 1 -> go right
+				childOnPath = this.pathBuilder(currNode.getRightChild(), key, currIndex + 1);
+				//TODO here, currNode's left child must be truncated - we must create a copy of this node without
+				//its children
+				result = new InteriorNode(currNode.getLeftChild(), childOnPath);
+			} else {
+				//bit == 0 -> go left
+				childOnPath = this.pathBuilder(currNode.getLeftChild(), key, currIndex + 1);
+				result = new InteriorNode(childOnPath, currNode.getRightChild());
+			}
+			
+			return result;
+		}
+		
+		
+	}
+	
+	public MerklePrefixTrie copyPath(byte[] key) {
+		
+		MerklePrefixTrie copy = new MerklePrefixTrie();
+		
+		//check whether key is nonempty
+		if (key.length == 0) {
+			//empty key, return empty tree
+			return copy;
+		}
+		
+		
+		InteriorNode newRoot = new InteriorNode(new EmptyLeafNode(), new EmptyLeafNode());
+		
+		int currentBitIndex = 0;
+		
+		Node currNode = newRoot;
+		//traverse through tree, add both children of nodes in the actual backbone of path
+		while (! currNode.isLeaf()) {
+			
+			//add self
+			
+			
+			//add correct child on path
+			boolean bit = MerklePrefixTrie.getBit(key, currentBitIndex);
+			if (bit) {
+				//bit == 1 -> go right
+				
+				
+				
+			} else {
+				//bit == 0 -> go left
+				
+			}
+			
+		}
+		
+		copy.forceAddRoot(newRoot);
+		
+		
+		
+		return copy;
+		
+	}
+	
+	private void forceAddRoot(InteriorNode root) {
+		this.root = root;
+		
+	}
+	
+	
+	
 	@Override
 	public String toString() {
 		return this.toStringHelper("+", this.root);
@@ -286,7 +377,7 @@ public class MerklePrefixTrie {
 	}
 	
 	/**
-	 * Print an array of bytes as string of bits
+	 * Return an array of bytes as string of bits
 	 * @param bytes
 	 * @return
 	 */

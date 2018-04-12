@@ -221,4 +221,9 @@ public class MerklePrefixTrieTest {
 
 	}
 	
+	@Test
+	public void testSinglePath() {
+		
+	}
+	
 }
