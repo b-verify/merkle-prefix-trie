@@ -64,7 +64,7 @@ public class SerializationSizeBenchmark {
 						.setLeft(stubA)
 						.build())
 				.build();
-		System.out.println("Size of an interior node of one stub (# bytes): "+
+		System.out.println("Size of an interior node with one stub (# bytes): "+
 				interiorNodeOneStub.toByteArray().length);
 		
 		MptSerialization.Node interiorNodeOneLeaf = 
@@ -73,7 +73,7 @@ public class SerializationSizeBenchmark {
 						.setLeft(leafones)
 						.build())
 				.build();
-		System.out.println("Size of an interior node of one leaf (# bytes): "+
+		System.out.println("Size of an interior node with one leaf (# bytes): "+
 				interiorNodeOneLeaf.toByteArray().length);
 
 		MptSerialization.Node interiorNodeTwoStubs = 
@@ -83,7 +83,7 @@ public class SerializationSizeBenchmark {
 						.setRight(stubB)
 						.build())
 				.build();
-		System.out.println("Size of an interior node of two stubs (# bytes): "
+		System.out.println("Size of an interior node with two stubs (# bytes): "
 				+interiorNodeTwoStubs.toByteArray().length);
 
 		
@@ -94,7 +94,7 @@ public class SerializationSizeBenchmark {
 						.setRight(stubB)
 						.build())
 				.build();
-		System.out.println("Size of an interior node of two leaves (# bytes): "
+		System.out.println("Size of an interior node with two leaves (# bytes): "
 				+interiorNodeTwoLeaves.toByteArray().length);
 
 		
@@ -105,7 +105,7 @@ public class SerializationSizeBenchmark {
 						.setLeft(interiorNodeOneStub)
 						.build())
 				.build();
-		System.out.println("Size of an interior node of one interior (# bytes): "
+		System.out.println("Size of an interior node with one interior (# bytes): "
 				+interiorNodeOneInterior.toByteArray().length);
 
 		
@@ -117,7 +117,7 @@ public class SerializationSizeBenchmark {
 						.setRight(interiorNodeOneLeaf)
 						.build())
 				.build();
-		System.out.println("Size of an interior node of two interior A (# bytes): "
+		System.out.println("Size of an interior node with two interior A (# bytes): "
 				+interiorNodeTwoInteriorA.toByteArray().length);
 
 		
@@ -128,7 +128,7 @@ public class SerializationSizeBenchmark {
 						.setRight(interiorNodeTwoLeaves)
 						.build())
 				.build();
-		System.out.println("Size of an interior node of one interior B (# bytes): "
+		System.out.println("Size of an interior node with two interior B (# bytes): "
 				+interiorNodeTwoInteriorB.toByteArray().length);
 		
 	}

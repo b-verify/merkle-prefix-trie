@@ -1632,8 +1632,8 @@ public final class MptSerialization {
   /**
    * <pre>
    **
-   *	InteriorNode has left or right children,
-   *	if they are not included then they are null
+   *	InteriorNode has left or right children.
+   *	Only non-empty children need to be included.
    * </pre>
    *
    * Protobuf type {@code serialization.InteriorNode}
@@ -1948,8 +1948,8 @@ public final class MptSerialization {
     /**
      * <pre>
      **
-     *	InteriorNode has left or right children,
-     *	if they are not included then they are null
+     *	InteriorNode has left or right children.
+     *	Only non-empty children need to be included.
      * </pre>
      *
      * Protobuf type {@code serialization.InteriorNode}
