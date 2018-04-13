@@ -443,7 +443,12 @@ public class MerklePrefixTrie {
 		return false;
 	}
 	
-
+	/**
+	 * TODO: these helper functions should be moved to a dedicated Util class!
+	 * to clean things up and keep the code files small
+	 */
+	
+	
 	/**
 	 * Get the bit at index in a byte array. 
 	 * byte array:   byte[0]|| byte[1] || byte[2]  || byte[3]

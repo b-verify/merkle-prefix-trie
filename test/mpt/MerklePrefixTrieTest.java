@@ -17,6 +17,12 @@ import crpyto.CryptographicDigest;
 
 public class MerklePrefixTrieTest {
 	
+	
+	/**
+	 * TODO: these helper constructor methods should really be moved to a special Util class
+	 * to make them more available
+	 */
+	
 	public static MerklePrefixTrie makeMerklePrefixTrie(int numberOfEntries, String salt) {
 		return MerklePrefixTrieTest.makeMerklePrefixTrie(
 				MerklePrefixTrieTest.getKeyValuePairs(numberOfEntries, salt));

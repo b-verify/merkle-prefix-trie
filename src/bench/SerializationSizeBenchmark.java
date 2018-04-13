@@ -11,7 +11,12 @@ public class SerializationSizeBenchmark {
 	private static final byte[] FOUR_BYTES_ZEROS = new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
 	
 	
-	public static void main(String[] args) {		
+	public static void main(String[] args) {
+		
+		/** 
+		 * Benchmark sizes of different types of protobuf messages 
+		 */
+		
 		MptSerialization.Node leafones = 
 				MptSerialization.Node.newBuilder()
 				.setLeaf(
@@ -86,7 +91,6 @@ public class SerializationSizeBenchmark {
 		System.out.println("Size of an interior node with two stubs (# bytes): "
 				+interiorNodeTwoStubs.toByteArray().length);
 
-		
 		MptSerialization.Node interiorNodeTwoLeaves = 
 				MptSerialization.Node.newBuilder().setInteriorNode(
 						MptSerialization.InteriorNode.newBuilder()
@@ -96,8 +100,6 @@ public class SerializationSizeBenchmark {
 				.build();
 		System.out.println("Size of an interior node with two leaves (# bytes): "
 				+interiorNodeTwoLeaves.toByteArray().length);
-
-		
 		
 		MptSerialization.Node interiorNodeOneInterior = 
 				MptSerialization.Node.newBuilder().setInteriorNode(
@@ -107,8 +109,6 @@ public class SerializationSizeBenchmark {
 				.build();
 		System.out.println("Size of an interior node with one interior (# bytes): "
 				+interiorNodeOneInterior.toByteArray().length);
-
-		
 		
 		MptSerialization.Node interiorNodeTwoInteriorA = 
 				MptSerialization.Node.newBuilder().setInteriorNode(
@@ -119,7 +119,6 @@ public class SerializationSizeBenchmark {
 				.build();
 		System.out.println("Size of an interior node with two interior A (# bytes): "
 				+interiorNodeTwoInteriorA.toByteArray().length);
-
 		
 		MptSerialization.Node interiorNodeTwoInteriorB = 
 				MptSerialization.Node.newBuilder().setInteriorNode(
@@ -129,8 +128,7 @@ public class SerializationSizeBenchmark {
 						.build())
 				.build();
 		System.out.println("Size of an interior node with two interior B (# bytes): "
-				+interiorNodeTwoInteriorB.toByteArray().length);
-		
+				+interiorNodeTwoInteriorB.toByteArray().length);		
 	}
 	
 }
