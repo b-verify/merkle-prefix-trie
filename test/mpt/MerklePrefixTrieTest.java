@@ -295,6 +295,26 @@ public class MerklePrefixTrieTest {
 	}
 	
 	@Test
+	public void testPathSerialization() {
+		int key = 100;
+		String salt = "serialization";
+		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(1000, salt);
+		String keyString = "key"+Integer.toString(key);
+		String valueString = "value"+Integer.toString(key)+salt;
+		MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
+		byte[] serialization = path.serialize();
+		try {
+			MerklePrefixTrie fromBytes = MerklePrefixTrie.deserialize(serialization);
+			Assert.assertTrue("deserialized path contains the specific entry", 
+					Arrays.equals(fromBytes.get(keyString.getBytes()), valueString.getBytes()));
+			Assert.assertTrue("deserialized path commitment matches" ,
+					Arrays.equals(fromBytes.getCommitment(), mpt.getCommitment()));
+		} catch (InvalidMPTSerializationException | IncompleteMPTException e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+	
+	@Test
 	public void testEqualityBasic() {
 		List<Map.Entry<String, String>> kvpairs = MerklePrefixTrieTest.getKeyValuePairs(1000, "test");
 		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(kvpairs);
@@ -529,14 +549,44 @@ public class MerklePrefixTrieTest {
 	}
 	
 	@Test
-	public void testPathPrint() {
-		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(1000, "test");
-		String keyString = "key"+Integer.toString(456);
-		MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
-		System.out.println(path);
+	public void testCopyPathKeyPresent() {
+		int n = 1000;
+		String salt = "path test";
+		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(1000, salt);
+		for(int key = 0; key < n; key++) {
+			String keyString = "key"+Integer.toString(key);
+			String valueString = "value"+Integer.toString(key)+salt;
+			MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
+			try {
+				byte[] value = path.get(keyString.getBytes());
+				Assert.assertTrue("path should contain correct (key,value)", Arrays.equals(valueString.getBytes(), value));
+			}catch(Exception e) {
+				Assert.fail(e.getMessage());
+			}
+		}
 	}
 	
-	
+	@Test
+	public void testCopyPathKeyNotPresent() {
+		int n = 1000;
+		String salt = "path test";
+		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(1000, salt);
+		for(int offset = 1; offset < 1000; offset++) {
+			// not in tree
+			int key = n+offset;
+			String keyString = "key"+Integer.toString(key);
+			// copy path here should map a path to an empty leaf or a leaf
+			// with a different key - so when we call get on the path it 
+			// it returns nulls
+			MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
+			try {
+				byte[] value = path.get(keyString.getBytes());
+				Assert.assertTrue("not in tree - path should map to empty leaf", value == null);
+			}catch(Exception e) {
+				Assert.fail(e.getMessage());
+			}	
+		}
+	}
 	
 	
 }
