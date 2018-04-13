@@ -83,7 +83,7 @@ public class Stub implements Node {
 	
 	@Override
 	public String toString() {
-		String hex = MerklePrefixTrie.byteArrayAsHexString(this.getHash());
+		String hex = Utils.byteArrayAsHexString(this.getHash());
 		return "<Stub Hash: " + hex + ">";
 	}
 }

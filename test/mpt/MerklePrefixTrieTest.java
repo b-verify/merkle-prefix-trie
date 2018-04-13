@@ -4,7 +4,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -23,40 +22,17 @@ public class MerklePrefixTrieTest {
 	 * to make them more available
 	 */
 	
-	public static MerklePrefixTrie makeMerklePrefixTrie(int numberOfEntries, String salt) {
-		return MerklePrefixTrieTest.makeMerklePrefixTrie(
-				MerklePrefixTrieTest.getKeyValuePairs(numberOfEntries, salt));
-	}
-	
-	public static List<Map.Entry<String, String>> getKeyValuePairs(int numberOfEntries, String salt){
-		List<Map.Entry<String, String>> list = new ArrayList<Map.Entry<String, String>>();
-		for(int key = 0; key < numberOfEntries; key++) {
-			String keyString = "key"+Integer.toString(key);
-			String valueString = "value"+Integer.toString(key)+salt;
-			list.add(Map.entry(keyString, valueString));
-		}
-		return list;
-	}
-	
-	public static MerklePrefixTrie makeMerklePrefixTrie(List<Map.Entry<String, String>> kvpairs) {
-		MerklePrefixTrie mpt = new MerklePrefixTrie();
-		for(Map.Entry<String, String> kvpair : kvpairs) {
-			mpt.set(kvpair.getKey().getBytes(), kvpair.getValue().getBytes());
-		}
-		return mpt;
-	}
-	
 	@Test 
 	public void testTrieInsertionsManyOrdersProduceTheSameTrie() {
 		int numberOfKeys = 1000;
 		int numberOfShuffles = 10;
 		String salt = "test";
-		List<Map.Entry<String, String>> kvpairs = MerklePrefixTrieTest.getKeyValuePairs(numberOfKeys, salt);
-		MerklePrefixTrie mptBase = MerklePrefixTrieTest.makeMerklePrefixTrie(kvpairs);
+		List<Map.Entry<String, String>> kvpairs = Utils.getKeyValuePairs(numberOfKeys, salt);
+		MerklePrefixTrie mptBase = Utils.makeMerklePrefixTrie(kvpairs);
 		byte[] commitment = mptBase.getCommitment();
 		for(int iteration = 0; iteration <  numberOfShuffles; iteration++) {
 			Collections.shuffle(kvpairs);
-			MerklePrefixTrie mpt2 = MerklePrefixTrieTest.makeMerklePrefixTrie(kvpairs);
+			MerklePrefixTrie mpt2 = Utils.makeMerklePrefixTrie(kvpairs);
 			byte[] commitment2 = mpt2.getCommitment();
 			Assert.assertTrue(Arrays.equals(commitment, commitment2));
 		}
@@ -199,7 +175,7 @@ public class MerklePrefixTrieTest {
 	public void testTrieInsertionsGet() {
 		int numberOfEntries = 1000;
 		String salt = "";
-		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(numberOfEntries, salt);
+		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(numberOfEntries, salt);
 		try {
 			for(int key = 0; key < numberOfEntries; key++) {
 				String keyString = "key"+Integer.toString(key);
@@ -219,7 +195,7 @@ public class MerklePrefixTrieTest {
 	public void testTrieMultipleInsertionsGetMostRecentValue() {
 		int numberOfEntries = 1000;
 		String salt = "";
-		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(numberOfEntries, salt);
+		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(numberOfEntries, salt);
 		salt = "modified";
 		for(int key = 0; key < numberOfEntries; key++) {
 			String keyString = "key"+Integer.toString(key);
@@ -247,7 +223,7 @@ public class MerklePrefixTrieTest {
 	public void testTrieRepeatedInsertionsReturnFalse() {
 		int numberOfEntries = 1000;
 		String salt = "";
-		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(numberOfEntries, salt);
+		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(numberOfEntries, salt);
 		for(int key = 0; key < numberOfEntries; key++) {
 			String keyString = "key"+Integer.toString(key);
 			String valueString = "value"+Integer.toString(key)+salt;
@@ -260,7 +236,7 @@ public class MerklePrefixTrieTest {
 	public void testTrieDeletions() {
 		int numberOfEntries = 1000;
 		String salt = "";
-		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(numberOfEntries, salt);
+		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(numberOfEntries, salt);
 		try {
 			for(int key = 0; key < numberOfEntries; key++) {
 				String keyString = "key"+Integer.toString(key);
@@ -279,7 +255,7 @@ public class MerklePrefixTrieTest {
 					Assert.assertTrue(Arrays.equals(mpt.get(keyString.getBytes()), valueString.getBytes()));
 				}
 			}
-			MerklePrefixTrie mpt2 = MerklePrefixTrieTest.makeMerklePrefixTrie(500, salt);
+			MerklePrefixTrie mpt2 = Utils.makeMerklePrefixTrie(500, salt);
 			Assert.assertTrue(Arrays.equals(mpt.getCommitment(), mpt2.getCommitment()));
 		}catch(Exception e) {
 			Assert.fail(e.getMessage());
@@ -288,8 +264,8 @@ public class MerklePrefixTrieTest {
 	
 	@Test
 	public void testTrieSerializationFullTrie() {
-		List<Map.Entry<String, String>> kvpairs = MerklePrefixTrieTest.getKeyValuePairs(1000, "test");
-		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(kvpairs);
+		List<Map.Entry<String, String>> kvpairs = Utils.getKeyValuePairs(1000, "test");
+		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(kvpairs);
 		byte[] asbytes = mpt.serialize();
 		try {
 			MerklePrefixTrie mptFromBytes = MerklePrefixTrie.deserialize(asbytes);
@@ -304,7 +280,7 @@ public class MerklePrefixTrieTest {
 	public void testPathSerialization() {
 		int key = 100;
 		String salt = "serialization";
-		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(1000, salt);
+		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(1000, salt);
 		String keyString = "key"+Integer.toString(key);
 		String valueString = "value"+Integer.toString(key)+salt;
 		MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
@@ -322,24 +298,24 @@ public class MerklePrefixTrieTest {
 	
 	@Test
 	public void testEqualityBasic() {
-		List<Map.Entry<String, String>> kvpairs = MerklePrefixTrieTest.getKeyValuePairs(1000, "test");
-		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(kvpairs);
-		MerklePrefixTrie mpt2 = MerklePrefixTrieTest.makeMerklePrefixTrie(kvpairs);
-		MerklePrefixTrie mpt3 = MerklePrefixTrieTest.makeMerklePrefixTrie(kvpairs.subList(0, 500));
+		List<Map.Entry<String, String>> kvpairs = Utils.getKeyValuePairs(1000, "test");
+		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(kvpairs);
+		MerklePrefixTrie mpt2 = Utils.makeMerklePrefixTrie(kvpairs);
+		MerklePrefixTrie mpt3 = Utils.makeMerklePrefixTrie(kvpairs.subList(0, 500));
 		Assert.assertTrue(mpt.equals(mpt2));
 		Assert.assertFalse(mpt.equals(mpt3));
 	}
 	
 	@Test
 	public void testEqualitySymmetric() {
-		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(1000, "some salt changes the hash");
+		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(1000, "some salt changes the hash");
 		Assert.assertTrue(mpt.equals(mpt));
 	}
 	
 	@Test 
 	public void testByteAtBitString() {
 		byte[] bs = new byte[]{(byte) 0xff, (byte) 0xff};
-		Assert.assertEquals(MerklePrefixTrie.byteArrayAsBitString(bs), "1111111111111111");
+		Assert.assertEquals(Utils.byteArrayAsBitString(bs), "1111111111111111");
 	}
 	
 	@Test
@@ -347,12 +323,12 @@ public class MerklePrefixTrieTest {
 		// for all zeros all bits should be zero
 		byte[] ALL_ZEROS = new byte[]{0, 0, 0, 0};
 		for(int i = 0; i < 32; i++) {
-			Assert.assertFalse(MerklePrefixTrie.getBit(ALL_ZEROS, i));
+			Assert.assertFalse(Utils.getBit(ALL_ZEROS, i));
 		}
 		// for all ones all bits should be one
 		byte[] ALL_ONES = new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff}; 
 		for(int i = 0; i < 32; i++) {
-			Assert.assertTrue(MerklePrefixTrie.getBit(ALL_ONES, i));
+			Assert.assertTrue(Utils.getBit(ALL_ONES, i));
 		}
 
 	}
@@ -360,19 +336,19 @@ public class MerklePrefixTrieTest {
 	@Test
 	public void testByteArrayAsBitString() {
 		byte[] ONE = new byte[] { 1	};
-		Assert.assertEquals("00000001", MerklePrefixTrie.byteArrayAsBitString(ONE));
+		Assert.assertEquals("00000001", Utils.byteArrayAsBitString(ONE));
 		
 		byte[] TWO = new byte[] { 2 };
-		Assert.assertEquals("00000010", MerklePrefixTrie.byteArrayAsBitString(TWO));
+		Assert.assertEquals("00000010", Utils.byteArrayAsBitString(TWO));
 		
 		byte[] NINE = new byte[] { 9 };
-		Assert.assertEquals("00001001", MerklePrefixTrie.byteArrayAsBitString(NINE));
+		Assert.assertEquals("00001001", Utils.byteArrayAsBitString(NINE));
 		
 		byte[] HUNDRED = new byte[] { 100 };
-		Assert.assertEquals("01100100", MerklePrefixTrie.byteArrayAsBitString(HUNDRED));
+		Assert.assertEquals("01100100", Utils.byteArrayAsBitString(HUNDRED));
 		
 		byte[] ONE_TWO = new byte[] {1, 2};
-		Assert.assertEquals("00000001" + "00000010", MerklePrefixTrie.byteArrayAsBitString(ONE_TWO));
+		Assert.assertEquals("00000001" + "00000010", Utils.byteArrayAsBitString(ONE_TWO));
 	}
 	
 	@Test
@@ -386,9 +362,9 @@ public class MerklePrefixTrieTest {
 		for (int i = 0; i < 16; i++) {
 			//System.out.println(MerklePrefixTrie.getBit(ONE_TWO, i));
 			if (expected[i] == 1) {
-				assertTrue(MerklePrefixTrie.getBit(ONE_TWO, i));
+				assertTrue(Utils.getBit(ONE_TWO, i));
 			} else if (expected[i] == 0) {
-				assertFalse(MerklePrefixTrie.getBit(ONE_TWO, i));
+				assertFalse(Utils.getBit(ONE_TWO, i));
 			} else {
 				fail("binary string contains non-binary values");
 			}
@@ -404,12 +380,12 @@ public class MerklePrefixTrieTest {
 			expected[i] = Character.getNumericValue(binaryStr.charAt(i));
 		}
 		for (int i = 0; i < 16; i++) {
-			System.out.println(MerklePrefixTrie.getBit(MANY_BYTES, i));
+			System.out.println(Utils.getBit(MANY_BYTES, i));
 			if (expected[i] == 1) {
-				assertTrue(MerklePrefixTrie.getBit(MANY_BYTES, i));
+				assertTrue(Utils.getBit(MANY_BYTES, i));
 				
 			} else if (expected[i] == 0) {
-				assertFalse(MerklePrefixTrie.getBit(MANY_BYTES, i));
+				assertFalse(Utils.getBit(MANY_BYTES, i));
 				
 			} else {
 				fail("binary string contains non-binary values");
@@ -453,17 +429,17 @@ public class MerklePrefixTrieTest {
 		byte[] first = new byte[] {2}; //path = 10
 		
 		mpt.set(first, "1".getBytes());
-		System.out.println("input 1: " + MerklePrefixTrie.byteArrayAsBitString(first));
+		System.out.println("input 1: " + Utils.byteArrayAsBitString(first));
 		//System.out.println(mpt);
 		
 		//splitting leaves
 		byte[] second = new byte[] {3}; //path = 11
 		mpt.set(second,  "2".getBytes());
-		System.out.println("input 2: " + MerklePrefixTrie.byteArrayAsBitString(second));
+		System.out.println("input 2: " + Utils.byteArrayAsBitString(second));
 		//System.out.println(mpt);
 		
 		byte[] third = new byte[] {9}; //path = 1001
-		System.out.println("input: " + MerklePrefixTrie.byteArrayAsBitString(third));
+		System.out.println("input: " + Utils.byteArrayAsBitString(third));
 		mpt.set(third, "3".getBytes());
 		System.out.println(mpt);
 		
@@ -482,7 +458,7 @@ public class MerklePrefixTrieTest {
 		//insert 10
 		byte[] first = new byte[] { 2 };
 		System.out.println("SETTING FIRST");
-		System.out.println(MerklePrefixTrie.byteArrayAsBitString(CryptographicDigest.digest(first)));
+		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest(first)));
 		mpt.set(first, "1".getBytes());
 		System.out.println(mpt);
 		
@@ -490,14 +466,14 @@ public class MerklePrefixTrieTest {
 		//insert 11
 		byte[] second = new byte[] { 3 };
 		System.out.println("SETTING SECOND");
-		System.out.println(MerklePrefixTrie.byteArrayAsBitString(CryptographicDigest.digest(second)));
+		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest(second)));
 		mpt.set(second, "2".getBytes());
 		System.out.println(mpt);
 		
 		//insert 1001
 		byte[] third = new byte[] { 9 };
 		System.out.println("SETTING THIRD");
-		System.out.println(MerklePrefixTrie.byteArrayAsBitString(CryptographicDigest.digest(third)));
+		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest(third)));
 		mpt.set(third, "3".getBytes());
 		System.out.println(mpt);
 		
@@ -532,14 +508,14 @@ public class MerklePrefixTrieTest {
 		//insert 1000
 		byte[] first = new byte[] { 8 };
 		System.out.println("SETTING FIRST");
-		System.out.println(MerklePrefixTrie.byteArrayAsBitString(CryptographicDigest.digest(first)));
+		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest(first)));
 		mpt.set(first, "1".getBytes());
 		System.out.println(mpt);
 		
 		//insert 1010001
 		byte[] second = new byte[] { 81 };
 		System.out.println("SETTING SECOND");
-		System.out.println(MerklePrefixTrie.byteArrayAsBitString(CryptographicDigest.digest(second)));
+		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest(second)));
 		mpt.set(second, "10".getBytes());
 		System.out.println(mpt);
 	}
@@ -558,7 +534,7 @@ public class MerklePrefixTrieTest {
 	public void testCopyPathKeyPresent() {
 		int n = 1000;
 		String salt = "path test";
-		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(1000, salt);
+		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(1000, salt);
 		for(int key = 0; key < n; key++) {
 			String keyString = "key"+Integer.toString(key);
 			String valueString = "value"+Integer.toString(key)+salt;
@@ -576,7 +552,7 @@ public class MerklePrefixTrieTest {
 	public void testCopyPathKeyNotPresent() {
 		int n = 1000;
 		String salt = "path test";
-		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(1000, salt);
+		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(1000, salt);
 		for(int offset = 1; offset < 1000; offset++) {
 			// not in tree
 			int key = n+offset;

@@ -11,7 +11,7 @@ import crpyto.CryptographicDigest;
 import serialization.MptSerialization;
 
 /**
- * A  Merkle Prefix Trie (MPT) 
+ * A  Merkle Prefix Trie (MPT) to implement a Persistent Authenticated Dictionary
  * 
  * TODO: add an interface and move the public methods and specs to the interface file
  * 
@@ -47,9 +47,9 @@ public class MerklePrefixTrie {
 	 */
 	public boolean set(byte[] key, byte[] value){
 		LeafNode leafNodeToAdd = new LeafNode(key, value);
-		LOGGER.log(Level.FINE, "set("+MerklePrefixTrie.byteArrayAsHexString(key)+") = "+
-				MerklePrefixTrie.byteArrayAsHexString(key));
-		LOGGER.log(Level.FINE, "keyHash: "+MerklePrefixTrie.byteArrayAsBitString(leafNodeToAdd.getKeyHash()));
+		LOGGER.log(Level.FINE, "set("+Utils.byteArrayAsHexString(key)+") = "+
+				Utils.byteArrayAsHexString(key));
+		LOGGER.log(Level.FINE, "keyHash: "+Utils.byteArrayAsBitString(leafNodeToAdd.getKeyHash()));
 		Node newRoot = this.insertLeafNodeAndUpdate(this.root, leafNodeToAdd, 0);
 		boolean updated = !newRoot.equals(this.root);
 		this.root = (InteriorNode) newRoot;
@@ -78,7 +78,7 @@ public class MerklePrefixTrie {
 			LeafNode ln = (LeafNode) node;
 			return this.split(ln, nodeToAdd, currentBitIndex);
 		}
-		boolean bit = MerklePrefixTrie.getBit(nodeToAdd.getKeyHash(), currentBitIndex);
+		boolean bit = Utils.getBit(nodeToAdd.getKeyHash(), currentBitIndex);
 		/*
 		 * Encoding: if bit is 1 -> go right 
 		 * 			 if bit is 0 -> go left
@@ -103,8 +103,8 @@ public class MerklePrefixTrie {
 	 */
 	private Node split(LeafNode a, LeafNode b, int currentBitIndex) {
 		assert !Arrays.equals(a.getKeyHash(), b.getKeyHash());
-		boolean bitA = MerklePrefixTrie.getBit(a.getKeyHash(), currentBitIndex);
-		boolean bitB = MerklePrefixTrie.getBit(b.getKeyHash(), currentBitIndex);
+		boolean bitA = Utils.getBit(a.getKeyHash(), currentBitIndex);
+		boolean bitB = Utils.getBit(b.getKeyHash(), currentBitIndex);
 		// still collision, split again
 		if(bitA == bitB) {
 			// recursively split 
@@ -137,7 +137,7 @@ public class MerklePrefixTrie {
 	 */
 	public byte[] get(byte[] key) throws IncompleteMPTException {
 		byte[] keyHash = CryptographicDigest.digest(key);
-		LOGGER.log(Level.FINE, "get H("+key+"): "+MerklePrefixTrie.byteArrayAsBitString(keyHash));
+		LOGGER.log(Level.FINE, "get H("+key+"): "+Utils.byteArrayAsBitString(keyHash));
 		return this.getKeyHelper(this.root, keyHash, 0);
 	}
 	
@@ -172,7 +172,7 @@ public class MerklePrefixTrie {
 		 * Encoding: if bit is 1 -> go right 
 		 * 			 if bit is 0 -> go left
 		 */
-		boolean bit = MerklePrefixTrie.getBit(keyHash, currentBitIndex);
+		boolean bit = Utils.getBit(keyHash, currentBitIndex);
 		if(bit) {
 			return this.getKeyHelper(currentNode.getRightChild(), keyHash, currentBitIndex+1);
 		}
@@ -187,7 +187,7 @@ public class MerklePrefixTrie {
 	 */
 	public boolean deleteKey(byte[] key) {
 		byte[] keyHash = CryptographicDigest.digest(key);
-		LOGGER.log(Level.FINE, "delete("+MerklePrefixTrie.byteArrayAsHexString(key)+") - Hash= "+MerklePrefixTrie.byteArrayAsBitString(keyHash));
+		LOGGER.log(Level.FINE, "delete("+Utils.byteArrayAsHexString(key)+") - Hash= "+Utils.byteArrayAsBitString(keyHash));
 		Node newRoot = this.deleteKeyHelper(this.root, keyHash, 0);
 		boolean changed =  !newRoot.equals(this.root);
 		this.root = (InteriorNode) newRoot;
@@ -208,7 +208,7 @@ public class MerklePrefixTrie {
 		// we have to watch out to make sure that if this is the root node
 		// that we return an InteriorNode and don't propagate up an empty node
 		boolean isRoot = currentNode.equals(this.root);
-		boolean bit = MerklePrefixTrie.getBit(keyHash, currentBitIndex);
+		boolean bit = Utils.getBit(keyHash, currentBitIndex);
 		Node leftChild = currentNode.getLeftChild();
 		Node rightChild = currentNode.getRightChild();
 		if(bit) {
@@ -282,7 +282,7 @@ public class MerklePrefixTrie {
 			return new LeafNode(currNode.getKey(), currNode.getValue());			
 		}	
 		//recursive step
-		boolean bit = MerklePrefixTrie.getBit(keyHash, currIndex);
+		boolean bit = Utils.getBit(keyHash, currIndex);
 		if (bit) {
 			//bit == 1 -> go right
 			Node childOnPath = this.pathBuilder(currNode.getRightChild(), keyHash, currIndex + 1);
@@ -442,91 +442,4 @@ public class MerklePrefixTrie {
 		}
 		return false;
 	}
-	
-	/**
-	 * TODO: these helper functions should be moved to a dedicated Util class!
-	 * to clean things up and keep the code files small
-	 */
-	
-	
-	/**
-	 * Get the bit at index in a byte array. 
-	 * byte array:   byte[0]|| byte[1] || byte[2]  || byte[3]
-	 * index		 [0...7]  [8...15]   [16...23]    [24...31]
-	 * @param bytes array of bytes representing a single value (byte[0]||byte[1]||..)
-	 * @param index the index of the bit
-	 * @return true if the bit is 1 and false if the bit is 0
-	 */
-	public static boolean getBit(final byte[] bytes, int index) {
-		int byteIndex = Math.floorDiv(index, 8); 
-		//int bitIndex = index % 8;
-		int bitIndex = (7 - index) % 8;
-		if (bitIndex < 0) {
-			bitIndex += 8;
-		}
-		byte b = bytes[byteIndex];
-		return MerklePrefixTrie.getBit(b, bitIndex);
-	}
-	
-	/**
-	 * Get the index'th bit in a byte 
-	 * @param b a byte
-	 * @param index index of the bit to get in [0, 7] (0-indexed)
-	 * @return
-	 */
-	public static boolean getBit(final byte b, int index) {
-		switch(index) {
-		case 0:
-			return (b & 1) != 0;
-		case 1:
-			return (b & 2) != 0;
-		case 2:
-			return (b & 4) != 0;
-		case 3:
-			return (b & 8) != 0;
-		case 4:
-			return (b & 0x10) != 0;
-		case 5:
-			return (b & 0x20) != 0;
-		case 6:
-			return (b & 0x40) != 0;
-		case 7:
-			return (b & 0x80) != 0;
-		}
-		throw new RuntimeException("Only 8 bits in a byte - bit index must between 0 and 7");
-	}
-	
-	/**
-	 * Return an array of bytes as string of bits
-	 * @param bytes
-	 * @return
-	 */
-	public static String byteArrayAsBitString(final byte[] bytes) {
-		String bitString = "";
-		for(byte b: bytes) {
-			//for(int bitIndex = 0; bitIndex < 8; bitIndex++) {
-			for (int bitIndex = 7; bitIndex >= 0; bitIndex--) {
-				if(MerklePrefixTrie.getBit(b, bitIndex)) {
-					bitString += "1";
-				}else {
-					bitString += "0";
-				}
-			}
-		}
-		return bitString;
-	}
-	
-	/**
-	 * Print a byte array as a human readable hex string
-	 * @param raw
-	 * @return
-	 */
-	public static String byteArrayAsHexString(final byte[] raw) {
-	    final StringBuilder hex = new StringBuilder(2 * raw.length);
-	    for (final byte b : raw) {
-	        hex.append(Integer.toHexString(b));
-	    }
-	    return hex.toString();
-	}
-	
 }

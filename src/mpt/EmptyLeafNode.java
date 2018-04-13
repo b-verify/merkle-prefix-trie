@@ -15,7 +15,7 @@ public class EmptyLeafNode implements Node {
 	// hash is all zeros
 	public static final byte[] EMPTY_HASH = new byte[CryptographicDigest.getSizeBytes()];
 	
-	public static final String EMPTY_MSG = "<EmptyLeafNode>";
+	public static final String EMPTY_MSG = "<EmptyLeafNode Hash: " + Utils.byteArrayAsHexString(EMPTY_HASH) + ">";
 
 	@Override
 	public byte[] getValue() {
@@ -49,9 +49,7 @@ public class EmptyLeafNode implements Node {
 
 	@Override 
 	public String toString() {
-		//return EmptyLeafNode.EMPTY_MSG;
-		String hex = MerklePrefixTrie.byteArrayAsHexString(this.getHash());
-		return "<EmptyLeafNode Hash: " + hex + ">";
+		return EmptyLeafNode.EMPTY_MSG;
 	}
 
 	@Override
