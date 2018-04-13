@@ -15,7 +15,7 @@ import serialization.MptSerialization;
  * 
  * TODO: add an interface and move the public methods and specs to the interface file
  * 
- * @author henryaspegren
+ * @author Henry Aspegren, Chung Eun (Christina) Lee
  *
  */
 public class MerklePrefixTrie {
@@ -50,8 +50,7 @@ public class MerklePrefixTrie {
 		LOGGER.log(Level.FINE, "set("+MerklePrefixTrie.byteArrayAsHexString(key)+") = "+
 				MerklePrefixTrie.byteArrayAsHexString(key));
 		LOGGER.log(Level.FINE, "keyHash: "+MerklePrefixTrie.byteArrayAsBitString(leafNodeToAdd.getKeyHash()));
-		
-		Node newRoot = this.insertLeafNodeAndUpdate(this.root, leafNodeToAdd, 0, "+");
+		Node newRoot = this.insertLeafNodeAndUpdate(this.root, leafNodeToAdd, 0);
 		boolean updated = !newRoot.equals(this.root);
 		this.root = (InteriorNode) newRoot;
 		return updated;
@@ -59,47 +58,36 @@ public class MerklePrefixTrie {
 		
 	/**
 	 * Recursive helper function to insert a leaf into the trie. 
-	 * @param node - location in the tree
+	 * @param node - current node in this tree
 	 * @param nodeToAdd - LeafNode node we want to add 
-	 * @param currentBitIndex - the bit index in the prefix trie
-	 * @param prefix - the current bit prefix 
+	 * @param currentBitIndex - the current bit index. An int such that 
+	 * location of node is nodeToAdd.getKeyHash()[:currentBitIndex]
 	 * @return updated version of 'node' (i.e. location in tree)
 	 */
-	private Node insertLeafNodeAndUpdate(Node node, LeafNode nodeToAdd, int currentBitIndex, String prefix) {
-		LOGGER.log(Level.FINE, "insert and update "+prefix+" at node: "+node.toString());
-		System.out.println("inserting");
-		System.out.println("Node: " + node);
-		System.out.println("node to add: " + nodeToAdd);
-		System.out.println("curr bit index: " + currentBitIndex);
-		System.out.println("prefix: " + prefix);
-		
+	private Node insertLeafNodeAndUpdate(Node node, LeafNode nodeToAdd, int currentBitIndex) {
 		if(node.isLeaf()) {
 			// node is an empty leaf we can just replace it 
 			if(node.isEmpty()) {
 				return nodeToAdd;
 			}
-			// this node has the same key - already in the tree
+			// this node is already in the tree
 			if(Arrays.equals(node.getKeyHash(), nodeToAdd.getKeyHash())) {
 				return nodeToAdd;
 			}
 			// otherwise have to split
 			LeafNode ln = (LeafNode) node;
-			System.out.println("SPLITTING");
-			return this.split(ln, nodeToAdd, currentBitIndex, prefix);
+			return this.split(ln, nodeToAdd, currentBitIndex);
 		}
-		System.out.println(MerklePrefixTrie.byteArrayAsBitString(nodeToAdd.getKeyHash()));
 		boolean bit = MerklePrefixTrie.getBit(nodeToAdd.getKeyHash(), currentBitIndex);
 		/*
 		 * Encoding: if bit is 1 -> go right 
 		 * 			 if bit is 0 -> go left
 		 */
 		if(bit) {
-			System.out.println("bit = 1");
-			Node result = this.insertLeafNodeAndUpdate(node.getRightChild(), nodeToAdd, currentBitIndex+1, prefix+"1");
+			Node result = this.insertLeafNodeAndUpdate(node.getRightChild(), nodeToAdd, currentBitIndex+1);
 			return new InteriorNode(node.getLeftChild(), result);
 		}
-		System.out.println("bit = 0");
-		Node result = this.insertLeafNodeAndUpdate(node.getLeftChild(), nodeToAdd, currentBitIndex+1, prefix+"0");
+		Node result = this.insertLeafNodeAndUpdate(node.getLeftChild(), nodeToAdd, currentBitIndex+1);
 		return new InteriorNode(result, node.getRightChild());
 	}
 	
@@ -108,27 +96,26 @@ public class MerklePrefixTrie {
 	 * same node
 	 * @param a - the first leaf
 	 * @param b - the second leaf
-	 * @param currentBitIndex - keyHash of a and keyHash of b collide up to currentBitIndex-1
-	 * @param prefix - the current bit prefix of the collision
+	 * @param currentBitIndex - a and b have the same prefix (collision) at least
+	 *  up to currentBitIndex -1
+	 * 	a.getKeyHash()[:currentBitIndex-1] == b.getKeyKash()[:currentBitIndex-1]
 	 * @return
 	 */
-	private Node split(LeafNode a, LeafNode b, int currentBitIndex, String prefix) {
+	private Node split(LeafNode a, LeafNode b, int currentBitIndex) {
 		assert !Arrays.equals(a.getKeyHash(), b.getKeyHash());
 		boolean bitA = MerklePrefixTrie.getBit(a.getKeyHash(), currentBitIndex);
 		boolean bitB = MerklePrefixTrie.getBit(b.getKeyHash(), currentBitIndex);
-		LOGGER.log(Level.FINE, "Splitting "+prefix+ " at "+currentBitIndex+" | a: "+bitA+" b: "+bitB);
-
 		// still collision, split again
 		if(bitA == bitB) {
 			// recursively split 
 			Node res;
 			if(bitA) {
 				// if bit is 1 add on the right 
-				res = split(a, b, currentBitIndex+1, prefix+"1");
+				res = split(a, b, currentBitIndex+1);
 				return new InteriorNode(new EmptyLeafNode(), res);
 			}
 			// if bit is 0 add on the left
-			res = split(a, b, currentBitIndex+1, prefix+"0");
+			res = split(a, b, currentBitIndex+1);
 			return new InteriorNode(res, new EmptyLeafNode());
 		}
 		// no collision
@@ -140,29 +127,37 @@ public class MerklePrefixTrie {
 	
 	/**
 	 * Get the value associated with a given key. Returns null if the key 
-	 * is not in the MPT
+	 * is not in the MPT. 
 	 * @param key
 	 * @return
+	 * @throws IncompleteMPTException - if parts of the MPT are missing such
+	 * that the search cannot be completed this exception is 
+	 * thrown. (E.g. if a MPT conatins a single path, and searching for this 
+	 * key's prefix is not possible with just the path).
 	 */
-	public byte[] get(byte[] key) {
+	public byte[] get(byte[] key) throws IncompleteMPTException {
 		byte[] keyHash = CryptographicDigest.digest(key);
 		LOGGER.log(Level.FINE, "get H("+key+"): "+MerklePrefixTrie.byteArrayAsBitString(keyHash));
-		return this.getKeyHelper(this.root, keyHash, 0, "+");
+		return this.getKeyHelper(this.root, keyHash, 0);
 	}
 	
 	/**
-	 * Recursive helper function to search for the keyHash. Returns when it finds a leaf. If the 
+	 * Recursive helper function to search for the keyHash - a prefix
+	 * in the trie. Returns when it finds a leaf. If the 
 	 * key is not in the tree it will eventually hit an EmptyLeafNode or a 
 	 * LeafNode with a different keyHash. In this case this function will return null.
 	 * @param currentNode
 	 * @param keyHash
 	 * @param currentBitIndex
-	 * @param prefix
+	 * @throws IncompleteMPTException - if we attempt to go down a path
+	 * we do not have (i.e. currently represent by only a stub)
 	 * @return
 	 */
 	private byte[] getKeyHelper(Node currentNode, byte[] keyHash, 
-			int currentBitIndex, String prefix) {
-		LOGGER.log(Level.FINE, "Searching prefix "+prefix+" at node: "+currentNode);
+			int currentBitIndex) throws IncompleteMPTException {
+		if(currentNode.isStub()) {
+			throw new IncompleteMPTException("encountered a stub - cannot complete search");
+		}
 		if(currentNode.isLeaf()) {
 			if(!currentNode.isEmpty()) {
 				// if the current node is NonEmpty and matches the Key
@@ -179,9 +174,9 @@ public class MerklePrefixTrie {
 		 */
 		boolean bit = MerklePrefixTrie.getBit(keyHash, currentBitIndex);
 		if(bit) {
-			return this.getKeyHelper(currentNode.getRightChild(), keyHash, currentBitIndex+1, prefix+"1");
+			return this.getKeyHelper(currentNode.getRightChild(), keyHash, currentBitIndex+1);
 		}
-		return this.getKeyHelper(currentNode.getLeftChild(), keyHash, currentBitIndex+1, prefix+"0");
+		return this.getKeyHelper(currentNode.getLeftChild(), keyHash, currentBitIndex+1);
 	}
 	
 	/**
@@ -193,14 +188,14 @@ public class MerklePrefixTrie {
 	public boolean deleteKey(byte[] key) {
 		byte[] keyHash = CryptographicDigest.digest(key);
 		LOGGER.log(Level.FINE, "delete("+MerklePrefixTrie.byteArrayAsHexString(key)+") - Hash= "+MerklePrefixTrie.byteArrayAsBitString(keyHash));
-		Node newRoot = this.deleteKeyHelper(this.root, keyHash, 0, "+");
+		Node newRoot = this.deleteKeyHelper(this.root, keyHash, 0);
 		boolean changed =  !newRoot.equals(this.root);
 		this.root = (InteriorNode) newRoot;
 		return changed;
 	}
 	
 	private Node deleteKeyHelper(Node currentNode, 
-			byte[] keyHash, int currentBitIndex, String prefix) {
+			byte[] keyHash, int currentBitIndex) {
 		if(currentNode.isLeaf()) {
 			if(!currentNode.isEmpty()) {
 				if(Arrays.equals(currentNode.getKeyHash(), keyHash)){
@@ -213,13 +208,12 @@ public class MerklePrefixTrie {
 		// we have to watch out to make sure that if this is the root node
 		// that we return an InteriorNode and don't propagate up an empty node
 		boolean isRoot = currentNode.equals(this.root);
-		
 		boolean bit = MerklePrefixTrie.getBit(keyHash, currentBitIndex);
 		Node leftChild = currentNode.getLeftChild();
 		Node rightChild = currentNode.getRightChild();
 		if(bit) {
 			// delete key from the right subtree
-			Node newRightChild = this.deleteKeyHelper(rightChild, keyHash, currentBitIndex+1, prefix+"1");
+			Node newRightChild = this.deleteKeyHelper(rightChild, keyHash, currentBitIndex+1);
 			// if left subtree is empty, and rightChild is leaf
 			// we push the newRightChild back up the trie
 			if(leftChild.isEmpty() && newRightChild.isLeaf() && !isRoot) {
@@ -233,7 +227,7 @@ public class MerklePrefixTrie {
 			// otherwise update the interior node
 			return new InteriorNode(leftChild, newRightChild);
 		}
-		Node newLeftChild = this.deleteKeyHelper(leftChild, keyHash, currentBitIndex+1, prefix+"0");
+		Node newLeftChild = this.deleteKeyHelper(leftChild, keyHash, currentBitIndex+1);
 		if(rightChild.isEmpty() && newLeftChild.isLeaf() && !isRoot) {
 			return newLeftChild;
 		}
@@ -253,94 +247,55 @@ public class MerklePrefixTrie {
 	}
 	
 	/**
-	 * Returns a MerklePrefixTrie that contains path to a node specified
-	 * by byte[] path to it
-	 * @param key path to a non-root node (so key cannot be empty)
-	 * @return
+	 * Returns a new MPT that contains path that maps the key 
+	 * to a possibly empty leaf in this trie. 
+	 * The new MPT has the leaf entry as well as the hashes 
+	 * on the path (in the form of stubs) needed to authenticate it
+	 * @param - a key, arbitary bytes, may or may not be in the tree
+	 * @return - a MerklePrefixTrie containing only the path 
+	 * mapping the key to a leaf
 	 */
 	public MerklePrefixTrie copyPath(byte[] key) {
-		
-		MerklePrefixTrie copy = new MerklePrefixTrie();
-		
-		//check whether key is nonempty
-		if (key.length == 0) {
-			//return empty tree for empty key
-			return copy;
-		}
-		
-		
 		int currBitIndex = 0;
-		Node newRoot = this.pathBuilder(this.root, key, currBitIndex);
-		
-		
-		copy.forceAddRoot(newRoot);
-		
-		
-		
-		return copy;
-		
+		byte[] keyHash = CryptographicDigest.digest(key);
+		Node res = this.pathBuilder(this.root, keyHash, currBitIndex);
+		InteriorNode newRoot = (InteriorNode) res;
+		return new MerklePrefixTrie(newRoot);
 	}
 	
 	/**
-	 * Recursive helper function for building a path to a leaf specified by a certain key
-	 * @param currNode the node in the trie we are trying to copy from, located at the position
-	 * key[:currentIndex]
-	 * @param key - binary path to a leaf
-	 * @param currentIndex int s.t. path to currNode from root is key[:currIndex]
+	 * Recursive helper function for building a path to a leaf specified by a keyHash
+	 * @param currNode the node in the trie we are copying from, located at the position
+	 * keyHash[:currentIndex] 
+	 * @param keyHash - the hash of the key (path in the MPT) to copy 
+	 * @param currentIndex int s.t. path to currNode from root is keyHash[:currIndex]
 	 * @return Node a Node with children that form the path to a leaf in this tree
 	 */
-	private Node pathBuilder(Node currNode, byte[] key, int currIndex) {
-		System.out.println("in pathBuilder");
-		System.out.println("currNode: " + currNode);
-		System.out.println("currIndex: " + currIndex);
-		
-		byte[] keyHash = CryptographicDigest.digest(key);
-		//if (currIndex >= key.length) {
+	private Node pathBuilder(Node currNode, byte[] keyHash, int currIndex) {
+		// base case
 		if (currNode.isLeaf()) {
-			//base case
-			
-			//check whether destination node should be stub node or actual leaf node
-			Node end;
 			if (currNode.isEmpty()) {
-				//check for empty leaves
-				end = new EmptyLeafNode();
-			} else {
-				
-				end = new LeafNode(currNode.getKey(), currNode.getValue());
-			}
-			
-			return end;
-			
-		} else {
-			
-			//recursive step
-			Node childOnPath;
-			Node path;
-			boolean bit = MerklePrefixTrie.getBit(keyHash, currIndex);
-			if (bit) {
-				//bit == 1 -> go right
-				childOnPath = this.pathBuilder(currNode.getRightChild(), keyHash, currIndex + 1);
-				Node leftStub = new Stub(currNode.getLeftChild().getHash());
-				path = new InteriorNode(leftStub, childOnPath);
-			} else {
-				//bit == 0 -> go left
-				childOnPath = this.pathBuilder(currNode.getLeftChild(), keyHash, currIndex + 1);
-				Node rightStub = new Stub(currNode.getRightChild().getHash());
-				path = new InteriorNode(childOnPath, rightStub);
-			}
-			
-			return path;
-		}
-		
-		
+				// empty leaf (key not in MPT)
+				return new EmptyLeafNode();
+			} 
+			// leaf node (key possibly in MPT, only if currNode.getKeyHash() == keyHash)
+			return new LeafNode(currNode.getKey(), currNode.getValue());			
+		}	
+		//recursive step
+		boolean bit = MerklePrefixTrie.getBit(keyHash, currIndex);
+		if (bit) {
+			//bit == 1 -> go right
+			Node childOnPath = this.pathBuilder(currNode.getRightChild(), keyHash, currIndex + 1);
+			// ignore path on left - stub
+			Node leftStub = new Stub(currNode.getLeftChild().getHash());
+			return new InteriorNode(leftStub, childOnPath);
+		} 
+		//bit == 0 -> go left
+		Node childOnPath = this.pathBuilder(currNode.getLeftChild(), keyHash, currIndex + 1);
+		// ignore path on right - stub
+		Node rightStub = new Stub(currNode.getRightChild().getHash());
+		return  new InteriorNode(childOnPath, rightStub);
 	}
-	
-	private void forceAddRoot(Node root) {
-		this.root = root;
-		
-	}
-	
-	
 	
 	/**
 	 * Efficiently serializes this MPT. The serialization
@@ -467,9 +422,6 @@ public class MerklePrefixTrie {
 	private String toStringHelper(String prefix, Node node) {
 		String result = prefix+" "+node.toString();
 		if(!node.isLeaf() && !node.isStub()) {
-			//System.out.println("curr node: "+node);
-			//System.out.println("is leaf: " + node.isLeaf());
-			//System.out.println("is stub: " + node.isStub());
 			String left = this.toStringHelper(prefix+"0", node.getLeftChild());
 			String right = this.toStringHelper(prefix+"1", node.getRightChild());
 			result = result+"\n"+left+"\n"+right;

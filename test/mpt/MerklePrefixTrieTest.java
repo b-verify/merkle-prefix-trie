@@ -1,6 +1,5 @@
 package mpt;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -40,7 +39,6 @@ public class MerklePrefixTrieTest {
 		}
 		return mpt;
 	}
-	
 	
 	@Test 
 	public void testTrieInsertionsManyOrdersProduceTheSameTrie() {
@@ -85,19 +83,23 @@ public class MerklePrefixTrieTest {
 		Assert.assertTrue(Arrays.equals(commitment1, mpt.getCommitment()));
 		
 		// check that the entries are in the tree
-		Assert.assertTrue(Arrays.equals("1".getBytes(), mpt.get("A".getBytes())));
-		Assert.assertTrue(Arrays.equals("2".getBytes(), mpt.get("B".getBytes())));
-		Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("C".getBytes())));
-		Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("D".getBytes())));
-		Assert.assertTrue(Arrays.equals("2".getBytes(), mpt.get("E".getBytes())));
-		Assert.assertTrue(Arrays.equals("1".getBytes(), mpt.get("F".getBytes())));
-		
-		// check that other keys are not 
-		Assert.assertEquals(null, mpt.get("G".getBytes()));		
-		Assert.assertEquals(null, mpt.get("H".getBytes()));		
-		Assert.assertEquals(null, mpt.get("I".getBytes()));		
-		Assert.assertEquals(null, mpt.get("J".getBytes()));		
-		Assert.assertEquals(null, mpt.get("K".getBytes()));		
+		try {
+			Assert.assertTrue(Arrays.equals("1".getBytes(), mpt.get("A".getBytes())));
+			Assert.assertTrue(Arrays.equals("2".getBytes(), mpt.get("B".getBytes())));
+			Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("C".getBytes())));
+			Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("D".getBytes())));
+			Assert.assertTrue(Arrays.equals("2".getBytes(), mpt.get("E".getBytes())));
+			Assert.assertTrue(Arrays.equals("1".getBytes(), mpt.get("F".getBytes())));
+			
+			// check that other keys are not 
+			Assert.assertEquals(null, mpt.get("G".getBytes()));		
+			Assert.assertEquals(null, mpt.get("H".getBytes()));		
+			Assert.assertEquals(null, mpt.get("I".getBytes()));		
+			Assert.assertEquals(null, mpt.get("J".getBytes()));		
+			Assert.assertEquals(null, mpt.get("K".getBytes()));		
+		}catch(Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 	
 	@Test
@@ -128,13 +130,17 @@ public class MerklePrefixTrieTest {
 		Assert.assertTrue(mpt.set("E".getBytes(), "3".getBytes()));		
 		Assert.assertTrue(mpt.set("F".getBytes(), "3".getBytes()));
 		
-		// check that the entries are in the tree
-		Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("A".getBytes())));
-		Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("B".getBytes())));
-		Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("C".getBytes())));
-		Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("D".getBytes())));
-		Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("E".getBytes())));
-		Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("F".getBytes())));
+		try {
+			// check that the entries are in the tree
+			Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("A".getBytes())));
+			Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("B".getBytes())));
+			Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("C".getBytes())));
+			Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("D".getBytes())));
+			Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("E".getBytes())));
+			Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("F".getBytes())));
+		} catch(Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 	
 	@Test
@@ -156,12 +162,16 @@ public class MerklePrefixTrieTest {
 		assertFalse(mpt.deleteKey("I".getBytes()));
 	
 		// remove them 
-		Assert.assertTrue(mpt.deleteKey("B".getBytes()));
-		Assert.assertEquals(null, mpt.get("B".getBytes()));
-		Assert.assertTrue(mpt.deleteKey("D".getBytes()));
-		Assert.assertEquals(null, mpt.get("D".getBytes()));
-		Assert.assertTrue(mpt.deleteKey("F".getBytes()));
-		Assert.assertEquals(null, mpt.get("F".getBytes()));
+		try {
+			Assert.assertTrue(mpt.deleteKey("B".getBytes()));
+			Assert.assertEquals(null, mpt.get("B".getBytes()));
+			Assert.assertTrue(mpt.deleteKey("D".getBytes()));
+			Assert.assertEquals(null, mpt.get("D".getBytes()));
+			Assert.assertTrue(mpt.deleteKey("F".getBytes()));
+			Assert.assertEquals(null, mpt.get("F".getBytes()));
+		} catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 		
 		// try re-removing entries that were already removed from trie
 		assertFalse(mpt.deleteKey("B".getBytes()));
@@ -184,14 +194,18 @@ public class MerklePrefixTrieTest {
 		int numberOfEntries = 1000;
 		String salt = "";
 		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(numberOfEntries, salt);
-		for(int key = 0; key < numberOfEntries; key++) {
-			String keyString = "key"+Integer.toString(key);
-			String valueString = "value"+Integer.toString(key)+salt;
-			// System.out.println("checking key: " + keyString.getBytes()+" ("+keyString+")");
-			// System.out.println("should be value: "+valueString.getBytes()+" ("+valueString+")");
-			byte[] valueBytes = mpt.get(keyString.getBytes());
-			// System.out.println("value was: "+valueBytes);
-			Assert.assertTrue(Arrays.equals(valueString.getBytes(), valueBytes));
+		try {
+			for(int key = 0; key < numberOfEntries; key++) {
+				String keyString = "key"+Integer.toString(key);
+				String valueString = "value"+Integer.toString(key)+salt;
+				// System.out.println("checking key: " + keyString.getBytes()+" ("+keyString+")");
+				// System.out.println("should be value: "+valueString.getBytes()+" ("+valueString+")");
+				byte[] valueBytes = mpt.get(keyString.getBytes());
+				// System.out.println("value was: "+valueBytes);
+				Assert.assertTrue(Arrays.equals(valueString.getBytes(), valueBytes));
+			}
+		} catch (Exception e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 	
@@ -207,20 +221,24 @@ public class MerklePrefixTrieTest {
 			// update values
 			Assert.assertTrue(mpt.set(keyString.getBytes(), valueString.getBytes()));
 		}
-		// now make sure the next get returns the updated values
-		for(int key = 0; key < numberOfEntries; key++) {
-			String keyString = "key"+Integer.toString(key);
-			String valueString = "value"+Integer.toString(key)+salt;
-			// System.out.println("checking key: " + keyString.getBytes()+" ("+keyString+")");
-			// System.out.println("should be value: "+valueString.getBytes()+" ("+valueString+")");
-			byte[] valueBytes = mpt.get(keyString.getBytes());
-			// System.out.println("value was: "+valueBytes);
-			Assert.assertTrue(Arrays.equals(valueString.getBytes(), valueBytes));
+		try {
+			// now make sure the next get returns the updated values
+			for(int key = 0; key < numberOfEntries; key++) {
+				String keyString = "key"+Integer.toString(key);
+				String valueString = "value"+Integer.toString(key)+salt;
+				// System.out.println("checking key: " + keyString.getBytes()+" ("+keyString+")");
+				// System.out.println("should be value: "+valueString.getBytes()+" ("+valueString+")");
+				byte[] valueBytes = mpt.get(keyString.getBytes());
+				// System.out.println("value was: "+valueBytes);
+				Assert.assertTrue(Arrays.equals(valueString.getBytes(), valueBytes));
+			}
+		} catch (Exception e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 	
 	@Test
-	public void testTrieInsertionsAgainReturnFalse() {
+	public void testTrieRepeatedInsertionsReturnFalse() {
 		int numberOfEntries = 1000;
 		String salt = "";
 		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(numberOfEntries, salt);
@@ -237,25 +255,29 @@ public class MerklePrefixTrieTest {
 		int numberOfEntries = 1000;
 		String salt = "";
 		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(numberOfEntries, salt);
-		for(int key = 0; key < numberOfEntries; key++) {
-			String keyString = "key"+Integer.toString(key);
-			String valueString = "value"+Integer.toString(key)+salt;
-			Assert.assertTrue(Arrays.equals(mpt.get(keyString.getBytes()), valueString.getBytes()));
-			if(key > 499) {
-				Assert.assertTrue(mpt.deleteKey(keyString.getBytes()));				
-			}
-		}
-		for(int key = 0; key < numberOfEntries; key++) {
-			String keyString = "key"+Integer.toString(key);
-			String valueString = "value"+Integer.toString(key)+salt;
-			if (key > 499) {
-				Assert.assertEquals(null, mpt.get(keyString.getBytes()));			
-			}else {
+		try {
+			for(int key = 0; key < numberOfEntries; key++) {
+				String keyString = "key"+Integer.toString(key);
+				String valueString = "value"+Integer.toString(key)+salt;
 				Assert.assertTrue(Arrays.equals(mpt.get(keyString.getBytes()), valueString.getBytes()));
+				if(key > 499) {
+					Assert.assertTrue(mpt.deleteKey(keyString.getBytes()));				
+				}
 			}
+			for(int key = 0; key < numberOfEntries; key++) {
+				String keyString = "key"+Integer.toString(key);
+				String valueString = "value"+Integer.toString(key)+salt;
+				if (key > 499) {
+					Assert.assertEquals(null, mpt.get(keyString.getBytes()));			
+				}else {
+					Assert.assertTrue(Arrays.equals(mpt.get(keyString.getBytes()), valueString.getBytes()));
+				}
+			}
+			MerklePrefixTrie mpt2 = MerklePrefixTrieTest.makeMerklePrefixTrie(500, salt);
+			Assert.assertTrue(Arrays.equals(mpt.getCommitment(), mpt2.getCommitment()));
+		}catch(Exception e) {
+			Assert.fail(e.getMessage());
 		}
-		MerklePrefixTrie mpt2 = MerklePrefixTrieTest.makeMerklePrefixTrie(500, salt);
-		Assert.assertTrue(Arrays.equals(mpt.getCommitment(), mpt2.getCommitment()));
 	}
 	
 	@Test
@@ -329,23 +351,18 @@ public class MerklePrefixTrieTest {
 	
 	@Test
 	public void testGetBitVaried() {
-		
 		byte[] ONE_TWO = new byte[] {1, 2};
 		String binaryStr = "00000001" + "00000010";
 		int[] expected = new int[16];
 		for (int i = 0; i < 16; i++) {
 			expected[i] = Character.getNumericValue(binaryStr.charAt(i));
 		}
-		
-		
 		for (int i = 0; i < 16; i++) {
 			//System.out.println(MerklePrefixTrie.getBit(ONE_TWO, i));
 			if (expected[i] == 1) {
 				assertTrue(MerklePrefixTrie.getBit(ONE_TWO, i));
-				
 			} else if (expected[i] == 0) {
 				assertFalse(MerklePrefixTrie.getBit(ONE_TWO, i));
-				
 			} else {
 				fail("binary string contains non-binary values");
 			}
@@ -354,15 +371,12 @@ public class MerklePrefixTrieTest {
 	
 	@Test
 	public void testGetBitVariedManyBytes() {
-		
 		byte[] MANY_BYTES = new byte[] {9, 100, (byte) 200, 32};
 		String binaryStr = "00001001" + "01100100" + "11001010" + "00100000";
 		int[] expected = new int[32];
 		for (int i = 0; i < 32; i++) {
 			expected[i] = Character.getNumericValue(binaryStr.charAt(i));
 		}
-		
-		
 		for (int i = 0; i < 16; i++) {
 			System.out.println(MerklePrefixTrie.getBit(MANY_BYTES, i));
 			if (expected[i] == 1) {
@@ -375,59 +389,33 @@ public class MerklePrefixTrieTest {
 				fail("binary string contains non-binary values");
 			}
 		}
-		
 	}
 	
 	
 	@Test
 	public void testCopySinglePathDepth1() {
-		
 		MerklePrefixTrie mpt = new MerklePrefixTrie();
 		byte[] bytes = new byte[] {0};
 		mpt.set(bytes, "1".getBytes());
-		//System.out.println(MerklePrefixTrie.byteArrayAsHexString("1".getBytes()));
-		//System.out.println(mpt);
-		//System.out.println(mpt.getCommitment());
-		byte[] first = mpt.getCommitment();
-		
-		//System.out.println(mpt);
-		byte[] second = mpt.getCommitment();
-		
-		Assert.assertTrue(Arrays.equals(first, second));
-		
-		//System.out.println(mpt);
-		
-		
 		MerklePrefixTrie path = mpt.copyPath(bytes);
-		//System.out.println(path);
-		//System.out.println(path.getCommitment());
-		//System.out.println(mpt);
-		
-		Assert.assertTrue("expect same commitment of trie and path", Arrays.equals(mpt.getCommitment(), path.getCommitment()));
-		
+		try {
+			Assert.assertTrue("expect path contains correct entry", Arrays.equals("1".getBytes(), path.get(bytes)));
+			Assert.assertTrue("expect same commitment of trie and path", Arrays.equals(mpt.getCommitment(), path.getCommitment()));	
+		}catch(Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 	
 	@Test
 	public void testCopyTwoPathsDepth1() {
 		MerklePrefixTrie mpt = new MerklePrefixTrie();
-		
 		byte[] first = new byte[] {0};
 		byte[] second = new byte[] {1};
 		mpt.set(first, "1".getBytes());
-		System.out.println(mpt);
-		System.out.println("after first insert: " + mpt);
 		MerklePrefixTrie path0 = mpt.copyPath(first);
-		System.out.println("path 0: " + path0);
-		mpt.set(second, "2".getBytes());
-		
-		System.out.println("after second insert: " + mpt);
-		
+		mpt.set(second, "2".getBytes());		
 		path0 = mpt.copyPath(first);
 		MerklePrefixTrie path1 = mpt.copyPath(second);
-		
-		System.out.println("path 0: " + path0);
-		System.out.println("path 1: " + path1);
-		
 		Assert.assertArrayEquals(path0.getCommitment(), path1.getCommitment());
 	}
 	
@@ -453,8 +441,12 @@ public class MerklePrefixTrieTest {
 		mpt.set(third, "3".getBytes());
 		System.out.println(mpt);
 		
-		Assert.assertArrayEquals("3".getBytes(), mpt.get(third));
-		Assert.assertArrayEquals("1".getBytes(), mpt.get(first));
+		try {
+			Assert.assertArrayEquals("3".getBytes(), mpt.get(third));
+			Assert.assertArrayEquals("1".getBytes(), mpt.get(first));
+		} catch(Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 	
 	@Test
@@ -534,6 +526,14 @@ public class MerklePrefixTrieTest {
 		//insert 101011110
 		
 		
+	}
+	
+	@Test
+	public void testPathPrint() {
+		MerklePrefixTrie mpt = MerklePrefixTrieTest.makeMerklePrefixTrie(1000, "test");
+		String keyString = "key"+Integer.toString(456);
+		MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
+		System.out.println(path);
 	}
 	
 	
