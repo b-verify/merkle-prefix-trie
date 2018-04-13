@@ -305,8 +305,8 @@ public class MerklePrefixTrie {
 	 */
 	public byte[] serialize() {
 		MptSerialization.Node rootSerialization = this.root.serialize();
-		MptSerialization.MerklePrefixTrieProof.Builder builder = 
-				MptSerialization.MerklePrefixTrieProof.newBuilder();
+		MptSerialization.MerklePrefixTrie.Builder builder = 
+				MptSerialization.MerklePrefixTrie.newBuilder();
 		builder.setRoot(rootSerialization);
 		return builder.build().toByteArray();
 	}
@@ -320,9 +320,9 @@ public class MerklePrefixTrie {
 	 */
 	public static MerklePrefixTrie deserialize(byte[] asbytes) throws 
 	InvalidMPTSerializationException	{
-		MptSerialization.MerklePrefixTrieProof mptProof;
+		MptSerialization.MerklePrefixTrie mptProof;
 		try {
-			mptProof = MptSerialization.MerklePrefixTrieProof.parseFrom(asbytes);
+			mptProof = MptSerialization.MerklePrefixTrie.parseFrom(asbytes);
 		}catch(InvalidProtocolBufferException e) {
 			throw new InvalidMPTSerializationException(e.getMessage());
 		}
