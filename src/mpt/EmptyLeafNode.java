@@ -49,7 +49,9 @@ public class EmptyLeafNode implements Node {
 
 	@Override 
 	public String toString() {
-		return EmptyLeafNode.EMPTY_MSG;
+		//return EmptyLeafNode.EMPTY_MSG;
+		String hex = MerklePrefixTrie.byteArrayAsHexString(this.getHash());
+		return "<EmptyLeafNode Hash: " + hex + ">";
 	}
 
 	@Override

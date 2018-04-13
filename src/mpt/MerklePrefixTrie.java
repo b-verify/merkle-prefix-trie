@@ -21,7 +21,7 @@ import serialization.MptSerialization;
 public class MerklePrefixTrie {
 	
 	private static final Logger LOGGER = Logger.getLogger( MerklePrefixTrie.class.getName() );
-	private InteriorNode root;
+	private Node root;
 	
 	/**
 	 * Create an empty Merkle Prefix Trie
@@ -63,10 +63,16 @@ public class MerklePrefixTrie {
 	 * @param nodeToAdd - LeafNode node we want to add 
 	 * @param currentBitIndex - the bit index in the prefix trie
 	 * @param prefix - the current bit prefix 
-	 * @return
+	 * @return updated version of 'node' (i.e. location in tree)
 	 */
 	private Node insertLeafNodeAndUpdate(Node node, LeafNode nodeToAdd, int currentBitIndex, String prefix) {
 		LOGGER.log(Level.FINE, "insert and update "+prefix+" at node: "+node.toString());
+		System.out.println("inserting");
+		System.out.println("Node: " + node);
+		System.out.println("node to add: " + nodeToAdd);
+		System.out.println("curr bit index: " + currentBitIndex);
+		System.out.println("prefix: " + prefix);
+		
 		if(node.isLeaf()) {
 			// node is an empty leaf we can just replace it 
 			if(node.isEmpty()) {
@@ -78,17 +84,21 @@ public class MerklePrefixTrie {
 			}
 			// otherwise have to split
 			LeafNode ln = (LeafNode) node;
+			System.out.println("SPLITTING");
 			return this.split(ln, nodeToAdd, currentBitIndex, prefix);
 		}
+		System.out.println(MerklePrefixTrie.byteArrayAsBitString(nodeToAdd.getKeyHash()));
 		boolean bit = MerklePrefixTrie.getBit(nodeToAdd.getKeyHash(), currentBitIndex);
 		/*
 		 * Encoding: if bit is 1 -> go right 
 		 * 			 if bit is 0 -> go left
 		 */
 		if(bit) {
+			System.out.println("bit = 1");
 			Node result = this.insertLeafNodeAndUpdate(node.getRightChild(), nodeToAdd, currentBitIndex+1, prefix+"1");
 			return new InteriorNode(node.getLeftChild(), result);
 		}
+		System.out.println("bit = 0");
 		Node result = this.insertLeafNodeAndUpdate(node.getLeftChild(), nodeToAdd, currentBitIndex+1, prefix+"0");
 		return new InteriorNode(result, node.getRightChild());
 	}
@@ -243,6 +253,96 @@ public class MerklePrefixTrie {
 	}
 	
 	/**
+	 * Returns a MerklePrefixTrie that contains path to a node specified
+	 * by byte[] path to it
+	 * @param key path to a non-root node (so key cannot be empty)
+	 * @return
+	 */
+	public MerklePrefixTrie copyPath(byte[] key) {
+		
+		MerklePrefixTrie copy = new MerklePrefixTrie();
+		
+		//check whether key is nonempty
+		if (key.length == 0) {
+			//return empty tree for empty key
+			return copy;
+		}
+		
+		
+		int currBitIndex = 0;
+		Node newRoot = this.pathBuilder(this.root, key, currBitIndex);
+		
+		
+		copy.forceAddRoot(newRoot);
+		
+		
+		
+		return copy;
+		
+	}
+	
+	/**
+	 * Recursive helper function for building a path to a leaf specified by a certain key
+	 * @param currNode the node in the trie we are trying to copy from, located at the position
+	 * key[:currentIndex]
+	 * @param key - binary path to a leaf
+	 * @param currentIndex int s.t. path to currNode from root is key[:currIndex]
+	 * @return Node a Node with children that form the path to a leaf in this tree
+	 */
+	private Node pathBuilder(Node currNode, byte[] key, int currIndex) {
+		System.out.println("in pathBuilder");
+		System.out.println("currNode: " + currNode);
+		System.out.println("currIndex: " + currIndex);
+		
+		byte[] keyHash = CryptographicDigest.digest(key);
+		//if (currIndex >= key.length) {
+		if (currNode.isLeaf()) {
+			//base case
+			
+			//check whether destination node should be stub node or actual leaf node
+			Node end;
+			if (currNode.isEmpty()) {
+				//check for empty leaves
+				end = new EmptyLeafNode();
+			} else {
+				
+				end = new LeafNode(currNode.getKey(), currNode.getValue());
+			}
+			
+			return end;
+			
+		} else {
+			
+			//recursive step
+			Node childOnPath;
+			Node path;
+			boolean bit = MerklePrefixTrie.getBit(keyHash, currIndex);
+			if (bit) {
+				//bit == 1 -> go right
+				childOnPath = this.pathBuilder(currNode.getRightChild(), keyHash, currIndex + 1);
+				Node leftStub = new Stub(currNode.getLeftChild().getHash());
+				path = new InteriorNode(leftStub, childOnPath);
+			} else {
+				//bit == 0 -> go left
+				childOnPath = this.pathBuilder(currNode.getLeftChild(), keyHash, currIndex + 1);
+				Node rightStub = new Stub(currNode.getRightChild().getHash());
+				path = new InteriorNode(childOnPath, rightStub);
+			}
+			
+			return path;
+		}
+		
+		
+	}
+	
+	private void forceAddRoot(Node root) {
+		this.root = root;
+		
+	}
+	
+	
+	
+	/**
 	 * Efficiently serializes this MPT. The serialization
 	 * contains the minimal set of information required to reconstruct 
 	 * and authenticate this MPT when deserialized on the client.
@@ -366,7 +466,10 @@ public class MerklePrefixTrie {
 	
 	private String toStringHelper(String prefix, Node node) {
 		String result = prefix+" "+node.toString();
-		if(!node.isLeaf()) {
+		if(!node.isLeaf() && !node.isStub()) {
+			//System.out.println("curr node: "+node);
+			//System.out.println("is leaf: " + node.isLeaf());
+			//System.out.println("is stub: " + node.isStub());
 			String left = this.toStringHelper(prefix+"0", node.getLeftChild());
 			String right = this.toStringHelper(prefix+"1", node.getRightChild());
 			result = result+"\n"+left+"\n"+right;
@@ -399,7 +502,11 @@ public class MerklePrefixTrie {
 	 */
 	public static boolean getBit(final byte[] bytes, int index) {
 		int byteIndex = Math.floorDiv(index, 8); 
-		int bitIndex = index % 8;
+		//int bitIndex = index % 8;
+		int bitIndex = (7 - index) % 8;
+		if (bitIndex < 0) {
+			bitIndex += 8;
+		}
 		byte b = bytes[byteIndex];
 		return MerklePrefixTrie.getBit(b, bitIndex);
 	}
@@ -433,14 +540,15 @@ public class MerklePrefixTrie {
 	}
 	
 	/**
-	 * Print an array of bytes as string of bits
+	 * Return an array of bytes as string of bits
 	 * @param bytes
 	 * @return
 	 */
 	public static String byteArrayAsBitString(final byte[] bytes) {
 		String bitString = "";
 		for(byte b: bytes) {
-			for(int bitIndex = 0; bitIndex < 8; bitIndex++) {
+			//for(int bitIndex = 0; bitIndex < 8; bitIndex++) {
+			for (int bitIndex = 7; bitIndex >= 0; bitIndex--) {
 				if(MerklePrefixTrie.getBit(b, bitIndex)) {
 					bitString += "1";
 				}else {

@@ -80,4 +80,10 @@ public class Stub implements Node {
 	public Node getRightChild() {
 		return null;
 	}
+	
+	@Override
+	public String toString() {
+		String hex = MerklePrefixTrie.byteArrayAsHexString(this.getHash());
+		return "<Stub Hash: " + hex + ">";
+	}
 }

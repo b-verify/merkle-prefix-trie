@@ -78,8 +78,9 @@ public class LeafNode implements Node {
 		
 	@Override
 	public String toString() {
-		return new String("<Leaf K: "+MerklePrefixTrie.byteArrayAsHexString(this.key)+
-				" V: "+MerklePrefixTrie.byteArrayAsHexString(this.value)
+		return new String("<Leaf K: "+ MerklePrefixTrie.byteArrayAsHexString(this.key) +
+				" V: "+ MerklePrefixTrie.byteArrayAsHexString(this.value) + 
+				" Hash: " + MerklePrefixTrie.byteArrayAsHexString(this.getHash())
 				+">");
 	}
 
