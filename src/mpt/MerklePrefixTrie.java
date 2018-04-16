@@ -23,6 +23,7 @@ public class MerklePrefixTrie {
 	private static final Logger LOGGER = Logger.getLogger( MerklePrefixTrie.class.getName() );
 	
 	// we require that the root is always an interior node 
+	// at index -1, empty prefix (which I usually represent by +)
 	private InteriorNode root;
 	
 	/**
@@ -51,7 +52,7 @@ public class MerklePrefixTrie {
 		LeafNode leafNodeToAdd = new LeafNode(key, value);
 		LOGGER.log(Level.FINE, "set("+Utils.byteArrayAsHexString(key)+") = "+
 				Utils.byteArrayAsHexString(value));
-		Node newRoot = this.insertLeafNodeAndUpdate(this.root, leafNodeToAdd, 0);
+		Node newRoot = this.insertLeafNodeAndUpdate(this.root, leafNodeToAdd, -1);
 		boolean updated = !newRoot.equals(this.root);
 		this.root = (InteriorNode) newRoot;
 		return updated;
@@ -84,7 +85,7 @@ public class MerklePrefixTrie {
 			LeafNode ln = (LeafNode) node;
 			return this.split(ln, nodeToAdd, currentBitIndex);
 		}
-		boolean bit = Utils.getBit(nodeToAdd.getKeyHash(), currentBitIndex);
+		boolean bit = Utils.getBit(nodeToAdd.getKeyHash(), currentBitIndex+1);
 		/*
 		 * Encoding: if bit is 1 -> go right 
 		 * 			 if bit is 0 -> go left
@@ -103,14 +104,14 @@ public class MerklePrefixTrie {
 	 * @param a - the first leaf
 	 * @param b - the second leaf
 	 * @param currentBitIndex - a and b have the same prefix (collision) at least
-	 *  up to currentBitIndex - 1
-	 * 	a.getKeyHash()[:currentBitIndex-1] == b.getKeyKash()[:currentBitIndex-1]
+	 *  up to currentBitIndex
+	 * 	a.getKeyHash()[:currentBitIndex] == b.getKeyKash()[:currentBitIndex]
 	 * @return
 	 */
 	private Node split(LeafNode a, LeafNode b, int currentBitIndex) {
 		assert !Arrays.equals(a.getKeyHash(), b.getKeyHash());
-		boolean bitA = Utils.getBit(a.getKeyHash(), currentBitIndex);
-		boolean bitB = Utils.getBit(b.getKeyHash(), currentBitIndex);
+		boolean bitA = Utils.getBit(a.getKeyHash(), currentBitIndex+1);
+		boolean bitB = Utils.getBit(b.getKeyHash(), currentBitIndex+1);
 		// still collision, split again
 		if(bitA == bitB) {
 			// recursively split 
@@ -146,7 +147,7 @@ public class MerklePrefixTrie {
 	public byte[] get(byte[] key) throws IncompleteMPTException {
 		byte[] keyHash = CryptographicDigest.digest(key);
 		LOGGER.log(Level.FINE, "get H("+key+"): "+Utils.byteArrayAsBitString(keyHash));
-		return this.getKeyHelper(this.root, keyHash, 0);
+		return this.getKeyHelper(this.root, keyHash, -1);
 	}
 	
 	/**
@@ -177,7 +178,7 @@ public class MerklePrefixTrie {
 			// otherwise key not in the MPT - return null;
 			return null;
 		}
-		boolean bit = Utils.getBit(keyHash, currentBitIndex);
+		boolean bit = Utils.getBit(keyHash, currentBitIndex+1);
 		if(bit) {
 			return this.getKeyHelper(currentNode.getRightChild(), keyHash, currentBitIndex+1);
 		}
@@ -196,7 +197,7 @@ public class MerklePrefixTrie {
 	 * @throws IncompleteMPTException - if the search cannot be completed 
 	 */
 	public Node getNodeAtPrefix(byte[] fullPath, int prefixEndIdx) throws IncompleteMPTException {
-		return this.getNodeAtPrefixHelper(this.root, fullPath, prefixEndIdx+1, 0);
+		return this.getNodeAtPrefixHelper(this.root, fullPath, prefixEndIdx, -1);
 	}
 	
 	private Node getNodeAtPrefixHelper(Node currentNode, byte[] fullPath, int prefixEndIdx, 
@@ -211,7 +212,7 @@ public class MerklePrefixTrie {
 		if(currentNode.isLeaf()) {
 			return null;
 		}
-		boolean bit = Utils.getBit(fullPath, currentIdx);
+		boolean bit = Utils.getBit(fullPath, currentIdx+1);
 		if(bit) {
 			return this.getNodeAtPrefixHelper(currentNode.getRightChild(), fullPath, prefixEndIdx, 
 					currentIdx+1);
@@ -229,7 +230,7 @@ public class MerklePrefixTrie {
 	public boolean deleteKey(byte[] key) {
 		byte[] keyHash = CryptographicDigest.digest(key);
 		LOGGER.log(Level.FINE, "delete("+Utils.byteArrayAsHexString(key)+") - Hash= "+Utils.byteArrayAsBitString(keyHash));
-		Node newRoot = this.deleteKeyHelper(this.root, keyHash, 0);
+		Node newRoot = this.deleteKeyHelper(this.root, keyHash, -1);
 		boolean changed =  !newRoot.equals(this.root);
 		this.root = (InteriorNode) newRoot;
 		return changed;
@@ -251,8 +252,8 @@ public class MerklePrefixTrie {
 		}
 		// we have to watch out to make sure that if this is the root node
 		// that we return an InteriorNode and don't propagate up an empty node
-		boolean isRoot = currentNode.equals(this.root);
-		boolean bit = Utils.getBit(keyHash, currentBitIndex);
+		boolean isRoot = (currentBitIndex == -1);
+		boolean bit = Utils.getBit(keyHash, currentBitIndex+1);
 		Node leftChild = currentNode.getLeftChild();
 		Node rightChild = currentNode.getRightChild();
 		if(bit) {
@@ -445,7 +446,7 @@ public class MerklePrefixTrie {
 				// perform update
 				Node newRoot = this.updateStubOrLeafHelper(this.root, 
 						newStubOrLeaf, update.getFullPath().toByteArray(), 
-						update.getIndex()+1, 0);
+						update.getIndex(), -1);
 				// update the root (save the update)
 				this.root = (InteriorNode) newRoot;
 				
@@ -489,7 +490,7 @@ public class MerklePrefixTrie {
 		}
 		Node left = currentLocation.getLeftChild();
 		Node right = currentLocation.getRightChild();
-		boolean bit = Utils.getBit(path, currentIdx);
+		boolean bit = Utils.getBit(path, currentIdx+1);
 		if(bit) {
 			Node newRight = this.updateStubOrLeafHelper(right, newStubOrLeaf,
 					path, prefixEndIdx, currentIdx+1);
