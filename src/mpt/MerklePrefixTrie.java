@@ -13,8 +13,7 @@ import serialization.MptSerialization;
 
 /**
  * A  Merkle Prefix Trie (MPT) to implement a Persistent Authenticated Dictionary
- * 
- * TODO: add an interface and move the public methods and specs to the interface file
+ *
  * 
  * @author Henry Aspegren, Chung Eun (Christina) Lee
  *
@@ -22,7 +21,9 @@ import serialization.MptSerialization;
 public class MerklePrefixTrie {
 	
 	private static final Logger LOGGER = Logger.getLogger( MerklePrefixTrie.class.getName() );
-	private Node root;
+	
+	// we require that the root is always an interior node 
+	private InteriorNode root;
 	
 	/**
 	 * Create an empty Merkle Prefix Trie
@@ -34,7 +35,7 @@ public class MerklePrefixTrie {
 	/**
 	 * Create a Merkle Prefix Trie with the root. This constructor is 
 	 * private because it assumes that the internal structure of root is correct. 
-	 * This is not safe to expose to clients
+	 * This is not safe to expose to clients.
 	 */
 	private MerklePrefixTrie(InteriorNode root) {
 		this.root = root;
@@ -49,8 +50,7 @@ public class MerklePrefixTrie {
 	public boolean set(byte[] key, byte[] value){
 		LeafNode leafNodeToAdd = new LeafNode(key, value);
 		LOGGER.log(Level.FINE, "set("+Utils.byteArrayAsHexString(key)+") = "+
-				Utils.byteArrayAsHexString(key));
-		LOGGER.log(Level.FINE, "keyHash: "+Utils.byteArrayAsBitString(leafNodeToAdd.getKeyHash()));
+				Utils.byteArrayAsHexString(value));
 		Node newRoot = this.insertLeafNodeAndUpdate(this.root, leafNodeToAdd, 0);
 		boolean updated = !newRoot.equals(this.root);
 		this.root = (InteriorNode) newRoot;
@@ -58,16 +58,21 @@ public class MerklePrefixTrie {
 	}
 		
 	/**
-	 * Recursive helper function to insert a leaf into the trie. 
-	 * @param node - current node in this tree
+	 * Recursive helper function to insert a leaf into the MPT. 
+	 * @param node - current location in the MPT
 	 * @param nodeToAdd - LeafNode node we want to add 
 	 * @param currentBitIndex - the current bit index. An int such that 
-	 * location of node is nodeToAdd.getKeyHash()[:currentBitIndex]
-	 * @return updated version of 'node' (i.e. location in tree)
+	 * current location is nodeToAdd.getKeyHash()[:currentBitIndex]
+	 * @return passes back up updated versions of the node, once the nodeToAdd has 
+	 * been added
 	 */
 	private Node insertLeafNodeAndUpdate(Node node, LeafNode nodeToAdd, int currentBitIndex) {
+		// if we hit a stub throw an error 
+		if(node.isStub()) {
+			throw new RuntimeException("tried to insert into a MPT but hit a stub");
+		}
 		if(node.isLeaf()) {
-			// node is an empty leaf we can just replace it 
+			// if node is an empty leaf we can just replace it 
 			if(node.isEmpty()) {
 				return nodeToAdd;
 			}
@@ -93,12 +98,12 @@ public class MerklePrefixTrie {
 	}
 	
 	/**
-	 * Recursive helper function to split two leaves which are currently mapped the the 
-	 * same node
+	 * Recursive helper function to split two leaves which are currently mapped to the same
+	 * location the MPT (have the same prefix).
 	 * @param a - the first leaf
 	 * @param b - the second leaf
 	 * @param currentBitIndex - a and b have the same prefix (collision) at least
-	 *  up to currentBitIndex -1
+	 *  up to currentBitIndex - 1
 	 * 	a.getKeyHash()[:currentBitIndex-1] == b.getKeyKash()[:currentBitIndex-1]
 	 * @return
 	 */
@@ -121,8 +126,10 @@ public class MerklePrefixTrie {
 		}
 		// no collision
 		if(bitA) {
+			// bitA is 1, bitB is 0
 			return new InteriorNode(b, a);
 		}
+		// bitA is 0, bitB is 1
 		return new InteriorNode(a, b);
 	}
 	
@@ -130,10 +137,10 @@ public class MerklePrefixTrie {
 	 * Get the value associated with a given key. Returns null if the key 
 	 * is not in the MPT. 
 	 * @param key
-	 * @return
-	 * @throws IncompleteMPTException - if parts of the MPT are missing such
-	 * that the search cannot be completed this exception is 
-	 * thrown. (E.g. if a MPT conatins a single path, and searching for this 
+	 * @return the value if the key is in the MPT and null if the key is not.
+	 * @throws IncompleteMPTException - thrown if parts of the MPT are missing such
+	 * that the search cannot be completed.
+	 * (E.g. if a MPT conatins a single path, and searching for this 
 	 * key's prefix is not possible with just the path).
 	 */
 	public byte[] get(byte[] key) throws IncompleteMPTException {
@@ -143,8 +150,9 @@ public class MerklePrefixTrie {
 	}
 	
 	/**
-	 * Recursive helper function to search for the keyHash - a prefix
-	 * in the trie. Returns when it finds a leaf. If the 
+	 * Recursive helper function to search for the keyHash by checking 
+	 * progressively longer prefixes in the MPT. 
+	 * Returns when it finds a leaf. If the 
 	 * key is not in the tree it will eventually hit an EmptyLeafNode or a 
 	 * LeafNode with a different keyHash. In this case this function will return null.
 	 * @param currentNode
@@ -169,10 +177,6 @@ public class MerklePrefixTrie {
 			// otherwise key not in the MPT - return null;
 			return null;
 		}
-		/*
-		 * Encoding: if bit is 1 -> go right 
-		 * 			 if bit is 0 -> go left
-		 */
 		boolean bit = Utils.getBit(keyHash, currentBitIndex);
 		if(bit) {
 			return this.getKeyHelper(currentNode.getRightChild(), keyHash, currentBitIndex+1);
@@ -189,14 +193,14 @@ public class MerklePrefixTrie {
 	 * @param prefixEndIdx - an integer such that the prefix (location) of the desired 
 	 * 					node is fullPath[:prefixEndIdx]
 	 * @return the node at the prefix or null if it is not in the MPT
-	 * @throws IncompleteMPTException - if the search cannot be completed
+	 * @throws IncompleteMPTException - if the search cannot be completed 
 	 */
 	public Node getNodeAtPrefix(byte[] fullPath, int prefixEndIdx) throws IncompleteMPTException {
 		return this.getNodeAtPrefixHelper(this.root, fullPath, prefixEndIdx, 0);
 	}
 	
 	private Node getNodeAtPrefixHelper(Node currentNode, byte[] fullPath, int prefixEndIdx, 
-			int currentIdx) throws IncompleteMPTException{
+			int currentIdx) throws IncompleteMPTException {
 		if(currentIdx == prefixEndIdx) {
 			return currentNode;
 		}
@@ -233,6 +237,9 @@ public class MerklePrefixTrie {
 	
 	private Node deleteKeyHelper(Node currentNode, 
 			byte[] keyHash, int currentBitIndex) {
+		if(currentNode.isStub()) {
+			throw new RuntimeException("hit a stub when trying to delete key");
+		}
 		if(currentNode.isLeaf()) {
 			if(!currentNode.isEmpty()) {
 				if(Arrays.equals(currentNode.getKeyHash(), keyHash)){
@@ -252,12 +259,12 @@ public class MerklePrefixTrie {
 			// delete key from the right subtree
 			Node newRightChild = this.deleteKeyHelper(rightChild, keyHash, currentBitIndex+1);
 			// if left subtree is empty, and rightChild is leaf
-			// we push the newRightChild back up the trie
+			// we push the newRightChild back up the MPT
 			if(leftChild.isEmpty() && newRightChild.isLeaf() && !isRoot) {
 				return newRightChild;
 			}
 			// if newRightChild is empty, and leftChild is a leaf
-			// we push the leftChild back up the trie
+			// we push the leftChild back up the MPT
 			if(newRightChild.isEmpty() && leftChild.isLeaf() && !isRoot) {
 				return leftChild;
 			}
@@ -285,10 +292,10 @@ public class MerklePrefixTrie {
 	
 	/**
 	 * Returns a new MPT that contains path that maps the key 
-	 * to a possibly empty leaf in this trie. 
+	 * to a (possibly empty) leaf in this MPT. 
 	 * The new MPT has the leaf entry as well as the hashes 
 	 * on the path (in the form of stubs) needed to authenticate it
-	 * @param - a key, arbitary bytes, may or may not be in the tree
+	 * @param - a key, arbitrary bytes, may or may not be in the tree
 	 * @return - a MerklePrefixTrie containing only the path 
 	 * mapping the key to a leaf
 	 */
@@ -309,6 +316,9 @@ public class MerklePrefixTrie {
 	 * @return Node a Node with children that form the path to a leaf in this tree
 	 */
 	private Node pathBuilder(Node currNode, byte[] keyHash, int currIndex) {
+		if(currNode.isStub()) {
+			throw new RuntimeException("hit a stub - cannot copy");
+		}
 		// base case
 		if (currNode.isLeaf()) {
 			if (currNode.isEmpty()) {
@@ -349,7 +359,7 @@ public class MerklePrefixTrie {
 	}
 	
 	/**
-	 * Parses a serialized MPT from raw bytes. Throws an 
+	 * Parses a MPT from a byte serialization. Throws an 
 	 * InvalidMPTSerialization if the tree cannot be deserialized properly
 	 * @param asbytes
 	 * @return
