@@ -1,6 +1,7 @@
 package mpt;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -177,6 +178,42 @@ public class MerklePrefixTrie {
 			return this.getKeyHelper(currentNode.getRightChild(), keyHash, currentBitIndex+1);
 		}
 		return this.getKeyHelper(currentNode.getLeftChild(), keyHash, currentBitIndex+1);
+	}
+	
+	/**
+	 * @christina - Not sure if this should be a public method 
+	 * This method returns the node at a given location (prefix) in the MPT.
+	 * If the node is not present it returns null. If the MPT is incomplete
+	 * (e.g. that the search cannot be completed) it throws an exception
+	 * @param fullPath - the full path 
+	 * @param prefixEndIdx - an integer such that the prefix (location) of the desired 
+	 * 					node is fullPath[:prefixEndIdx]
+	 * @return the node at the prefix or null if it is not in the MPT
+	 * @throws IncompleteMPTException - if the search cannot be completed
+	 */
+	public Node getNodeAtPrefix(byte[] fullPath, int prefixEndIdx) throws IncompleteMPTException {
+		return this.getNodeAtPrefixHelper(this.root, fullPath, prefixEndIdx, 0);
+	}
+	
+	private Node getNodeAtPrefixHelper(Node currentNode, byte[] fullPath, int prefixEndIdx, 
+			int currentIdx) throws IncompleteMPTException{
+		if(currentIdx == prefixEndIdx) {
+			return currentNode;
+		}
+		if(currentNode.isStub()) {
+			throw new IncompleteMPTException("encountered a stub before could reach prefix");
+		}
+		// if encounter a premature leaf - then search is over 
+		if(currentNode.isLeaf()) {
+			return null;
+		}
+		boolean bit = Utils.getBit(fullPath, currentIdx);
+		if(bit) {
+			return this.getNodeAtPrefixHelper(currentNode.getRightChild(), fullPath, prefixEndIdx, 
+					currentIdx+1);
+		}
+		return this.getNodeAtPrefixHelper(currentNode.getLeftChild(), fullPath, prefixEndIdx, 
+				currentIdx+1);		
 	}
 	
 	/**
@@ -382,6 +419,75 @@ public class MerklePrefixTrie {
 			throw new InvalidMPTSerializationException("no node included - fatal error");
 		}
 		return null;
+	}
+	
+	public void deserializeUpdates(byte[] updateBytes) throws InvalidMPTSerializationException{
+		try {
+			MptSerialization.MerklePrefixTrieUpdate updateMsg = 
+					MptSerialization.MerklePrefixTrieUpdate.parseFrom(updateBytes);
+			List<MptSerialization.Update> updates = updateMsg.getUpdatesList();
+			for(MptSerialization.Update update : updates) {
+				Node newStubOrLeaf = MerklePrefixTrie.parseNode(update.getNode());
+				if(!(newStubOrLeaf instanceof LeafNode || newStubOrLeaf instanceof Stub)) {
+					throw new InvalidMPTSerializationException("tried to insert something "
+							+ "other than a stub or leaf");
+				}
+				// perform update
+				Node newRoot = this.updateStubOrLeafHelper(this.root, 
+						newStubOrLeaf, update.getFullPath().toByteArray(), 
+						update.getIndex(), 0);
+				// update the root (save the update)
+				this.root = (InteriorNode) newRoot;
+				
+			}
+		}catch(InvalidProtocolBufferException e) {
+			throw new InvalidMPTSerializationException(e.getMessage());
+		}
+	}
+	
+	/**
+	 * Recursive helper function. Given a stub or leaf and a prefix. This function 
+	 * replaces the stub or leaf at the location of prefix with the updated stub or leaf.
+	 * If the node at that prefix does not exist, or is not a stub or a leaf this 
+	 * method throws an error 
+	 * @param currentLocation - current location in the trie
+	 * @param newStubOrLeaf - stub or leaf to insert
+	 * @param path - full hash of node 
+	 * @param prefixEndIdx - end index - defines a prefix of path[:prefixEndIndx] - 
+	 * 						which corresponds to a location in the MPT
+	 * @param currentIdx - current location in the search path[:currentIndx]
+	 * @return
+	 * @throws InvalidMPTSerializationException
+	 */
+	private Node updateStubOrLeafHelper(Node currentLocation, Node newStubOrLeaf, byte[] path, int prefixEndIdx, 
+			int currentIdx) throws InvalidMPTSerializationException{
+		// if we are at the correct location in the MPT
+		if(currentIdx == prefixEndIdx) {
+			// both the node we are inserting and the node
+			// we are replacing should be a stub or leaf
+			if((currentLocation.isStub() || currentLocation.isLeaf()) && 
+					(newStubOrLeaf.isStub() || newStubOrLeaf.isLeaf())) {
+				return newStubOrLeaf;
+			}
+			throw new InvalidMPTSerializationException("Both the node being and the node "
+					+ "being replaced should be stub or leaf");
+		}
+		// this shouldn't happen since we are not at the correct location in the MPT yet
+		if(currentLocation.isLeaf()) {
+			throw new InvalidMPTSerializationException("tried to insert at a path "
+					+ "not currently present in the MPT");
+		}
+		Node left = currentLocation.getLeftChild();
+		Node right = currentLocation.getRightChild();
+		boolean bit = Utils.getBit(path, currentIdx);
+		if(bit) {
+			Node newRight = this.updateStubOrLeafHelper(right, newStubOrLeaf,
+					path, prefixEndIdx, currentIdx+1);
+			return new InteriorNode(left, newRight);
+		}
+		Node newLeft = this.updateStubOrLeafHelper(left,
+				newStubOrLeaf, path, prefixEndIdx, currentIdx+1);
+		return new InteriorNode(newLeft, right);
 	}
 	
 	/**

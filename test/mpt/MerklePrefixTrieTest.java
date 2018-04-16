@@ -12,15 +12,12 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.protobuf.ByteString;
+
 import crpyto.CryptographicDigest;
+import serialization.MptSerialization;
 
 public class MerklePrefixTrieTest {
-	
-	
-	/**
-	 * TODO: these helper constructor methods should really be moved to a special Util class
-	 * to make them more available
-	 */
 	
 	@Test 
 	public void testTrieInsertionsManyOrdersProduceTheSameTrie() {
@@ -393,7 +390,6 @@ public class MerklePrefixTrieTest {
 		}
 	}
 	
-	
 	@Test
 	public void testCopySinglePathDepth1() {
 		MerklePrefixTrie mpt = new MerklePrefixTrie();
@@ -569,6 +565,85 @@ public class MerklePrefixTrieTest {
 			}	
 		}
 	}
+	
+	@Test
+	public void testUpdateSingleStub() {
+		int n = 20;
+		int key = 8;
+		String salt = "";
+		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(n, salt);
+		// take a path in the MPT		
+		String keyString = "key"+Integer.toString(key);
+		MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
+		
+		// update a different key which will update a single stub 
+		// along the path
+		String keyStringToUpdate = "key"+Integer.toString(5);
+		mpt.set(keyStringToUpdate.getBytes(), "OTHER VALUE".getBytes());
+		
+		// get a new copy of the path
+		MerklePrefixTrie pathUpdated = mpt.copyPath(keyString.getBytes());
+		
+		// should have different commitments
+		Assert.assertFalse(Arrays.equals(path.getCommitment(), pathUpdated.getCommitment()));
+				
+		byte[] updateHash = CryptographicDigest.digest(keyStringToUpdate.getBytes());
+		try {
+			// find the updated stub
+			Node stub = pathUpdated.getNodeAtPrefix(
+					CryptographicDigest.digest(keyStringToUpdate.getBytes()),2);
+			byte[] updateBytes = 
+					MptSerialization.MerklePrefixTrieUpdate.newBuilder()
+					.addUpdates(MptSerialization.Update.newBuilder()
+							.setFullPath(ByteString.copyFrom(updateHash))
+							.setIndex(2)
+							.setNode(MptSerialization.Node.newBuilder()
+									.setStub(MptSerialization.Stub.newBuilder()
+												.setHash(ByteString.copyFrom(stub.getHash())))))
+					.build().toByteArray();
+			// update the stub 
+			path.deserializeUpdates(updateBytes);
+			Node stub2 = path.getNodeAtPrefix(
+					CryptographicDigest.digest(keyStringToUpdate.getBytes()),2);
+			// check that the stub was updated
+			Assert.assertTrue(stub.equals(stub2));
+			// check that the commitments now match
+			Assert.assertTrue(Arrays.equals(path.getCommitment(), pathUpdated.getCommitment()));
+		} catch (IncompleteMPTException | InvalidMPTSerializationException e) {
+			Assert.fail(e.getMessage());
+		}
+		
+	}
+	
+	@Test
+	public void testUpdateSingleStubWrongLocationGivesError() {
+		int n = 20;
+		int key = 8;
+		String salt = "";
+		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(n, salt);
+		// take a path in the MPT		
+		String keyString = "key"+Integer.toString(key);
+		byte[] pathHash = CryptographicDigest.digest(keyString.getBytes());
+		MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
+		try {
+			byte[] updateBytes = 
+					MptSerialization.MerklePrefixTrieUpdate.newBuilder()
+					.addUpdates(MptSerialization.Update.newBuilder()
+							.setFullPath(ByteString.copyFrom(pathHash))
+							.setIndex(15) // this prefix will not be in the MPT
+							.setNode(MptSerialization.Node.newBuilder()
+									.setStub(MptSerialization.Stub.newBuilder()
+												.setHash(ByteString.copyFrom("test".getBytes())))))
+					.build().toByteArray();
+			// update the stub 
+			path.deserializeUpdates(updateBytes);
+			Assert.fail("should throw exception");
+		} catch (InvalidMPTSerializationException e) {
+			
+		}
+		
+	}
+	
 	
 	
 }

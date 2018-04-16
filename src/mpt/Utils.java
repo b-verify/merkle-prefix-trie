@@ -84,7 +84,6 @@ public class Utils {
 	public static String byteArrayAsBitString(final byte[] bytes) {
 		String bitString = "";
 		for(byte b: bytes) {
-			//for(int bitIndex = 0; bitIndex < 8; bitIndex++) {
 			for (int bitIndex = 7; bitIndex >= 0; bitIndex--) {
 				if(Utils.getBit(b, bitIndex)) {
 					bitString += "1";
@@ -108,4 +107,30 @@ public class Utils {
 	    }
 	    return hex.toString();
 	}
+	
+	/**
+	 * Print a prefix as a bit string
+	 * @param bytes - bytes representing the "full path" 
+	 * @param endIdx - an int such that prefix = bytes[:endIdx]
+	 * @return
+	 */
+	public static String byteArrayPrefixAsBitString(final byte[] bytes, int endIdx) {
+		String bitString = "";
+		int idx = 0;
+		for(byte b: bytes) {
+			for (int bitIndex = 7; bitIndex >= 0; bitIndex--) {
+				if(idx == endIdx) {
+					break;
+				}
+				if(Utils.getBit(b, bitIndex)) {
+					bitString += "1";
+				}else {
+					bitString += "0";
+				}
+				idx++;
+			}
+		}
+		return bitString;
+	}
+
 }

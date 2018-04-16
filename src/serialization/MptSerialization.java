@@ -3556,32 +3556,17 @@ public final class MptSerialization {
     int getIndex();
 
     /**
-     * <code>.serialization.Stub stub = 3;</code>
+     * <code>.serialization.Node node = 3;</code>
      */
-    boolean hasStub();
+    boolean hasNode();
     /**
-     * <code>.serialization.Stub stub = 3;</code>
+     * <code>.serialization.Node node = 3;</code>
      */
-    serialization.MptSerialization.Stub getStub();
+    serialization.MptSerialization.Node getNode();
     /**
-     * <code>.serialization.Stub stub = 3;</code>
+     * <code>.serialization.Node node = 3;</code>
      */
-    serialization.MptSerialization.StubOrBuilder getStubOrBuilder();
-
-    /**
-     * <code>.serialization.Leaf leaf = 4;</code>
-     */
-    boolean hasLeaf();
-    /**
-     * <code>.serialization.Leaf leaf = 4;</code>
-     */
-    serialization.MptSerialization.Leaf getLeaf();
-    /**
-     * <code>.serialization.Leaf leaf = 4;</code>
-     */
-    serialization.MptSerialization.LeafOrBuilder getLeafOrBuilder();
-
-    public serialization.MptSerialization.Update.NodeCase getNodeCase();
+    serialization.MptSerialization.NodeOrBuilder getNodeOrBuilder();
   }
   /**
    * <pre>
@@ -3651,31 +3636,16 @@ public final class MptSerialization {
               break;
             }
             case 26: {
-              serialization.MptSerialization.Stub.Builder subBuilder = null;
-              if (nodeCase_ == 3) {
-                subBuilder = ((serialization.MptSerialization.Stub) node_).toBuilder();
+              serialization.MptSerialization.Node.Builder subBuilder = null;
+              if (node_ != null) {
+                subBuilder = node_.toBuilder();
               }
-              node_ =
-                  input.readMessage(serialization.MptSerialization.Stub.parser(), extensionRegistry);
+              node_ = input.readMessage(serialization.MptSerialization.Node.parser(), extensionRegistry);
               if (subBuilder != null) {
-                subBuilder.mergeFrom((serialization.MptSerialization.Stub) node_);
+                subBuilder.mergeFrom(node_);
                 node_ = subBuilder.buildPartial();
               }
-              nodeCase_ = 3;
-              break;
-            }
-            case 34: {
-              serialization.MptSerialization.Leaf.Builder subBuilder = null;
-              if (nodeCase_ == 4) {
-                subBuilder = ((serialization.MptSerialization.Leaf) node_).toBuilder();
-              }
-              node_ =
-                  input.readMessage(serialization.MptSerialization.Leaf.parser(), extensionRegistry);
-              if (subBuilder != null) {
-                subBuilder.mergeFrom((serialization.MptSerialization.Leaf) node_);
-                node_ = subBuilder.buildPartial();
-              }
-              nodeCase_ = 4;
+
               break;
             }
           }
@@ -3702,44 +3672,6 @@ public final class MptSerialization {
               serialization.MptSerialization.Update.class, serialization.MptSerialization.Update.Builder.class);
     }
 
-    private int nodeCase_ = 0;
-    private java.lang.Object node_;
-    public enum NodeCase
-        implements com.google.protobuf.Internal.EnumLite {
-      STUB(3),
-      LEAF(4),
-      NODE_NOT_SET(0);
-      private final int value;
-      private NodeCase(int value) {
-        this.value = value;
-      }
-      /**
-       * @deprecated Use {@link #forNumber(int)} instead.
-       */
-      @java.lang.Deprecated
-      public static NodeCase valueOf(int value) {
-        return forNumber(value);
-      }
-
-      public static NodeCase forNumber(int value) {
-        switch (value) {
-          case 3: return STUB;
-          case 4: return LEAF;
-          case 0: return NODE_NOT_SET;
-          default: return null;
-        }
-      }
-      public int getNumber() {
-        return this.value;
-      }
-    };
-
-    public NodeCase
-    getNodeCase() {
-      return NodeCase.forNumber(
-          nodeCase_);
-    }
-
     public static final int FULL_PATH_FIELD_NUMBER = 1;
     private com.google.protobuf.ByteString fullPath_;
     /**
@@ -3763,56 +3695,25 @@ public final class MptSerialization {
       return index_;
     }
 
-    public static final int STUB_FIELD_NUMBER = 3;
+    public static final int NODE_FIELD_NUMBER = 3;
+    private serialization.MptSerialization.Node node_;
     /**
-     * <code>.serialization.Stub stub = 3;</code>
+     * <code>.serialization.Node node = 3;</code>
      */
-    public boolean hasStub() {
-      return nodeCase_ == 3;
+    public boolean hasNode() {
+      return node_ != null;
     }
     /**
-     * <code>.serialization.Stub stub = 3;</code>
+     * <code>.serialization.Node node = 3;</code>
      */
-    public serialization.MptSerialization.Stub getStub() {
-      if (nodeCase_ == 3) {
-         return (serialization.MptSerialization.Stub) node_;
-      }
-      return serialization.MptSerialization.Stub.getDefaultInstance();
+    public serialization.MptSerialization.Node getNode() {
+      return node_ == null ? serialization.MptSerialization.Node.getDefaultInstance() : node_;
     }
     /**
-     * <code>.serialization.Stub stub = 3;</code>
+     * <code>.serialization.Node node = 3;</code>
      */
-    public serialization.MptSerialization.StubOrBuilder getStubOrBuilder() {
-      if (nodeCase_ == 3) {
-         return (serialization.MptSerialization.Stub) node_;
-      }
-      return serialization.MptSerialization.Stub.getDefaultInstance();
-    }
-
-    public static final int LEAF_FIELD_NUMBER = 4;
-    /**
-     * <code>.serialization.Leaf leaf = 4;</code>
-     */
-    public boolean hasLeaf() {
-      return nodeCase_ == 4;
-    }
-    /**
-     * <code>.serialization.Leaf leaf = 4;</code>
-     */
-    public serialization.MptSerialization.Leaf getLeaf() {
-      if (nodeCase_ == 4) {
-         return (serialization.MptSerialization.Leaf) node_;
-      }
-      return serialization.MptSerialization.Leaf.getDefaultInstance();
-    }
-    /**
-     * <code>.serialization.Leaf leaf = 4;</code>
-     */
-    public serialization.MptSerialization.LeafOrBuilder getLeafOrBuilder() {
-      if (nodeCase_ == 4) {
-         return (serialization.MptSerialization.Leaf) node_;
-      }
-      return serialization.MptSerialization.Leaf.getDefaultInstance();
+    public serialization.MptSerialization.NodeOrBuilder getNodeOrBuilder() {
+      return getNode();
     }
 
     private byte memoizedIsInitialized = -1;
@@ -3833,11 +3734,8 @@ public final class MptSerialization {
       if (index_ != 0) {
         output.writeUInt32(2, index_);
       }
-      if (nodeCase_ == 3) {
-        output.writeMessage(3, (serialization.MptSerialization.Stub) node_);
-      }
-      if (nodeCase_ == 4) {
-        output.writeMessage(4, (serialization.MptSerialization.Leaf) node_);
+      if (node_ != null) {
+        output.writeMessage(3, getNode());
       }
       unknownFields.writeTo(output);
     }
@@ -3855,13 +3753,9 @@ public final class MptSerialization {
         size += com.google.protobuf.CodedOutputStream
           .computeUInt32Size(2, index_);
       }
-      if (nodeCase_ == 3) {
+      if (node_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, (serialization.MptSerialization.Stub) node_);
-      }
-      if (nodeCase_ == 4) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, (serialization.MptSerialization.Leaf) node_);
+          .computeMessageSize(3, getNode());
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -3883,20 +3777,10 @@ public final class MptSerialization {
           .equals(other.getFullPath());
       result = result && (getIndex()
           == other.getIndex());
-      result = result && getNodeCase().equals(
-          other.getNodeCase());
-      if (!result) return false;
-      switch (nodeCase_) {
-        case 3:
-          result = result && getStub()
-              .equals(other.getStub());
-          break;
-        case 4:
-          result = result && getLeaf()
-              .equals(other.getLeaf());
-          break;
-        case 0:
-        default:
+      result = result && (hasNode() == other.hasNode());
+      if (hasNode()) {
+        result = result && getNode()
+            .equals(other.getNode());
       }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
@@ -3913,17 +3797,9 @@ public final class MptSerialization {
       hash = (53 * hash) + getFullPath().hashCode();
       hash = (37 * hash) + INDEX_FIELD_NUMBER;
       hash = (53 * hash) + getIndex();
-      switch (nodeCase_) {
-        case 3:
-          hash = (37 * hash) + STUB_FIELD_NUMBER;
-          hash = (53 * hash) + getStub().hashCode();
-          break;
-        case 4:
-          hash = (37 * hash) + LEAF_FIELD_NUMBER;
-          hash = (53 * hash) + getLeaf().hashCode();
-          break;
-        case 0:
-        default:
+      if (hasNode()) {
+        hash = (37 * hash) + NODE_FIELD_NUMBER;
+        hash = (53 * hash) + getNode().hashCode();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -4067,8 +3943,12 @@ public final class MptSerialization {
 
         index_ = 0;
 
-        nodeCase_ = 0;
-        node_ = null;
+        if (nodeBuilder_ == null) {
+          node_ = null;
+        } else {
+          node_ = null;
+          nodeBuilder_ = null;
+        }
         return this;
       }
 
@@ -4093,21 +3973,11 @@ public final class MptSerialization {
         serialization.MptSerialization.Update result = new serialization.MptSerialization.Update(this);
         result.fullPath_ = fullPath_;
         result.index_ = index_;
-        if (nodeCase_ == 3) {
-          if (stubBuilder_ == null) {
-            result.node_ = node_;
-          } else {
-            result.node_ = stubBuilder_.build();
-          }
+        if (nodeBuilder_ == null) {
+          result.node_ = node_;
+        } else {
+          result.node_ = nodeBuilder_.build();
         }
-        if (nodeCase_ == 4) {
-          if (leafBuilder_ == null) {
-            result.node_ = node_;
-          } else {
-            result.node_ = leafBuilder_.build();
-          }
-        }
-        result.nodeCase_ = nodeCase_;
         onBuilt();
         return result;
       }
@@ -4155,18 +4025,8 @@ public final class MptSerialization {
         if (other.getIndex() != 0) {
           setIndex(other.getIndex());
         }
-        switch (other.getNodeCase()) {
-          case STUB: {
-            mergeStub(other.getStub());
-            break;
-          }
-          case LEAF: {
-            mergeLeaf(other.getLeaf());
-            break;
-          }
-          case NODE_NOT_SET: {
-            break;
-          }
+        if (other.hasNode()) {
+          mergeNode(other.getNode());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -4194,21 +4054,6 @@ public final class MptSerialization {
         }
         return this;
       }
-      private int nodeCase_ = 0;
-      private java.lang.Object node_;
-      public NodeCase
-          getNodeCase() {
-        return NodeCase.forNumber(
-            nodeCase_);
-      }
-
-      public Builder clearNode() {
-        nodeCase_ = 0;
-        node_ = null;
-        onChanged();
-        return this;
-      }
-
 
       private com.google.protobuf.ByteString fullPath_ = com.google.protobuf.ByteString.EMPTY;
       /**
@@ -4280,276 +4125,121 @@ public final class MptSerialization {
         return this;
       }
 
+      private serialization.MptSerialization.Node node_ = null;
       private com.google.protobuf.SingleFieldBuilderV3<
-          serialization.MptSerialization.Stub, serialization.MptSerialization.Stub.Builder, serialization.MptSerialization.StubOrBuilder> stubBuilder_;
+          serialization.MptSerialization.Node, serialization.MptSerialization.Node.Builder, serialization.MptSerialization.NodeOrBuilder> nodeBuilder_;
       /**
-       * <code>.serialization.Stub stub = 3;</code>
+       * <code>.serialization.Node node = 3;</code>
        */
-      public boolean hasStub() {
-        return nodeCase_ == 3;
+      public boolean hasNode() {
+        return nodeBuilder_ != null || node_ != null;
       }
       /**
-       * <code>.serialization.Stub stub = 3;</code>
+       * <code>.serialization.Node node = 3;</code>
        */
-      public serialization.MptSerialization.Stub getStub() {
-        if (stubBuilder_ == null) {
-          if (nodeCase_ == 3) {
-            return (serialization.MptSerialization.Stub) node_;
-          }
-          return serialization.MptSerialization.Stub.getDefaultInstance();
+      public serialization.MptSerialization.Node getNode() {
+        if (nodeBuilder_ == null) {
+          return node_ == null ? serialization.MptSerialization.Node.getDefaultInstance() : node_;
         } else {
-          if (nodeCase_ == 3) {
-            return stubBuilder_.getMessage();
-          }
-          return serialization.MptSerialization.Stub.getDefaultInstance();
+          return nodeBuilder_.getMessage();
         }
       }
       /**
-       * <code>.serialization.Stub stub = 3;</code>
+       * <code>.serialization.Node node = 3;</code>
        */
-      public Builder setStub(serialization.MptSerialization.Stub value) {
-        if (stubBuilder_ == null) {
+      public Builder setNode(serialization.MptSerialization.Node value) {
+        if (nodeBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
           node_ = value;
           onChanged();
         } else {
-          stubBuilder_.setMessage(value);
+          nodeBuilder_.setMessage(value);
         }
-        nodeCase_ = 3;
-        return this;
-      }
-      /**
-       * <code>.serialization.Stub stub = 3;</code>
-       */
-      public Builder setStub(
-          serialization.MptSerialization.Stub.Builder builderForValue) {
-        if (stubBuilder_ == null) {
-          node_ = builderForValue.build();
-          onChanged();
-        } else {
-          stubBuilder_.setMessage(builderForValue.build());
-        }
-        nodeCase_ = 3;
-        return this;
-      }
-      /**
-       * <code>.serialization.Stub stub = 3;</code>
-       */
-      public Builder mergeStub(serialization.MptSerialization.Stub value) {
-        if (stubBuilder_ == null) {
-          if (nodeCase_ == 3 &&
-              node_ != serialization.MptSerialization.Stub.getDefaultInstance()) {
-            node_ = serialization.MptSerialization.Stub.newBuilder((serialization.MptSerialization.Stub) node_)
-                .mergeFrom(value).buildPartial();
-          } else {
-            node_ = value;
-          }
-          onChanged();
-        } else {
-          if (nodeCase_ == 3) {
-            stubBuilder_.mergeFrom(value);
-          }
-          stubBuilder_.setMessage(value);
-        }
-        nodeCase_ = 3;
-        return this;
-      }
-      /**
-       * <code>.serialization.Stub stub = 3;</code>
-       */
-      public Builder clearStub() {
-        if (stubBuilder_ == null) {
-          if (nodeCase_ == 3) {
-            nodeCase_ = 0;
-            node_ = null;
-            onChanged();
-          }
-        } else {
-          if (nodeCase_ == 3) {
-            nodeCase_ = 0;
-            node_ = null;
-          }
-          stubBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <code>.serialization.Stub stub = 3;</code>
-       */
-      public serialization.MptSerialization.Stub.Builder getStubBuilder() {
-        return getStubFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.serialization.Stub stub = 3;</code>
-       */
-      public serialization.MptSerialization.StubOrBuilder getStubOrBuilder() {
-        if ((nodeCase_ == 3) && (stubBuilder_ != null)) {
-          return stubBuilder_.getMessageOrBuilder();
-        } else {
-          if (nodeCase_ == 3) {
-            return (serialization.MptSerialization.Stub) node_;
-          }
-          return serialization.MptSerialization.Stub.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>.serialization.Stub stub = 3;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilderV3<
-          serialization.MptSerialization.Stub, serialization.MptSerialization.Stub.Builder, serialization.MptSerialization.StubOrBuilder> 
-          getStubFieldBuilder() {
-        if (stubBuilder_ == null) {
-          if (!(nodeCase_ == 3)) {
-            node_ = serialization.MptSerialization.Stub.getDefaultInstance();
-          }
-          stubBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              serialization.MptSerialization.Stub, serialization.MptSerialization.Stub.Builder, serialization.MptSerialization.StubOrBuilder>(
-                  (serialization.MptSerialization.Stub) node_,
-                  getParentForChildren(),
-                  isClean());
-          node_ = null;
-        }
-        nodeCase_ = 3;
-        onChanged();;
-        return stubBuilder_;
-      }
 
-      private com.google.protobuf.SingleFieldBuilderV3<
-          serialization.MptSerialization.Leaf, serialization.MptSerialization.Leaf.Builder, serialization.MptSerialization.LeafOrBuilder> leafBuilder_;
-      /**
-       * <code>.serialization.Leaf leaf = 4;</code>
-       */
-      public boolean hasLeaf() {
-        return nodeCase_ == 4;
-      }
-      /**
-       * <code>.serialization.Leaf leaf = 4;</code>
-       */
-      public serialization.MptSerialization.Leaf getLeaf() {
-        if (leafBuilder_ == null) {
-          if (nodeCase_ == 4) {
-            return (serialization.MptSerialization.Leaf) node_;
-          }
-          return serialization.MptSerialization.Leaf.getDefaultInstance();
-        } else {
-          if (nodeCase_ == 4) {
-            return leafBuilder_.getMessage();
-          }
-          return serialization.MptSerialization.Leaf.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>.serialization.Leaf leaf = 4;</code>
-       */
-      public Builder setLeaf(serialization.MptSerialization.Leaf value) {
-        if (leafBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          node_ = value;
-          onChanged();
-        } else {
-          leafBuilder_.setMessage(value);
-        }
-        nodeCase_ = 4;
         return this;
       }
       /**
-       * <code>.serialization.Leaf leaf = 4;</code>
+       * <code>.serialization.Node node = 3;</code>
        */
-      public Builder setLeaf(
-          serialization.MptSerialization.Leaf.Builder builderForValue) {
-        if (leafBuilder_ == null) {
+      public Builder setNode(
+          serialization.MptSerialization.Node.Builder builderForValue) {
+        if (nodeBuilder_ == null) {
           node_ = builderForValue.build();
           onChanged();
         } else {
-          leafBuilder_.setMessage(builderForValue.build());
+          nodeBuilder_.setMessage(builderForValue.build());
         }
-        nodeCase_ = 4;
+
         return this;
       }
       /**
-       * <code>.serialization.Leaf leaf = 4;</code>
+       * <code>.serialization.Node node = 3;</code>
        */
-      public Builder mergeLeaf(serialization.MptSerialization.Leaf value) {
-        if (leafBuilder_ == null) {
-          if (nodeCase_ == 4 &&
-              node_ != serialization.MptSerialization.Leaf.getDefaultInstance()) {
-            node_ = serialization.MptSerialization.Leaf.newBuilder((serialization.MptSerialization.Leaf) node_)
-                .mergeFrom(value).buildPartial();
+      public Builder mergeNode(serialization.MptSerialization.Node value) {
+        if (nodeBuilder_ == null) {
+          if (node_ != null) {
+            node_ =
+              serialization.MptSerialization.Node.newBuilder(node_).mergeFrom(value).buildPartial();
           } else {
             node_ = value;
           }
           onChanged();
         } else {
-          if (nodeCase_ == 4) {
-            leafBuilder_.mergeFrom(value);
-          }
-          leafBuilder_.setMessage(value);
+          nodeBuilder_.mergeFrom(value);
         }
-        nodeCase_ = 4;
+
         return this;
       }
       /**
-       * <code>.serialization.Leaf leaf = 4;</code>
+       * <code>.serialization.Node node = 3;</code>
        */
-      public Builder clearLeaf() {
-        if (leafBuilder_ == null) {
-          if (nodeCase_ == 4) {
-            nodeCase_ = 0;
-            node_ = null;
-            onChanged();
-          }
+      public Builder clearNode() {
+        if (nodeBuilder_ == null) {
+          node_ = null;
+          onChanged();
         } else {
-          if (nodeCase_ == 4) {
-            nodeCase_ = 0;
-            node_ = null;
-          }
-          leafBuilder_.clear();
+          node_ = null;
+          nodeBuilder_ = null;
         }
+
         return this;
       }
       /**
-       * <code>.serialization.Leaf leaf = 4;</code>
+       * <code>.serialization.Node node = 3;</code>
        */
-      public serialization.MptSerialization.Leaf.Builder getLeafBuilder() {
-        return getLeafFieldBuilder().getBuilder();
+      public serialization.MptSerialization.Node.Builder getNodeBuilder() {
+        
+        onChanged();
+        return getNodeFieldBuilder().getBuilder();
       }
       /**
-       * <code>.serialization.Leaf leaf = 4;</code>
+       * <code>.serialization.Node node = 3;</code>
        */
-      public serialization.MptSerialization.LeafOrBuilder getLeafOrBuilder() {
-        if ((nodeCase_ == 4) && (leafBuilder_ != null)) {
-          return leafBuilder_.getMessageOrBuilder();
+      public serialization.MptSerialization.NodeOrBuilder getNodeOrBuilder() {
+        if (nodeBuilder_ != null) {
+          return nodeBuilder_.getMessageOrBuilder();
         } else {
-          if (nodeCase_ == 4) {
-            return (serialization.MptSerialization.Leaf) node_;
-          }
-          return serialization.MptSerialization.Leaf.getDefaultInstance();
+          return node_ == null ?
+              serialization.MptSerialization.Node.getDefaultInstance() : node_;
         }
       }
       /**
-       * <code>.serialization.Leaf leaf = 4;</code>
+       * <code>.serialization.Node node = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
-          serialization.MptSerialization.Leaf, serialization.MptSerialization.Leaf.Builder, serialization.MptSerialization.LeafOrBuilder> 
-          getLeafFieldBuilder() {
-        if (leafBuilder_ == null) {
-          if (!(nodeCase_ == 4)) {
-            node_ = serialization.MptSerialization.Leaf.getDefaultInstance();
-          }
-          leafBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              serialization.MptSerialization.Leaf, serialization.MptSerialization.Leaf.Builder, serialization.MptSerialization.LeafOrBuilder>(
-                  (serialization.MptSerialization.Leaf) node_,
+          serialization.MptSerialization.Node, serialization.MptSerialization.Node.Builder, serialization.MptSerialization.NodeOrBuilder> 
+          getNodeFieldBuilder() {
+        if (nodeBuilder_ == null) {
+          nodeBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              serialization.MptSerialization.Node, serialization.MptSerialization.Node.Builder, serialization.MptSerialization.NodeOrBuilder>(
+                  getNode(),
                   getParentForChildren(),
                   isClean());
           node_ = null;
         }
-        nodeCase_ = 4;
-        onChanged();;
-        return leafBuilder_;
+        return nodeBuilder_;
       }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -5420,12 +5110,11 @@ public final class MptSerialization {
       "zation.Node\022\"\n\005right\030\002 \001(\0132\023.serializati" +
       "on.Node\"\"\n\004Leaf\022\013\n\003key\030\001 \001(\014\022\r\n\005value\030\002 " +
       "\001(\014\"5\n\020MerklePrefixTrie\022!\n\004root\030\001 \001(\0132\023." +
-      "serialization.Node\"|\n\006Update\022\021\n\tfull_pat" +
-      "h\030\001 \001(\014\022\r\n\005index\030\002 \001(\r\022#\n\004stub\030\003 \001(\0132\023.s" +
-      "erialization.StubH\000\022#\n\004leaf\030\004 \001(\0132\023.seri" +
-      "alization.LeafH\000B\006\n\004node\"@\n\026MerklePrefix" +
-      "TrieUpdate\022&\n\007updates\030\001 \003(\0132\025.serializat" +
-      "ion.UpdateB\022B\020MptSerializationb\006proto3"
+      "serialization.Node\"M\n\006Update\022\021\n\tfull_pat" +
+      "h\030\001 \001(\014\022\r\n\005index\030\002 \001(\r\022!\n\004node\030\003 \001(\0132\023.s" +
+      "erialization.Node\"@\n\026MerklePrefixTrieUpd" +
+      "ate\022&\n\007updates\030\001 \003(\0132\025.serialization.Upd" +
+      "ateB\022B\020MptSerializationb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -5474,7 +5163,7 @@ public final class MptSerialization {
     internal_static_serialization_Update_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_serialization_Update_descriptor,
-        new java.lang.String[] { "FullPath", "Index", "Stub", "Leaf", "Node", });
+        new java.lang.String[] { "FullPath", "Index", "Node", });
     internal_static_serialization_MerklePrefixTrieUpdate_descriptor =
       getDescriptor().getMessageTypes().get(6);
     internal_static_serialization_MerklePrefixTrieUpdate_fieldAccessorTable = new

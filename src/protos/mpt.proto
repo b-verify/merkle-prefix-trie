@@ -63,10 +63,7 @@ message Update{
 	// transmit a prefix (location) in the tree
 	bytes full_path = 1;
 	uint32 index = 2;
-	oneof node {
-		Stub stub = 3;
-		Leaf leaf = 4;
-	}
+	Node node = 3;
 }
 
 /**

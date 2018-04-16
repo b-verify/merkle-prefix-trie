@@ -1,5 +1,7 @@
 package mpt;
 
+import java.util.Arrays;
+
 import com.google.protobuf.ByteString;
 
 /**
@@ -85,5 +87,13 @@ public class Stub implements Node {
 	public String toString() {
 		String hex = Utils.byteArrayAsHexString(this.getHash());
 		return "<Stub Hash: " + hex + ">";
+	}
+	
+	@Override
+	public boolean equals(Object other) {
+		if(other instanceof Stub) {
+			return Arrays.equals(this.hash, ((Stub) other).hash);
+		}
+		return false;
 	}
 }
