@@ -196,7 +196,7 @@ public class MerklePrefixTrie {
 	 * @throws IncompleteMPTException - if the search cannot be completed 
 	 */
 	public Node getNodeAtPrefix(byte[] fullPath, int prefixEndIdx) throws IncompleteMPTException {
-		return this.getNodeAtPrefixHelper(this.root, fullPath, prefixEndIdx, 0);
+		return this.getNodeAtPrefixHelper(this.root, fullPath, prefixEndIdx+1, 0);
 	}
 	
 	private Node getNodeAtPrefixHelper(Node currentNode, byte[] fullPath, int prefixEndIdx, 
@@ -445,7 +445,7 @@ public class MerklePrefixTrie {
 				// perform update
 				Node newRoot = this.updateStubOrLeafHelper(this.root, 
 						newStubOrLeaf, update.getFullPath().toByteArray(), 
-						update.getIndex(), 0);
+						update.getIndex()+1, 0);
 				// update the root (save the update)
 				this.root = (InteriorNode) newRoot;
 				

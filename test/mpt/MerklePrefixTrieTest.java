@@ -368,6 +368,16 @@ public class MerklePrefixTrieTest {
 		}
 	}
 	
+	@Test 
+	public void testGetPrefixOverlap() {
+		byte[] a = new byte[] {9, 100};
+		byte[] b = new byte[] {9, 1};
+		// 0000100101100100
+		// 0000100100000001
+		// 0123456789	<- overlap is 9 [includes first differing index]
+		Assert.assertEquals(9, Utils.getOverlappingPrefix(a, b));
+	}
+	
 	@Test
 	public void testGetBitVariedManyBytes() {
 		byte[] MANY_BYTES = new byte[] {9, 100, (byte) 200, 32};
@@ -517,16 +527,6 @@ public class MerklePrefixTrieTest {
 	}
 	
 	@Test
-	public void testSetExtendExistingPrefix() {
-		//insert 101011
-		
-		
-		//insert 101011110
-		
-		
-	}
-	
-	@Test
 	public void testCopyPathKeyPresent() {
 		int n = 1000;
 		String salt = "path test";
@@ -572,13 +572,16 @@ public class MerklePrefixTrieTest {
 		int key = 8;
 		String salt = "";
 		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(n, salt);
-		// take a path in the MPT		
+		// take a path in the MPT	
+		// +0101101
 		String keyString = "key"+Integer.toString(key);
 		MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
 		
 		// update a different key which will update a single stub 
-		// along the path
+		// alters stub +00
 		String keyStringToUpdate = "key"+Integer.toString(5);
+		byte[] updateHash = CryptographicDigest.digest(keyStringToUpdate.getBytes());
+		int prefixIdx = 1;
 		mpt.set(keyStringToUpdate.getBytes(), "OTHER VALUE".getBytes());
 		
 		// get a new copy of the path
@@ -587,24 +590,19 @@ public class MerklePrefixTrieTest {
 		// should have different commitments
 		Assert.assertFalse(Arrays.equals(path.getCommitment(), pathUpdated.getCommitment()));
 				
-		byte[] updateHash = CryptographicDigest.digest(keyStringToUpdate.getBytes());
 		try {
 			// find the updated stub
-			Node stub = pathUpdated.getNodeAtPrefix(
-					CryptographicDigest.digest(keyStringToUpdate.getBytes()),2);
+			Node stub = pathUpdated.getNodeAtPrefix(updateHash,prefixIdx);
 			byte[] updateBytes = 
 					MptSerialization.MerklePrefixTrieUpdate.newBuilder()
 					.addUpdates(MptSerialization.Update.newBuilder()
 							.setFullPath(ByteString.copyFrom(updateHash))
-							.setIndex(2)
-							.setNode(MptSerialization.Node.newBuilder()
-									.setStub(MptSerialization.Stub.newBuilder()
-												.setHash(ByteString.copyFrom(stub.getHash())))))
+							.setIndex(prefixIdx)
+							.setNode(stub.serialize()))
 					.build().toByteArray();
 			// update the stub 
 			path.deserializeUpdates(updateBytes);
-			Node stub2 = path.getNodeAtPrefix(
-					CryptographicDigest.digest(keyStringToUpdate.getBytes()),2);
+			Node stub2 = path.getNodeAtPrefix(updateHash,prefixIdx);
 			// check that the stub was updated
 			Assert.assertTrue(stub.equals(stub2));
 			// check that the commitments now match
@@ -644,6 +642,120 @@ public class MerklePrefixTrieTest {
 		
 	}
 	
-	
+	@Test
+	public void testUpdateMultipleStubs() {
+		int n = 50;
+		int key = 8;
+		String salt = "";
+		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(n, salt);
+		// take a path in the MPT		
+		// +0101101
+		String keyString = "key"+Integer.toString(key);
+		byte[] keyStringHash = CryptographicDigest.digest(keyString.getBytes());
+		MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
+
+		// alters stub +1
+		String keyUpdate1 = "key"+Integer.toString(1);
+		byte[] keyUpdate1Hash = CryptographicDigest.digest(keyUpdate1.getBytes());
+		int prefix1 = 0;
+		Assert.assertEquals(prefix1, Utils.getOverlappingPrefix(keyUpdate1Hash, keyStringHash));
+
+		// alters stub +00
+		String keyUpdate2 = "key"+Integer.toString(5);
+		byte[] keyUpdate2Hash = CryptographicDigest.digest(keyUpdate2.getBytes());
+		int prefix2 = 1;
+		Assert.assertEquals(prefix2, Utils.getOverlappingPrefix(keyUpdate2Hash, keyStringHash));
+
+		// alters stub +0100
+		String keyUpdate3 = "key"+Integer.toString(13);
+		byte[] keyUpdate3Hash = CryptographicDigest.digest(keyUpdate3.getBytes());
+		int prefix3 = 3;
+		Assert.assertEquals(3, Utils.getOverlappingPrefix(keyUpdate3Hash, keyStringHash));
+
+		// alters stub +011
+		String keyUpdate4 = "key"+Integer.toString(15);
+		byte[] keyUpdate4Hash = CryptographicDigest.digest(keyUpdate4.getBytes());
+		int prefix4 = 2;
+		Assert.assertEquals(prefix4, Utils.getOverlappingPrefix(keyUpdate4Hash, keyStringHash));
+		
+		// update the MPT
+		mpt.set(keyUpdate1.getBytes(), "some value".getBytes());
+		mpt.set(keyUpdate2.getBytes(), "some value".getBytes());
+		mpt.set(keyUpdate3.getBytes(), "some value".getBytes());
+		mpt.set(keyUpdate4.getBytes(), "some value".getBytes());
+		
+		MerklePrefixTrie path2 = mpt.copyPath(keyString.getBytes());
+		System.out.println("PATH 1: ");
+		System.out.println(path);
+		System.out.println("\n\nPATH 2: ");
+		System.out.println(path2);
+
+		try {
+			// now create the updates 
+			Node stub1 = path2.getNodeAtPrefix(keyUpdate1Hash, prefix1);
+			MptSerialization.Update update1 = MptSerialization.Update.newBuilder()
+					.setFullPath(ByteString.copyFrom(keyUpdate1Hash))
+					.setIndex(prefix1)
+					.setNode(stub1.serialize())
+					.build();
+			System.out.println("get node at +"+Utils.byteArrayPrefixAsBitString(keyUpdate1Hash, prefix1));
+			System.out.println(stub1);
+			
+			Node stub2 = path2.getNodeAtPrefix(keyUpdate2Hash, prefix2);
+			MptSerialization.Update update2 = MptSerialization.Update.newBuilder()
+					.setFullPath(ByteString.copyFrom(keyUpdate2Hash))
+					.setIndex(prefix2)
+					.setNode(stub2.serialize())
+					.build();
+			System.out.println("get node at +"+Utils.byteArrayPrefixAsBitString(keyUpdate2Hash, prefix2));
+			System.out.println(stub2);
+
+			
+			Node stub3 = path2.getNodeAtPrefix(keyUpdate3Hash, prefix3);
+			MptSerialization.Update update3 = MptSerialization.Update.newBuilder()
+					.setFullPath(ByteString.copyFrom(keyUpdate3Hash))
+					.setIndex(prefix3)
+					.setNode(stub3.serialize())
+					.build();
+			System.out.println("get node at +"+Utils.byteArrayPrefixAsBitString(keyUpdate3Hash, prefix3));
+			System.out.println(stub3);
+
+			Node stub4 = path2.getNodeAtPrefix(keyUpdate4Hash, prefix4);
+			MptSerialization.Update update4 = MptSerialization.Update.newBuilder()
+					.setFullPath(ByteString.copyFrom(keyUpdate4Hash))
+					.setIndex(prefix4)
+					.setNode(stub4.serialize())
+					.build();
+			System.out.println("get node at +"+Utils.byteArrayPrefixAsBitString(keyUpdate4Hash, prefix4));
+			System.out.println(stub4);
+
+			
+			MptSerialization.MerklePrefixTrieUpdate updates = MptSerialization.MerklePrefixTrieUpdate.newBuilder()
+					.addUpdates(update1)
+					.addUpdates(update2)
+					.addUpdates(update3)
+					.addUpdates(update4)
+					.build();
+			
+			byte[] asbyte= updates.toByteArray();
+			// add the updates to the path
+			path.deserializeUpdates(asbyte);
+			// check that the stubs are updated
+			Node stub1New = path.getNodeAtPrefix(keyUpdate1Hash, prefix1);
+			Node stub2New = path.getNodeAtPrefix(keyUpdate2Hash, prefix2);
+			Node stub3New = path.getNodeAtPrefix(keyUpdate3Hash, prefix3);
+			Node stub4New = path.getNodeAtPrefix(keyUpdate4Hash, prefix4);
+					
+			Assert.assertTrue(stub1.equals(stub1New));
+			Assert.assertTrue(stub2.equals(stub2New));
+			Assert.assertTrue(stub3.equals(stub3New));
+			Assert.assertTrue(stub4.equals(stub4New));
+			
+			// check that the commitments match
+			Assert.assertTrue(Arrays.equals(path.getCommitment(), path2.getCommitment()));
+		} catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
 	
 }
