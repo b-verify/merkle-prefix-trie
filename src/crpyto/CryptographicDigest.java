@@ -23,6 +23,29 @@ public class CryptographicDigest {
 		}
 	}
 	
+	/**
+	 * Commits to a key and a value using the following commitment 
+	 * 
+	 * 					H(H(key)||H(value))
+	 * 
+	 * @param key
+	 * @param value
+	 * @return
+	 */
+	public static byte[] witnessKeyAndValue(byte[] key, byte[] value) {
+		try {
+			MessageDigest md = MessageDigest.getInstance(HASH_FUNCTION);
+			byte[] digestKey = md.digest(key);
+			byte[] digestValue = md.digest(value);
+			byte[] witness = new byte[digestKey.length+digestValue.length];
+			System.arraycopy(digestKey, 0, witness, 0, digestKey.length);
+			System.arraycopy(digestValue, 0, witness, digestKey.length, digestValue.length);
+			return witness;
+		}catch(Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 	public static int getSizeBits() {
 		return SIZE_BITS;
 	}

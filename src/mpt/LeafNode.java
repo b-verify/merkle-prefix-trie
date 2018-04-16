@@ -26,13 +26,18 @@ public class LeafNode implements Node {
 	// this can be arbitrary bytes 
 	// (e.g. a commitment, a string)
 	private final byte[] value;
-	private final byte[] valueHash;
+	
+	// the commitment is a hash of 
+	// 	H(key||value)
+	private final byte[] commitmentHash;
 		
 	public LeafNode(byte[] key, byte[] value){
 		this.key = key;
 		this.keyHash = CryptographicDigest.digest(key);
 		this.value = value;
-		this.valueHash = CryptographicDigest.digest(value);
+		
+		// witness
+		this.commitmentHash = CryptographicDigest.witnessKeyAndValue(key, value);
 	}
 		
 	public MptSerialization.Node serialize(){
@@ -53,7 +58,7 @@ public class LeafNode implements Node {
 		
 	@Override
 	public byte[] getHash() {
-		return this.valueHash.clone();
+		return this.commitmentHash.clone();
 	}
 
 	@Override
@@ -101,7 +106,7 @@ public class LeafNode implements Node {
 			// practically speaking it would be sufficient to just check the hashes
 			// since we are using collision resistant hash functions 
 			return Arrays.equals(this.key, ln.key) && Arrays.equals(this.value, ln.value) &&
-					Arrays.equals(this.keyHash, ln.keyHash) && Arrays.equals(this.valueHash, ln.valueHash);
+					Arrays.equals(this.keyHash, ln.keyHash) && Arrays.equals(this.commitmentHash, ln.commitmentHash);
 		}
 		return false;
 	}
