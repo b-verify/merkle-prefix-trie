@@ -20,6 +20,7 @@ public class LeafNode implements Node {
 	// the key can be arbitrary bytes
 	// (e.g a pubkey, a set of pubkeys, a string)
 	private final byte[] key;
+	// H(key)
 	private final byte[] keyHash;
 	
 	// the value stored in this leaf
@@ -27,8 +28,8 @@ public class LeafNode implements Node {
 	// (e.g. a commitment, a string)
 	private final byte[] value;
 	
-	// the commitment is a hash of 
-	// 	H(key||value)
+	// the commitment is a witness to BOTH 
+	// the key and value: H(H(key)||H(value))
 	private final byte[] commitmentHash;
 		
 	public LeafNode(byte[] key, byte[] value){
