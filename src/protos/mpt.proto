@@ -48,7 +48,6 @@ message Leaf{
 */
 message MerklePrefixTrie{
 	Node root = 1;
-	
 }
 
 /**

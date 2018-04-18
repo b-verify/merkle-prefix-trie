@@ -18,7 +18,7 @@ public class Stub implements Node {
 	private final byte[] hash;
 	
 	public Stub(byte[] hash) {
-		this.hash = hash;
+		this.hash = hash.clone();
 	}
 
 	@Override

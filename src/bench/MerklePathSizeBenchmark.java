@@ -16,7 +16,8 @@ public class MerklePathSizeBenchmark {
 		List<Map.Entry<String, String>> kvpairs = Utils.getKeyValuePairs(n, salt);
 		// make a MPT with 10k entries
 		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(kvpairs);
-		int sizeEntireTrieSerialization = mpt.serialize().length;
+		byte[] serialization = mpt.serialize();
+		int sizeEntireTrieSerialization = serialization.length;
 		// check size
 		System.out.println("size of entire mpt	(bytes): "+sizeEntireTrieSerialization);
 		BigInteger total_size = BigInteger.ZERO;
@@ -33,7 +34,5 @@ public class MerklePathSizeBenchmark {
 		BigInteger average_size = total_size.divide(BigInteger.valueOf(n));
 		System.out.println("Average proof size 	(bytes): "+average_size);
 		System.out.println("Max proof size     	(bytes): "+max_size);
-		
-		
 	}
 }

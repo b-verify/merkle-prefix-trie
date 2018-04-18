@@ -23,8 +23,13 @@ public class Utils {
 	
 	public static MerklePrefixTrie makeMerklePrefixTrie(List<Map.Entry<String, String>> kvpairs) {
 		MerklePrefixTrie mpt = new MerklePrefixTrie();
+		int i = 0;
 		for(Map.Entry<String, String> kvpair : kvpairs) {
+			if(i % 1000 == 0) {
+				System.out.println("made "+i+" of "+kvpairs.size());
+			}
 			mpt.set(kvpair.getKey().getBytes(), kvpair.getValue().getBytes());
+			i++;
 		}
 		return mpt;
 	}
