@@ -55,6 +55,8 @@ public class MerklePrefixTrie {
 		Node newRoot = this.insertLeafNodeAndUpdate(this.root, leafNodeToAdd, -1);
 		boolean updated = !newRoot.equals(this.root);
 		this.root = (InteriorNode) newRoot;
+		// trigger update
+		System.out.println(Utils.byteArrayAsHexString(this.root.getHash()));
 		return updated;
 	}
 		
@@ -233,6 +235,8 @@ public class MerklePrefixTrie {
 		Node newRoot = this.deleteKeyHelper(this.root, keyHash, -1);
 		boolean changed =  !newRoot.equals(this.root);
 		this.root = (InteriorNode) newRoot;
+		// trigger update
+		System.out.println(Utils.byteArrayAsHexString(this.root.getHash()));
 		return changed;
 	}
 	

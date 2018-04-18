@@ -8,15 +8,17 @@ import crpyto.CryptographicDigest;
 import serialization.MptSerialization;
 
 /**
- * IMMUTABLE
+ * MUTABLE
  * 
  * Represents a leaf node in a Merkle Prefix Trie (MPT). Leaf nodes
- * store a key and a value, which can be arbitrary bytes.
+ * store a key and a value, which can be arbitrary bytes. The value of
+ * a leaf can be updated. The hash is calculated lazily.
+ *  
  * @author henryaspegren
  *
  */
 public class LeafNode implements Node {
-	
+		
 	// the key can be arbitrary bytes
 	// (e.g a pubkey, a set of pubkeys, a string)
 	private final byte[] key;
@@ -26,19 +28,20 @@ public class LeafNode implements Node {
 	// the value stored in this leaf
 	// this can be arbitrary bytes 
 	// (e.g. a commitment, a string)
-	private final byte[] value;
+	private byte[] value;
+	private boolean changed;
 	
 	// the commitment is a witness to BOTH 
 	// the key and value: H(H(key)||H(value))
-	private final byte[] commitmentHash;
+	private byte[] commitmentHash;
+	private boolean recalculateHash;
 		
 	public LeafNode(byte[] key, byte[] value){
-		this.key = key;
+		this.key = key.clone();
 		this.keyHash = CryptographicDigest.digest(key);
-		this.value = value;
-		
-		// witness
-		this.commitmentHash = CryptographicDigest.witnessKeyAndValue(key, value);
+		this.value = value.clone();
+		this.changed = true;
+		this.recalculateHash = true;
 	}
 		
 	public MptSerialization.Node serialize(){
@@ -59,6 +62,11 @@ public class LeafNode implements Node {
 		
 	@Override
 	public byte[] getHash() {
+		if(this.recalculateHash) {
+			// witness
+			this.commitmentHash = CryptographicDigest.witnessKeyAndValue(key, value);
+			this.recalculateHash = false;
+		}
 		return this.commitmentHash.clone();
 	}
 
@@ -106,8 +114,7 @@ public class LeafNode implements Node {
 			LeafNode ln = (LeafNode) arg0;
 			// practically speaking it would be sufficient to just check the hashes
 			// since we are using collision resistant hash functions 
-			return Arrays.equals(this.key, ln.key) && Arrays.equals(this.value, ln.value) &&
-					Arrays.equals(this.keyHash, ln.keyHash) && Arrays.equals(this.commitmentHash, ln.commitmentHash);
+			return Arrays.equals(this.key, ln.key) && Arrays.equals(this.value, ln.value);
 		}
 		return false;
 	}
@@ -115,6 +122,36 @@ public class LeafNode implements Node {
 	@Override
 	public boolean isStub() {
 		return false;
+	}
+
+	@Override
+	public void setValue(byte[] value) {
+		if(!Arrays.equals(value, this.value)) {
+			// update the value and the witness
+			this.value = value.clone();
+			this.changed = true;
+			this.recalculateHash = true;
+		}
+	}
+
+	@Override
+	public void setLeftChild(Node leftChild) {
+		throw new RuntimeException("cannot set child of a leaf node");
+	}
+
+	@Override
+	public void setRightChild(Node rightChild) {
+		throw new RuntimeException("cannot set child of a leaf node");		
+	}
+
+	@Override
+	public boolean changed() {
+		return this.changed;
+	}
+
+	@Override
+	public void reset() {
+		this.changed = false;
 	}
 	
 }

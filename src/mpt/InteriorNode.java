@@ -4,36 +4,34 @@ import crpyto.CryptographicDigest;
 import serialization.MptSerialization;
 
 /**
- * IMMUTABLE
+ * (MUTABLE) 
  * 
  * Represents an interior node in the MPT. An interior node has 
  * two children, a left child and right child. Interior nodes do not store 
  * keys or values. The hash of the interior node is H(left.getHash()||right.getHash())
  * where left.getHash() (resp. right.getHash()) is the hash of the left (resp right) 
  * child.
+ * 
+ * The children of the interiornode may be changed. Whenever the children are changed
+ * the node is marked "changed" until reset() is called. Hashes are calculated
+ * lazily, only when getHash() is called.
+ * 
  * @author henryaspegren
  *
  */
 public class InteriorNode implements Node {
 	
-	private final byte[] hash;
-	
-	private final Node leftChild;
-	private final byte[] leftChildHash;
-	private final Node rightChild;
-	private final byte[] rightChildHash;
+	private byte[] hash;
+	private boolean recalculateHash;
+	private boolean changed;
+	private Node leftChild;
+	private Node rightChild;
 	
 	public InteriorNode(Node leftChild, Node rightChild) {
 		this.leftChild = leftChild;
-		this.leftChildHash = leftChild.getHash();
 		this.rightChild = rightChild;
-		this.rightChildHash = rightChild.getHash();
-		
-		// commitment: H(leftChildHash || rightChildHash)
-		byte[] commitment = new byte[this.leftChildHash.length+this.rightChildHash.length];
-		System.arraycopy(this.leftChildHash, 0, commitment, 0, this.leftChildHash.length);
-		System.arraycopy(this.rightChildHash, 0, commitment, this.leftChildHash.length, this.rightChildHash.length);
-		this.hash = CryptographicDigest.digest(commitment);
+		this.changed = true;
+		this.recalculateHash = true;
 	}
 	
 	public MptSerialization.Node serialize() {
@@ -63,6 +61,17 @@ public class InteriorNode implements Node {
 
 	@Override
 	public byte[] getHash() {
+		// if  the hash must be recalculated.
+		if(this.recalculateHash) {
+			byte[] leftChildHash = this.leftChild.getHash();
+			byte[] rightChildHash = this.rightChild.getHash();
+			// commitment: H(leftChildHash || rightChildHash)
+			byte[] commitment = new byte[leftChildHash.length+rightChildHash.length];
+			System.arraycopy(leftChildHash, 0, commitment, 0, leftChildHash.length);
+			System.arraycopy(rightChildHash, 0, commitment, leftChildHash.length, rightChildHash.length);
+			this.hash = CryptographicDigest.digest(commitment);
+			this.recalculateHash = false;
+		}
 		return this.hash.clone();
 	}
 
@@ -74,6 +83,20 @@ public class InteriorNode implements Node {
 	@Override
 	public Node getRightChild() {
 		return this.rightChild;
+	}
+	
+	@Override
+	public void setLeftChild(Node leftChild) {
+		this.leftChild = leftChild;
+		this.changed = true;
+		this.recalculateHash = true;
+	}
+
+	@Override
+	public void setRightChild(Node rightChild) {
+		this.rightChild = rightChild;
+		this.changed = true;
+		this.recalculateHash = true;
 	}
 
 	@Override
@@ -115,6 +138,21 @@ public class InteriorNode implements Node {
 	@Override
 	public boolean isStub() {
 		return false;
+	}
+
+	@Override
+	public void setValue(byte[] value) {
+		throw new RuntimeException("tried to set value on an Interior Node");
+	}
+
+	@Override
+	public boolean changed() {
+		return this.changed;
+	}
+
+	@Override
+	public void reset() {
+		this.changed = false;
 	}
 
 }

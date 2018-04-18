@@ -85,7 +85,7 @@ public class Stub implements Node {
 	
 	@Override
 	public String toString() {
-		String hex = Utils.byteArrayAsHexString(this.getHash());
+		String hex = Utils.byteArrayAsHexString(this.hash);
 		return "<Stub Hash: " + hex + ">";
 	}
 	
@@ -95,5 +95,30 @@ public class Stub implements Node {
 			return Arrays.equals(this.hash, ((Stub) other).hash);
 		}
 		return false;
+	}
+
+	@Override
+	public void setValue(byte[] value) {
+		throw new RuntimeException("cannot set value of a stub");
+	}
+
+	@Override
+	public void setLeftChild(Node leftChild) {
+		throw new RuntimeException("cannot set children of a stub");
+	}
+
+	@Override
+	public void setRightChild(Node rightChild) {
+		throw new RuntimeException("cannot set children of a stub");		
+	}
+
+	@Override
+	public boolean changed() {
+		return false;
+	}
+
+	@Override
+	public void reset() {
+		
 	}
 }

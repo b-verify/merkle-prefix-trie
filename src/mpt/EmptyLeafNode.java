@@ -3,6 +3,8 @@ package mpt;
 import crpyto.CryptographicDigest;
 
 /**
+ * IMMUTABLE
+ * 
  * This class represents an empty leaf in the tree. Empty leaves 
  * do not have associated values and use the special marker
  * hash of all 0s. 
@@ -11,10 +13,8 @@ import crpyto.CryptographicDigest;
  */
 public class EmptyLeafNode implements Node {
 	
-
 	// hash is all zeros
 	public static final byte[] EMPTY_HASH = new byte[CryptographicDigest.getSizeBytes()];
-	
 	public static final String EMPTY_MSG = "<EmptyLeafNode Hash: " + Utils.byteArrayAsHexString(EMPTY_HASH) + ">";
 
 	@Override
@@ -78,6 +78,31 @@ public class EmptyLeafNode implements Node {
 	@Override
 	public serialization.MptSerialization.Node serialize() {
 		throw new RuntimeException("tried to serialize an empty node - fatal error");
+	}
+
+	@Override
+	public void setValue(byte[] value) {
+		throw new RuntimeException("cannot set value of an empty leaf");
+	}
+
+	@Override
+	public void setLeftChild(Node leftChild) {
+		throw new RuntimeException("cannot set children of an empty leaf");		
+	}
+
+	@Override
+	public void setRightChild(Node rightChild) {
+		throw new RuntimeException("cannot set children of an empty leaf");				
+	}
+
+	@Override
+	public boolean changed() {
+		return false;
+	}
+
+	@Override
+	public void reset() {
+
 	}
 	
 }
