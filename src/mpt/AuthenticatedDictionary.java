@@ -9,7 +9,7 @@ import java.util.Map;
  * Each dictionary consists of a set of (key, value) pairs
  * and is deterministically mapped to a small crpytographic commitment.
  * Individual lookups can be authenticated 
- * against this commditment.
+ * against this commitment.
  * 
  * @author Henry Aspegren, Chung Eun (Christina) Lee
  *
@@ -28,12 +28,10 @@ public interface AuthenticatedDictionary {
 	 * 
 	 * @param key - arbitrary bytes representing the key
 	 * @param value - arbitrary bytes representing the value
-	 * @return true if the (key, value) mapping was not previously in the 
-	 * dictionary
 	 * @throws IncompleteMTPException - if there is insufficient information
 	 * to insert the value
 	 */
-	public boolean insert(byte[] key, byte[] value) throws IncompleteMPTException;
+	public void insert(byte[] key, byte[] value) throws IncompleteMPTException;
 	
 	/**
 	 * Insert a batch consisting of multiple (key, value) 
@@ -50,12 +48,11 @@ public interface AuthenticatedDictionary {
 	/**
 	 * Removes any mapping associated with key from the dictionary.
 	 * If the key is not present in the dictionary nothing is 
-	 * modified and this method returns false.
+	 * modified.
 	 * 
 	 * @param key - arbitrary bytes representing the key
-	 * @return true iff the key was present in the dictionary
 	 */
-	public boolean delete(byte[] key);
+	public void delete(byte[] key);
 	
 	/**
 	 * Returns an authenticated dictionary containing only the authentication

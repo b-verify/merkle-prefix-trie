@@ -126,12 +126,10 @@ public class LeafNode implements Node {
 
 	@Override
 	public void setValue(byte[] value) {
-		if(!Arrays.equals(value, this.value)) {
-			// update the value and the witness
-			this.value = value.clone();
-			this.changed = true;
-			this.recalculateHash = true;
-		}
+		// update the value and the witness
+		this.value = value.clone();
+		this.changed = true;
+		this.recalculateHash = true;
 	}
 
 	@Override

@@ -51,7 +51,6 @@ public class InteriorNode implements Node {
 				.setInteriorNode(builder.build())
 				.build();
 		return node;
-		
 	}
 	
 	@Override
