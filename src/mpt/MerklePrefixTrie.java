@@ -44,10 +44,10 @@ public class MerklePrefixTrie {
 		LOGGER.log(Level.FINE,
 				"insert(" + Utils.byteArrayAsHexString(key) + ", " + Utils.byteArrayAsHexString(value) + ")");
 		byte[] keyHash = CryptographicDigest.digest(key);
-		this.insertHelper(key, value, keyHash, -1, this.root);
+		MerklePrefixTrie.insertHelper(key, value, keyHash, -1, this.root);
 	}
 
-	private Node insertHelper(final byte[] key, final byte[] value, final byte[] keyHash, int currentBitIndex,
+	private static Node insertHelper(final byte[] key, final byte[] value, final byte[] keyHash, int currentBitIndex,
 			Node currentNode) throws IncompleteMPTException {
 		// if we hit a stub, throw an exception since cannot do insert
 		if (currentNode.isStub()) {
@@ -74,21 +74,21 @@ public class MerklePrefixTrie {
 			// its value hasn't since it is now in a new location 
 			// in the MPT
 			currentLeafNode.markChangedAll();
-			return this.split(currentLeafNode, nodeToAdd, currentBitIndex);
+			return MerklePrefixTrie.split(currentLeafNode, nodeToAdd, currentBitIndex);
 		}
 		boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
 		/*
 		 * Encoding: if bit is 1 -> go right if bit is 0 -> go left
 		 */
 		if (bit) {
-			Node newRightChild = this.insertHelper(key, value, keyHash, currentBitIndex + 1,
+			Node newRightChild = MerklePrefixTrie.insertHelper(key, value, keyHash, currentBitIndex + 1,
 					currentNode.getRightChild());
 			// update the right child
 			currentNode.setRightChild(newRightChild);
 			return currentNode;
 
 		}
-		Node newLeftChild = this.insertHelper(key, value, keyHash, currentBitIndex + 1, currentNode.getLeftChild());
+		Node newLeftChild = MerklePrefixTrie.insertHelper(key, value, keyHash, currentBitIndex + 1, currentNode.getLeftChild());
 		currentNode.setLeftChild(newLeftChild);
 		return currentNode;
 	}
@@ -107,7 +107,7 @@ public class MerklePrefixTrie {
 	 *            b.getKeyKash()[:currentBitIndex]
 	 * @return
 	 */
-	private Node split(LeafNode a, LeafNode b, int currentBitIndex) {
+	private static Node split(LeafNode a, LeafNode b, int currentBitIndex) {
 		assert !Arrays.equals(a.getKeyHash(), b.getKeyHash());
 		boolean bitA = Utils.getBit(a.getKeyHash(), currentBitIndex + 1);
 		boolean bitB = Utils.getBit(b.getKeyHash(), currentBitIndex + 1);
@@ -117,7 +117,7 @@ public class MerklePrefixTrie {
 			Node res;
 			if (bitA) {
 				// if bit is 1 add on the right
-				res = split(a, b, currentBitIndex + 1);
+				res = MerklePrefixTrie.split(a, b, currentBitIndex + 1);
 				return new InteriorNode(new EmptyLeafNode(), res);
 			}
 			// if bit is 0 add on the left
@@ -135,10 +135,10 @@ public class MerklePrefixTrie {
 
 	public byte[] get(byte[] key) throws IncompleteMPTException {
 		byte[] keyHash = CryptographicDigest.digest(key);
-		return this.getHelper(this.root, keyHash, -1);
+		return MerklePrefixTrie.getHelper(this.root, keyHash, -1);
 	}
 
-	private byte[] getHelper(Node currentNode, byte[] keyHash, int currentBitIndex) throws IncompleteMPTException {
+	private static byte[] getHelper(Node currentNode, byte[] keyHash, int currentBitIndex) throws IncompleteMPTException {
 		if (currentNode.isStub()) {
 			throw new IncompleteMPTException(
 					"stub encountered at: " + Utils.byteArrayPrefixAsBitString(keyHash, currentBitIndex));
@@ -155,9 +155,9 @@ public class MerklePrefixTrie {
 		}
 		boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
 		if (bit) {
-			return this.getHelper(currentNode.getRightChild(), keyHash, currentBitIndex + 1);
+			return MerklePrefixTrie.getHelper(currentNode.getRightChild(), keyHash, currentBitIndex + 1);
 		}
-		return this.getHelper(currentNode.getLeftChild(), keyHash, currentBitIndex + 1);
+		return MerklePrefixTrie.getHelper(currentNode.getLeftChild(), keyHash, currentBitIndex + 1);
 	}
 
 	/**
@@ -175,10 +175,10 @@ public class MerklePrefixTrie {
 	 *             - if the search cannot be completed
 	 */
 	public Node getNodeAtPrefix(byte[] fullPath, int prefixEndIdx) throws IncompleteMPTException {
-		return this.getNodeAtPrefixHelper(this.root, fullPath, prefixEndIdx, -1);
+		return MerklePrefixTrie.getNodeAtPrefixHelper(this.root, fullPath, prefixEndIdx, -1);
 	}
 
-	private Node getNodeAtPrefixHelper(Node currentNode, byte[] fullPath, int prefixEndIdx, int currentIdx)
+	private static Node getNodeAtPrefixHelper(Node currentNode, byte[] fullPath, int prefixEndIdx, int currentIdx)
 			throws IncompleteMPTException {
 		if (currentIdx == prefixEndIdx) {
 			return currentNode;
@@ -192,20 +192,20 @@ public class MerklePrefixTrie {
 		}
 		boolean bit = Utils.getBit(fullPath, currentIdx + 1);
 		if (bit) {
-			return this.getNodeAtPrefixHelper(currentNode.getRightChild(), fullPath, prefixEndIdx, currentIdx + 1);
+			return MerklePrefixTrie.getNodeAtPrefixHelper(currentNode.getRightChild(), fullPath, prefixEndIdx, currentIdx + 1);
 		}
-		return this.getNodeAtPrefixHelper(currentNode.getLeftChild(), fullPath, prefixEndIdx, currentIdx + 1);
+		return MerklePrefixTrie.getNodeAtPrefixHelper(currentNode.getLeftChild(), fullPath, prefixEndIdx, currentIdx + 1);
 	}
 
 	public void delete(byte[] key) throws IncompleteMPTException {
 		byte[] keyHash = CryptographicDigest.digest(key);
 		LOGGER.log(Level.FINE, "delete(" + Utils.byteArrayAsHexString(key) + ")");
-		this.deleteHelper(keyHash, -1, this.root);
+		MerklePrefixTrie.deleteHelper(keyHash, -1, this.root, true);
 		// force updating the hash
 		this.root.getHash();
 	}
 
-	private Node deleteHelper(byte[] keyHash, int currentBitIndex, Node currentNode) throws IncompleteMPTException {
+	private static Node deleteHelper(byte[] keyHash, int currentBitIndex, Node currentNode, boolean isRoot) throws IncompleteMPTException {
 		if (currentNode.isStub()) {
 			throw new IncompleteMPTException(
 					"stub encountered at: " + Utils.byteArrayPrefixAsBitString(keyHash, currentBitIndex));
@@ -221,13 +221,12 @@ public class MerklePrefixTrie {
 		}
 		// we have to watch out to make sure that if this is the root node
 		// that we return an InteriorNode and don't propagate up an empty node
-		boolean isRoot = (currentBitIndex == -1);
 		boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
 		Node leftChild = currentNode.getLeftChild();
 		Node rightChild = currentNode.getRightChild();
 		if (bit) {
 			// delete key from the right subtree
-			Node newRightChild = this.deleteHelper(keyHash, currentBitIndex + 1, rightChild);
+			Node newRightChild = MerklePrefixTrie.deleteHelper(keyHash, currentBitIndex + 1, rightChild, false);
 			// if left subtree is empty, and rightChild is leaf
 			// we push the newRightChild back up the MPT
 			if (leftChild.isEmpty() && newRightChild.isLeaf() && !isRoot) {
@@ -246,7 +245,7 @@ public class MerklePrefixTrie {
 			currentNode.setRightChild(newRightChild);
 			return currentNode;
 		}
-		Node newLeftChild = this.deleteHelper(keyHash, currentBitIndex + 1, leftChild);
+		Node newLeftChild = MerklePrefixTrie.deleteHelper(keyHash, currentBitIndex + 1, leftChild, false);
 		if (rightChild.isEmpty() && newLeftChild.isLeaf() && !isRoot) {
 			return newLeftChild;
 		}
