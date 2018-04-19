@@ -10,6 +10,10 @@ import crpyto.CryptographicDigest;
 import serialization.MptSerialization;
 
 /**
+ * TODO: make args final in recursive calls for clarity!
+ */
+
+/**
  * A Merkle Prefix Trie (MPT) to implement a Persistent Authenticated Dictionary
  *
  * 
@@ -376,7 +380,9 @@ public class MerklePrefixTrie {
 		InteriorNode newRoot = (InteriorNode) res;
 		return new MerklePrefixTrie(newRoot);
 	}
-
+	
+	
+	
 	/**
 	 * Recursive helper function for building a path to a leaf specified by a
 	 * keyHash

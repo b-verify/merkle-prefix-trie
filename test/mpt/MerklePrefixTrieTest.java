@@ -735,4 +735,37 @@ public class MerklePrefixTrieTest {
 
 	}
 	
+	@Test
+	public void testCreatePartialTrieBasic() {
+		try {
+			MerklePrefixTrie mpt = new MerklePrefixTrie();
+
+			// insert the entries
+			mpt.insert("A".getBytes(), "1".getBytes());
+			mpt.insert("B".getBytes(), "2".getBytes());
+			mpt.insert("C".getBytes(), "3".getBytes());
+			mpt.insert("D".getBytes(), "3".getBytes());		
+			mpt.insert("E".getBytes(), "2".getBytes());		
+			mpt.insert("F".getBytes(), "1".getBytes());		
+
+			System.out.println("\noriginal:\n"+mpt);
+
+			// create a partial tree
+			MerklePrefixTriePartial partialmpt = new  MerklePrefixTriePartial(mpt);
+			System.out.println("\npartial:\n"+partialmpt);
+			
+			// add a path
+			byte[] key = "F".getBytes();
+			partialmpt.addPath(mpt, key);
+			
+			// copy a path to a key
+			System.out.println("\npartial with path:\n"+partialmpt);
+			
+		} catch (IncompleteMPTException e) {
+			Assert.fail(e.getMessage());
+		}
+
+	}
+	
+	
 }
