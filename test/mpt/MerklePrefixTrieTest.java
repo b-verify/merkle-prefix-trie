@@ -227,15 +227,16 @@ public class MerklePrefixTrieTest {
 		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(1000, salt);
 		String keyString = "key"+Integer.toString(key);
 		String valueString = "value"+Integer.toString(key)+salt;
-		MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
+		MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt);
+		path.addPath(mpt, keyString.getBytes());
 		byte[] serialization = path.serialize();
 		try {
-			MerklePrefixTrie fromBytes = MerklePrefixTrie.deserialize(serialization);
+			MerklePrefixTriePartial fromBytes = MerklePrefixTriePartial.deserialize(serialization);
 			Assert.assertTrue("deserialized path contains the specific entry", 
 					Arrays.equals(fromBytes.get(keyString.getBytes()), valueString.getBytes()));
 			Assert.assertTrue("deserialized path commitment matches" ,
 					Arrays.equals(fromBytes.commitment(), mpt.commitment()));
-		} catch (InvalidMPTSerializationException e) {
+		} catch (InvalidMPTSerializationException | IncompleteMPTException e) {
 			Assert.fail(e.getMessage());
 		}
 	}
@@ -353,7 +354,8 @@ public class MerklePrefixTrieTest {
 		byte[] bytes = new byte[] {0};
 		try {
 			mpt.insert(bytes, "1".getBytes());
-			MerklePrefixTrie path = mpt.copyPath(bytes);
+			MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt);
+			path.addPath(mpt, bytes);
 			Assert.assertTrue("expect path contains correct entry", Arrays.equals("1".getBytes(), path.get(bytes)));
 			Assert.assertTrue("expect same commitment of trie and path", Arrays.equals(mpt.commitment(), path.commitment()));	
 		}catch(Exception e) {
@@ -362,17 +364,21 @@ public class MerklePrefixTrieTest {
 	}
 	
 	@Test
-	public void testCopyTwoPathsDepth1() {
+	public void testCopyTwoPathsAdjacentKeysInMPT() {
 		try {
 			MerklePrefixTrie mpt = new MerklePrefixTrie();
 			byte[] first = new byte[] {0};
 			byte[] second = new byte[] {1};
 			mpt.insert(first, "1".getBytes());
-			MerklePrefixTrie path0 = mpt.copyPath(first);
-			mpt.insert(second, "2".getBytes());		
-			path0 = mpt.copyPath(first);
-			MerklePrefixTrie path1 = mpt.copyPath(second);
-			Assert.assertArrayEquals(path0.commitment(), path1.commitment());
+			mpt.insert(second, "2".getBytes());	
+			System.out.println(mpt);
+			MerklePrefixTriePartial path0 = new MerklePrefixTriePartial(mpt);
+			path0.addPath(mpt, first);
+			path0.addPath(mpt, second);
+			System.out.println(path0);
+			Assert.assertArrayEquals(path0.commitment(), mpt.commitment());
+			Assert.assertArrayEquals("1".getBytes(), path0.get(first));
+			Assert.assertArrayEquals("2".getBytes(), path0.get(second));
 		}catch(Exception e) {
 			Assert.fail(e.getMessage());
 		}
@@ -431,31 +437,6 @@ public class MerklePrefixTrieTest {
 	}
 	
 	@Test
-	public void testCopyPath() {
-		try {
-			MerklePrefixTrie mpt = new MerklePrefixTrie();
-			
-			//insert 10
-			byte[] first = new byte[] { 2 };
-			byte[] second = new byte[] { 3 };
-			byte[] third = new byte[] { 9 };
-			mpt.insert(first, "1".getBytes());
-			//System.out.println(MerklePrefixTrie.byteArrayAsBitString(CryptographicDigest.digest(second)));
-			mpt.insert(second, "2".getBytes());
-			//System.out.println(mpt);
-			//System.out.println(MerklePrefixTrie.byteArrayAsBitString(CryptographicDigest.digest(third)));
-			mpt.insert(third, "3".getBytes());
-			System.out.println(mpt);
-			
-			System.out.println("path to first: " + mpt.copyPath(first));
-			System.out.println("path to second: " + mpt.copyPath(second));
-			System.out.println("path to third: " + mpt.copyPath(third));
-		}catch(Exception e) {
-			Assert.fail(e.getMessage());
-		}
-	}
-	
-	@Test
 	public void testSetBranchFromExistingPrefix() {
 		MerklePrefixTrie mpt = new MerklePrefixTrie();
 		//insert 1000
@@ -478,12 +459,17 @@ public class MerklePrefixTrieTest {
 		int n = 1000;
 		String salt = "path test";
 		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(1000, salt);
-		for(int key = 0; key < n; key++) {
-			String keyString = "key"+Integer.toString(key);
-			String valueString = "value"+Integer.toString(key)+salt;
-			MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
-			byte[] value = path.get(keyString.getBytes());
-			Assert.assertTrue("path should contain correct (key,value)", Arrays.equals(valueString.getBytes(), value));
+		try {
+			for(int key = 0; key < n; key++) {
+				String keyString = "key"+Integer.toString(key);
+				String valueString = "value"+Integer.toString(key)+salt;
+				MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt);
+				path.addPath(mpt, keyString.getBytes());
+				byte[] value = path.get(keyString.getBytes());
+				Assert.assertTrue("path should contain correct (key,value)", Arrays.equals(valueString.getBytes(), value));
+			}
+		} catch (Exception e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 	
@@ -492,16 +478,21 @@ public class MerklePrefixTrieTest {
 		int n = 1000;
 		String salt = "path test";
 		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(1000, salt);
-		for(int offset = 1; offset < 1000; offset++) {
-			// not in tree
-			int key = n+offset;
-			String keyString = "key"+Integer.toString(key);
-			// copy path here should map a path to an empty leaf or a leaf
-			// with a different key - so when we call get on the path it 
-			// it returns nulls
-			MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
-			byte[] value = path.get(keyString.getBytes());
-			Assert.assertTrue("not in tree - path should map to empty leaf", value == null);	
+		try {
+			for(int offset = 1; offset < 1000; offset++) {
+				// not in tree
+				int key = n+offset;
+				String keyString = "key"+Integer.toString(key);
+				// copy path here should map a path to an empty leaf or a leaf
+				// with a different key - so when we call get on the path it 
+				// it returns nulls
+				MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt);
+				path.addPath(mpt, keyString.getBytes());
+				byte[] value = path.get(keyString.getBytes());
+				Assert.assertTrue("not in tree - path should map to empty leaf", value == null);	
+			}
+		}catch(Exception e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 
@@ -520,7 +511,8 @@ public class MerklePrefixTrieTest {
 
 		// copy a path to a key
 		byte[] key = "F".getBytes();
-		MerklePrefixTrie path = mpt.copyPath(key);
+		MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt);
+		path.addPath(mpt, key);
 		
 		// change value
 		mpt.insert("C".getBytes(), "100".getBytes());
@@ -528,7 +520,8 @@ public class MerklePrefixTrieTest {
 		mpt.insert("E".getBytes(), "102".getBytes());		
 		
 		// calculate a new path to a key
-		MerklePrefixTrie pathNew = mpt.copyPath(key);
+		MerklePrefixTriePartial newPath = new MerklePrefixTriePartial(mpt);
+		newPath.addPath(mpt, key);
 		try {
 			// save the changes 
 			MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
@@ -539,7 +532,7 @@ public class MerklePrefixTrieTest {
 			path.deserializeUpdates(updates);
 			
 			// should produce the new path
-			Assert.assertTrue(pathNew.equals(path));
+			Assert.assertTrue(newPath.equals(path));
 		} catch (InvalidMPTSerializationException e) {
 			Assert.fail(e.getMessage());
 		}
@@ -561,7 +554,8 @@ public class MerklePrefixTrieTest {
 
 		// copy a path to a key
 		byte[] key = "F".getBytes();
-		MerklePrefixTrie path = mpt.copyPath(key);
+		MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt);
+		path.addPath(mpt, key);
 		
 		// change values
 		mpt.insert("G".getBytes(), "100".getBytes());
@@ -570,7 +564,8 @@ public class MerklePrefixTrieTest {
 		mpt.insert("J".getBytes(), "103".getBytes());
 		
 		// calculate a new path to a key
-		MerklePrefixTrie pathNew = mpt.copyPath(key);
+		MerklePrefixTriePartial newPath = new MerklePrefixTriePartial(mpt);
+		newPath.addPath(mpt, key);
 		
 		// save the changes 
 		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
@@ -581,7 +576,7 @@ public class MerklePrefixTrieTest {
 			path.deserializeUpdates(updates);
 			
 			// should produce the new path
-			Assert.assertTrue(pathNew.equals(path));
+			Assert.assertTrue(newPath.equals(path));
 		} catch (InvalidMPTSerializationException e) {
 			Assert.fail(e.getMessage());
 		}
@@ -603,7 +598,8 @@ public class MerklePrefixTrieTest {
 
 		// copy a path to a key
 		byte[] key = "F".getBytes();
-		MerklePrefixTrie path = mpt.copyPath(key);
+		MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt);
+		path.addPath(mpt, key);
 		
 		System.out.println("\noriginal:\n"+mpt);
 		System.out.println("\npath original:\n"+path);
@@ -615,10 +611,11 @@ public class MerklePrefixTrieTest {
 		mpt.delete("D".getBytes());
 
 		// calculate a new path to a key
-		MerklePrefixTrie pathNew = mpt.copyPath(key);
+		MerklePrefixTriePartial newPath = new MerklePrefixTriePartial(mpt);
+		newPath.addPath(mpt, key);
 		
 		System.out.println("\nnew:\n"+mpt);
-		System.out.println("\npath new:\n"+pathNew);
+		System.out.println("\npath new:\n"+newPath);
 		
 		// save the changes 
 		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
@@ -633,7 +630,7 @@ public class MerklePrefixTrieTest {
 			System.out.println("\nafter updates:\n"+path);
 
 			// should produce the new path
-			Assert.assertTrue(pathNew.equals(path));
+			Assert.assertTrue(newPath.equals(path));
 		} catch (InvalidMPTSerializationException e) {
 			Assert.fail(e.getMessage());
 		}
@@ -658,7 +655,8 @@ public class MerklePrefixTrieTest {
 
 		// copy a path to a key
 		byte[] key = "F".getBytes();
-		MerklePrefixTrie path = mpt.copyPath(key);
+		MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt);
+		path.addPath(mpt, key);
 		System.out.println("\noriginal:\n"+mpt);
 		System.out.println("\npath original:\n"+path);
 		
@@ -667,9 +665,10 @@ public class MerklePrefixTrieTest {
 		mpt.insert("G".getBytes(), "1".getBytes());
 		
 		// calculate a new path to a key
-		MerklePrefixTrie pathNew = mpt.copyPath(key);
+		MerklePrefixTriePartial newPath = new MerklePrefixTriePartial(mpt);
+		newPath.addPath(mpt, key);
 		System.out.println("\nnew:\n"+mpt);
-		System.out.println("\npath new:\n"+pathNew);
+		System.out.println("\npath new:\n"+newPath);
 		
 		// save the changes 
 		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
@@ -682,7 +681,7 @@ public class MerklePrefixTrieTest {
 			System.out.println("\nafter updates:\n"+path);
 			
 			// should produce the new path
-			Assert.assertTrue(pathNew.equals(path));
+			Assert.assertTrue(newPath.equals(path));
 		} catch (InvalidMPTSerializationException e) {
 			Assert.fail(e.getMessage());
 		}
