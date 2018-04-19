@@ -22,20 +22,16 @@ public class Utils {
 	}
 	
 	public static MerklePrefixTrie makeMerklePrefixTrie(List<Map.Entry<String, String>> kvpairs) {
-		try {
-			MerklePrefixTrie mpt = new MerklePrefixTrie();
-			int i = 1;
-			for(Map.Entry<String, String> kvpair : kvpairs) {
-				if(i % 1000 == 0) {
-					System.out.println("made "+i+" of "+kvpairs.size());
-				}
-				mpt.insert(kvpair.getKey().getBytes(), kvpair.getValue().getBytes());
-				i++;
+		MerklePrefixTrie mpt = new MerklePrefixTrie();
+		int i = 1;
+		for(Map.Entry<String, String> kvpair : kvpairs) {
+			if(i % 1000 == 0) {
+				System.out.println("made "+i+" of "+kvpairs.size());
 			}
-			return mpt;
-		}catch( IncompleteMPTException e) {
-			throw new RuntimeException(e.getMessage());
+			mpt.insert(kvpair.getKey().getBytes(), kvpair.getValue().getBytes());
+			i++;
 		}
+		return mpt;
 	}
 	
 	/**

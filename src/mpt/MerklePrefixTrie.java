@@ -44,7 +44,7 @@ public class MerklePrefixTrie {
 		this.root = root;
 	}
 
-	public void insert(final byte[] key, final byte[] value) throws IncompleteMPTException {
+	public void insert(final byte[] key, final byte[] value) {
 		LOGGER.log(Level.FINE,
 				"insert(" + Utils.byteArrayAsHexString(key) + ", " + Utils.byteArrayAsHexString(value) + ")");
 		byte[] keyHash = CryptographicDigest.digest(key);
@@ -52,12 +52,7 @@ public class MerklePrefixTrie {
 	}
 
 	private static Node insertHelper(final byte[] key, final byte[] value, final byte[] keyHash, int currentBitIndex,
-			Node currentNode) throws IncompleteMPTException {
-		// if we hit a stub, throw an exception since cannot do insert
-		if (currentNode.isStub()) {
-			throw new IncompleteMPTException(
-					"stub encountered at: " + Utils.byteArrayPrefixAsBitString(keyHash, currentBitIndex));
-		}
+			Node currentNode) {
 		// when we hit a leaf we know where we need to insert
 		if (currentNode.isLeaf()) {
 			// this key is already in the tree, update existing mapping
@@ -137,16 +132,12 @@ public class MerklePrefixTrie {
 		return new InteriorNode(a, b);
 	}
 
-	public byte[] get(byte[] key) throws IncompleteMPTException {
+	public byte[] get(byte[] key)  {
 		byte[] keyHash = CryptographicDigest.digest(key);
 		return MerklePrefixTrie.getHelper(this.root, keyHash, -1);
 	}
 
-	private static byte[] getHelper(Node currentNode, byte[] keyHash, int currentBitIndex) throws IncompleteMPTException {
-		if (currentNode.isStub()) {
-			throw new IncompleteMPTException(
-					"stub encountered at: " + Utils.byteArrayPrefixAsBitString(keyHash, currentBitIndex));
-		}
+	private static byte[] getHelper(Node currentNode, byte[] keyHash, int currentBitIndex) {
 		if (currentNode.isLeaf()) {
 			if (!currentNode.isEmpty()) {
 				// if the current node is NonEmpty and matches the Key
@@ -178,17 +169,13 @@ public class MerklePrefixTrie {
 	 * @throws IncompleteMPTException
 	 *             - if the search cannot be completed
 	 */
-	public Node getNodeAtPrefix(byte[] fullPath, int prefixEndIdx) throws IncompleteMPTException {
+	public Node getNodeAtPrefix(byte[] fullPath, int prefixEndIdx) {
 		return MerklePrefixTrie.getNodeAtPrefixHelper(this.root, fullPath, prefixEndIdx, -1);
 	}
 
-	private static Node getNodeAtPrefixHelper(Node currentNode, byte[] fullPath, int prefixEndIdx, int currentIdx)
-			throws IncompleteMPTException {
+	private static Node getNodeAtPrefixHelper(Node currentNode, byte[] fullPath, int prefixEndIdx, int currentIdx) {
 		if (currentIdx == prefixEndIdx) {
 			return currentNode;
-		}
-		if (currentNode.isStub()) {
-			throw new IncompleteMPTException("encountered a stub before could reach prefix");
 		}
 		// if encounter a premature leaf - then search is over
 		if (currentNode.isLeaf()) {
@@ -201,7 +188,7 @@ public class MerklePrefixTrie {
 		return MerklePrefixTrie.getNodeAtPrefixHelper(currentNode.getLeftChild(), fullPath, prefixEndIdx, currentIdx + 1);
 	}
 
-	public void delete(byte[] key) throws IncompleteMPTException {
+	public void delete(byte[] key) {
 		byte[] keyHash = CryptographicDigest.digest(key);
 		LOGGER.log(Level.FINE, "delete(" + Utils.byteArrayAsHexString(key) + ")");
 		MerklePrefixTrie.deleteHelper(keyHash, -1, this.root, true);
@@ -209,11 +196,7 @@ public class MerklePrefixTrie {
 		this.root.getHash();
 	}
 
-	private static Node deleteHelper(byte[] keyHash, int currentBitIndex, Node currentNode, boolean isRoot) throws IncompleteMPTException {
-		if (currentNode.isStub()) {
-			throw new IncompleteMPTException(
-					"stub encountered at: " + Utils.byteArrayPrefixAsBitString(keyHash, currentBitIndex));
-		}
+	private static Node deleteHelper(byte[] keyHash, int currentBitIndex, Node currentNode, boolean isRoot) {
 		if (currentNode.isLeaf()) {
 			if (!currentNode.isEmpty()) {
 				if (Arrays.equals(currentNode.getKeyHash(), keyHash)) {
@@ -263,11 +246,11 @@ public class MerklePrefixTrie {
 
 	public byte[] commitment() {
 		return this.root.getHash();
-	}
+	};
 
 	public void reset() {
 		this.root.markUnchangedAll();
-	}
+	};
 	
 	private static Node parseNodeUsingCachedValues(Node currentNode, MptSerialization.Node updatedNode)
 			throws InvalidMPTSerializationException {
@@ -438,18 +421,12 @@ public class MerklePrefixTrie {
 	 * public method - only really useful for benchmarking purposes)
 	 * 
 	 * @return
-	 * @throws IncompleteMPTException
 	 */
-	public int getMaxHeight() throws IncompleteMPTException {
+	public int getMaxHeight() {
 		return this.getHeightRecursive(this.root);
 	}
 
-	private int getHeightRecursive(Node currentLocation) throws IncompleteMPTException {
-		// if we encounter a stub we do not have the entire tree
-		// so we cannot determine the height
-		if (currentLocation.isStub()) {
-			throw new IncompleteMPTException("stub encountered - cannot determine height of tree");
-		}
+	private int getHeightRecursive(Node currentLocation) {
 		// each leaf is at height zero
 		if (currentLocation.isLeaf()) {
 			return 0;
