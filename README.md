@@ -6,9 +6,13 @@ This is a full implementation of Merkle Prefix Tries that tries to exploit effic
 For a tree with 
 `10^6  entries`
 which we can generate in less than a minute, here are the stats:
+
 `Entire tree proof size 		(bytes): 50789842`
+
 `Average path proof size 	(bytes): 1021`
+
 `Max path proof size     	(bytes): 1908`
+
 
 # Serialization 
 Serialization: the individual messages have an overhead of 2-6 bytes.
