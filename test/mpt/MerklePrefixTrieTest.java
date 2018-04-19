@@ -12,10 +12,7 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.protobuf.ByteString;
-
 import crpyto.CryptographicDigest;
-import serialization.MptSerialization;
 
 public class MerklePrefixTrieTest {
 	
@@ -26,11 +23,11 @@ public class MerklePrefixTrieTest {
 		String salt = "test";
 		List<Map.Entry<String, String>> kvpairs = Utils.getKeyValuePairs(numberOfKeys, salt);
 		MerklePrefixTrie mptBase = Utils.makeMerklePrefixTrie(kvpairs);
-		byte[] commitment = mptBase.getCommitment();
+		byte[] commitment = mptBase.commitment();
 		for(int iteration = 0; iteration <  numberOfShuffles; iteration++) {
 			Collections.shuffle(kvpairs);
 			MerklePrefixTrie mpt2 = Utils.makeMerklePrefixTrie(kvpairs);
-			byte[] commitment2 = mpt2.getCommitment();
+			byte[] commitment2 = mpt2.commitment();
 			Assert.assertTrue(Arrays.equals(commitment, commitment2));
 		}
 	}
@@ -142,7 +139,7 @@ public class MerklePrefixTrieTest {
 			mpt2.insert("C".getBytes(), "3".getBytes());
 			
 			// this tree should be the same 
-			Assert.assertTrue(Arrays.equals(mpt.getCommitment(), mpt2.getCommitment()));
+			Assert.assertTrue(Arrays.equals(mpt.commitment(), mpt2.commitment()));
 		} catch(Exception e) {
 			Assert.fail(e.getMessage());
 		}
@@ -223,7 +220,7 @@ public class MerklePrefixTrieTest {
 				}
 			}
 			MerklePrefixTrie mpt2 = Utils.makeMerklePrefixTrie(500, salt);
-			Assert.assertTrue(Arrays.equals(mpt.getCommitment(), mpt2.getCommitment()));
+			Assert.assertTrue(Arrays.equals(mpt.commitment(), mpt2.commitment()));
 		}catch(Exception e) {
 			Assert.fail(e.getMessage());
 		}
@@ -257,7 +254,7 @@ public class MerklePrefixTrieTest {
 			Assert.assertTrue("deserialized path contains the specific entry", 
 					Arrays.equals(fromBytes.get(keyString.getBytes()), valueString.getBytes()));
 			Assert.assertTrue("deserialized path commitment matches" ,
-					Arrays.equals(fromBytes.getCommitment(), mpt.getCommitment()));
+					Arrays.equals(fromBytes.commitment(), mpt.commitment()));
 		} catch (InvalidMPTSerializationException | IncompleteMPTException e) {
 			Assert.fail(e.getMessage());
 		}
@@ -378,7 +375,7 @@ public class MerklePrefixTrieTest {
 			mpt.insert(bytes, "1".getBytes());
 			MerklePrefixTrie path = mpt.copyPath(bytes);
 			Assert.assertTrue("expect path contains correct entry", Arrays.equals("1".getBytes(), path.get(bytes)));
-			Assert.assertTrue("expect same commitment of trie and path", Arrays.equals(mpt.getCommitment(), path.getCommitment()));	
+			Assert.assertTrue("expect same commitment of trie and path", Arrays.equals(mpt.commitment(), path.commitment()));	
 		}catch(Exception e) {
 			Assert.fail(e.getMessage());
 		}
@@ -395,7 +392,7 @@ public class MerklePrefixTrieTest {
 			mpt.insert(second, "2".getBytes());		
 			path0 = mpt.copyPath(first);
 			MerklePrefixTrie path1 = mpt.copyPath(second);
-			Assert.assertArrayEquals(path0.getCommitment(), path1.getCommitment());
+			Assert.assertArrayEquals(path0.commitment(), path1.commitment());
 		}catch(Exception e) {
 			Assert.fail(e.getMessage());
 		}
@@ -549,199 +546,193 @@ public class MerklePrefixTrieTest {
 			}	
 		}
 	}
-	
+
 	@Test
-	public void testUpdateSingleStub() {
-		int n = 20;
-		int key = 8;
-		String salt = "";
-		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(n, salt);
-		// take a path in the MPT	
-		// +0101101
-		String keyString = "key"+Integer.toString(key);
-		MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
-		
-		// update a different key which will update a single stub 
-		// alters stub +00
-		String keyStringToUpdate = "key"+Integer.toString(5);
-		byte[] updateHash = CryptographicDigest.digest(keyStringToUpdate.getBytes());
-		int prefixIdx = 1;
-				
+	public void testMPTBasicUpdateSequenceChangeValues() {
+		MerklePrefixTrie mpt = new MerklePrefixTrie();
 		try {
-			mpt.insert(keyStringToUpdate.getBytes(), "OTHER VALUE".getBytes());
+			// insert the entries
+			mpt.insert("A".getBytes(), "1".getBytes());
+			mpt.insert("B".getBytes(), "2".getBytes());
+			mpt.insert("C".getBytes(), "3".getBytes());
+			mpt.insert("D".getBytes(), "3".getBytes());		
+			mpt.insert("E".getBytes(), "2".getBytes());		
+			mpt.insert("F".getBytes(), "1".getBytes());		
+			// mark everything as unchanged
+			mpt.reset();
+	
+			// copy a path to a key
+			byte[] key = "F".getBytes();
+			MerklePrefixTrie path = mpt.copyPath(key);
 			
-			// get a new copy of the path
-			MerklePrefixTrie pathUpdated = mpt.copyPath(keyString.getBytes());
+			// change value
+			mpt.insert("C".getBytes(), "100".getBytes());
+			mpt.insert("D".getBytes(), "101".getBytes());		
+			mpt.insert("E".getBytes(), "102".getBytes());		
 			
-			// should have different commitments
-			Assert.assertFalse(Arrays.equals(path.getCommitment(), pathUpdated.getCommitment()));
+			// calculate a new path to a key
+			MerklePrefixTrie pathNew = mpt.copyPath(key);
 			
-			// find the updated stub
-			Node stub = pathUpdated.getNodeAtPrefix(updateHash,prefixIdx);
-			byte[] updateBytes = 
-					MptSerialization.MerklePrefixTrieUpdate.newBuilder()
-					.addUpdates(MptSerialization.Update.newBuilder()
-							.setFullPath(ByteString.copyFrom(updateHash))
-							.setIndex(prefixIdx)
-							.setNode(stub.serialize()))
-					.build().toByteArray();
-			// update the stub 
-			path.deserializeUpdates(updateBytes);
-			Node stub2 = path.getNodeAtPrefix(updateHash,prefixIdx);
-			// check that the stub was updated
-			Assert.assertTrue(stub.equals(stub2));
-			// check that the commitments now match
-			Assert.assertTrue(Arrays.equals(path.getCommitment(), pathUpdated.getCommitment()));
+			// save the changes 
+			MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+			
+			// use the changes to calculate an update for the original path
+			byte[] updates = changes.getUpdates(key);
+			// update the original path
+			path.deserializeUpdates(updates);
+			
+			// should produce the new path
+			Assert.assertTrue(pathNew.equals(path));
 		} catch (IncompleteMPTException | InvalidMPTSerializationException e) {
 			Assert.fail(e.getMessage());
 		}
-		
+
 	}
 	
 	@Test
-	public void testUpdateSingleStubWrongLocationGivesError() {
-		int n = 20;
-		int key = 8;
-		String salt = "";
-		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(n, salt);
-		// take a path in the MPT		
-		String keyString = "key"+Integer.toString(key);
-		byte[] pathHash = CryptographicDigest.digest(keyString.getBytes());
-		MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
+	public void testMPTBasicUpdateSequenceInsertValues() {
+		MerklePrefixTrie mpt = new MerklePrefixTrie();
 		try {
-			byte[] updateBytes = 
-					MptSerialization.MerklePrefixTrieUpdate.newBuilder()
-					.addUpdates(MptSerialization.Update.newBuilder()
-							.setFullPath(ByteString.copyFrom(pathHash))
-							.setIndex(15) // this prefix will not be in the MPT
-							.setNode(MptSerialization.Node.newBuilder()
-									.setStub(MptSerialization.Stub.newBuilder()
-												.setHash(ByteString.copyFrom("test".getBytes())))))
-					.build().toByteArray();
-			// update the stub 
-			path.deserializeUpdates(updateBytes);
-			Assert.fail("should throw exception");
-		} catch (InvalidMPTSerializationException e) {
-			
-		}
-		
-	}
+			// insert the entries
+			mpt.insert("A".getBytes(), "1".getBytes());
+			mpt.insert("B".getBytes(), "2".getBytes());
+			mpt.insert("C".getBytes(), "3".getBytes());
+			mpt.insert("D".getBytes(), "3".getBytes());		
+			mpt.insert("E".getBytes(), "2".getBytes());		
+			mpt.insert("F".getBytes(), "1".getBytes());		
+			// mark everything as unchanged
+			mpt.reset();
 	
-	@Test
-	public void testUpdateMultipleStubs() {
-		int n = 50;
-		int key = 8;
-		String salt = "";
-		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(n, salt);
-		// take a path in the MPT		
-		// +0101101
-		String keyString = "key"+Integer.toString(key);
-		byte[] keyStringHash = CryptographicDigest.digest(keyString.getBytes());
-		MerklePrefixTrie path = mpt.copyPath(keyString.getBytes());
-
-		// alters stub +1
-		String keyUpdate1 = "key"+Integer.toString(1);
-		byte[] keyUpdate1Hash = CryptographicDigest.digest(keyUpdate1.getBytes());
-		int prefix1 = 0;
-		Assert.assertEquals(prefix1, Utils.getOverlappingPrefix(keyUpdate1Hash, keyStringHash));
-
-		// alters stub +00
-		String keyUpdate2 = "key"+Integer.toString(5);
-		byte[] keyUpdate2Hash = CryptographicDigest.digest(keyUpdate2.getBytes());
-		int prefix2 = 1;
-		Assert.assertEquals(prefix2, Utils.getOverlappingPrefix(keyUpdate2Hash, keyStringHash));
-
-		// alters stub +0100
-		String keyUpdate3 = "key"+Integer.toString(13);
-		byte[] keyUpdate3Hash = CryptographicDigest.digest(keyUpdate3.getBytes());
-		int prefix3 = 3;
-		Assert.assertEquals(3, Utils.getOverlappingPrefix(keyUpdate3Hash, keyStringHash));
-
-		// alters stub +011
-		String keyUpdate4 = "key"+Integer.toString(15);
-		byte[] keyUpdate4Hash = CryptographicDigest.digest(keyUpdate4.getBytes());
-		int prefix4 = 2;
-		Assert.assertEquals(prefix4, Utils.getOverlappingPrefix(keyUpdate4Hash, keyStringHash));
-		
-
-		try {
-			// update the MPT
-			mpt.insert(keyUpdate1.getBytes(), "some value".getBytes());
-			mpt.insert(keyUpdate2.getBytes(), "some value".getBytes());
-			mpt.insert(keyUpdate3.getBytes(), "some value".getBytes());
-			mpt.insert(keyUpdate4.getBytes(), "some value".getBytes());
+			// copy a path to a key
+			byte[] key = "F".getBytes();
+			MerklePrefixTrie path = mpt.copyPath(key);
 			
-			MerklePrefixTrie path2 = mpt.copyPath(keyString.getBytes());
-			System.out.println("PATH 1: ");
-			System.out.println(path);
-			System.out.println("\n\nPATH 2: ");
-			System.out.println(path2);
+			// change values
+			mpt.insert("G".getBytes(), "100".getBytes());
+			mpt.insert("H".getBytes(), "101".getBytes());
+			mpt.insert("I".getBytes(), "102".getBytes());
+			mpt.insert("J".getBytes(), "103".getBytes());
 			
-			// now create the updates 
-			Node stub1 = path2.getNodeAtPrefix(keyUpdate1Hash, prefix1);
-			MptSerialization.Update update1 = MptSerialization.Update.newBuilder()
-					.setFullPath(ByteString.copyFrom(keyUpdate1Hash))
-					.setIndex(prefix1)
-					.setNode(stub1.serialize())
-					.build();
-			System.out.println("get node at +"+Utils.byteArrayPrefixAsBitString(keyUpdate1Hash, prefix1));
-			System.out.println(stub1);
+			// calculate a new path to a key
+			MerklePrefixTrie pathNew = mpt.copyPath(key);
 			
-			Node stub2 = path2.getNodeAtPrefix(keyUpdate2Hash, prefix2);
-			MptSerialization.Update update2 = MptSerialization.Update.newBuilder()
-					.setFullPath(ByteString.copyFrom(keyUpdate2Hash))
-					.setIndex(prefix2)
-					.setNode(stub2.serialize())
-					.build();
-			System.out.println("get node at +"+Utils.byteArrayPrefixAsBitString(keyUpdate2Hash, prefix2));
-			System.out.println(stub2);
-
+			// save the changes 
+			MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
 			
-			Node stub3 = path2.getNodeAtPrefix(keyUpdate3Hash, prefix3);
-			MptSerialization.Update update3 = MptSerialization.Update.newBuilder()
-					.setFullPath(ByteString.copyFrom(keyUpdate3Hash))
-					.setIndex(prefix3)
-					.setNode(stub3.serialize())
-					.build();
-			System.out.println("get node at +"+Utils.byteArrayPrefixAsBitString(keyUpdate3Hash, prefix3));
-			System.out.println(stub3);
-
-			Node stub4 = path2.getNodeAtPrefix(keyUpdate4Hash, prefix4);
-			MptSerialization.Update update4 = MptSerialization.Update.newBuilder()
-					.setFullPath(ByteString.copyFrom(keyUpdate4Hash))
-					.setIndex(prefix4)
-					.setNode(stub4.serialize())
-					.build();
-			System.out.println("get node at +"+Utils.byteArrayPrefixAsBitString(keyUpdate4Hash, prefix4));
-			System.out.println(stub4);
-
+			// use the changes to calculate an update for the original path
+			byte[] updates = changes.getUpdates(key);
+			// update the original path
+			path.deserializeUpdates(updates);
 			
-			MptSerialization.MerklePrefixTrieUpdate updates = MptSerialization.MerklePrefixTrieUpdate.newBuilder()
-					.addUpdates(update1)
-					.addUpdates(update2)
-					.addUpdates(update3)
-					.addUpdates(update4)
-					.build();
-			
-			byte[] asbyte= updates.toByteArray();
-			// add the updates to the path
-			path.deserializeUpdates(asbyte);
-			// check that the stubs are updated
-			Node stub1New = path.getNodeAtPrefix(keyUpdate1Hash, prefix1);
-			Node stub2New = path.getNodeAtPrefix(keyUpdate2Hash, prefix2);
-			Node stub3New = path.getNodeAtPrefix(keyUpdate3Hash, prefix3);
-			Node stub4New = path.getNodeAtPrefix(keyUpdate4Hash, prefix4);
-					
-			Assert.assertTrue(stub1.equals(stub1New));
-			Assert.assertTrue(stub2.equals(stub2New));
-			Assert.assertTrue(stub3.equals(stub3New));
-			Assert.assertTrue(stub4.equals(stub4New));
-			
-			// check that the commitments match
-			Assert.assertTrue(Arrays.equals(path.getCommitment(), path2.getCommitment()));
-		} catch (Exception e) {
+			// should produce the new path
+			Assert.assertTrue(pathNew.equals(path));
+		} catch (IncompleteMPTException | InvalidMPTSerializationException e) {
 			Assert.fail(e.getMessage());
 		}
+
+	}
+	
+	@Test
+	public void testMPTBasicUpdateSequenceDeleteValues() {
+		MerklePrefixTrie mpt = new MerklePrefixTrie();
+		try {
+			// insert the entries
+			mpt.insert("A".getBytes(), "1".getBytes());
+			mpt.insert("B".getBytes(), "2".getBytes());
+			mpt.insert("C".getBytes(), "3".getBytes());
+			mpt.insert("D".getBytes(), "3".getBytes());		
+			mpt.insert("E".getBytes(), "2".getBytes());		
+			mpt.insert("F".getBytes(), "1".getBytes());		
+			// mark everything as unchanged
+			mpt.reset();
+	
+			// copy a path to a key
+			byte[] key = "F".getBytes();
+			MerklePrefixTrie path = mpt.copyPath(key);
+			
+			System.out.println("\noriginal:\n"+mpt);
+			System.out.println("\npath original:\n"+path);
+			
+			// delete values
+			mpt.delete("A".getBytes());
+			mpt.delete("B".getBytes());
+			mpt.delete("C".getBytes());
+			mpt.delete("D".getBytes());
+
+			// calculate a new path to a key
+			MerklePrefixTrie pathNew = mpt.copyPath(key);
+			
+			System.out.println("\nnew:\n"+mpt);
+			System.out.println("\npath new:\n"+pathNew);
+			
+			// save the changes 
+			MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+			
+			System.out.println("\nchanges:\n"+changes);
+
+			// use the changes to calculate an update for the original path
+			byte[] updates = changes.getUpdates(key);
+			// update the original path
+			path.deserializeUpdates(updates);
+			
+			System.out.println("\nafter updates:\n"+path);
+
+			// should produce the new path
+			Assert.assertTrue(pathNew.equals(path));
+		} catch (IncompleteMPTException | InvalidMPTSerializationException e) {
+			Assert.fail(e.getMessage());
+		}
+
+	}
+
+	@Test
+	public void testMPTBasicUpdateSequence() {
+		MerklePrefixTrie mpt = new MerklePrefixTrie();
+		try {
+			// insert the entries
+			mpt.insert("A".getBytes(), "1".getBytes());
+			mpt.insert("B".getBytes(), "2".getBytes());
+			mpt.insert("C".getBytes(), "3".getBytes());
+			mpt.insert("D".getBytes(), "3".getBytes());		
+			mpt.insert("E".getBytes(), "2".getBytes());		
+			mpt.insert("F".getBytes(), "1".getBytes());		
+			// mark everything as unchanged
+			mpt.reset();
+			System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest("F".getBytes())));
+			System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest("C".getBytes())));
+			System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest("G".getBytes())));
+	
+			// copy a path to a key
+			byte[] key = "F".getBytes();
+			MerklePrefixTrie path = mpt.copyPath(key);
+			System.out.println("\noriginal:\n"+mpt);
+			System.out.println("\npath original:\n"+path);
+			
+			// make some changes
+			mpt.insert("C".getBytes(), "100".getBytes());
+			mpt.insert("G".getBytes(), "1".getBytes());
+			
+			// calculate a new path to a key
+			MerklePrefixTrie pathNew = mpt.copyPath(key);
+			System.out.println("\nnew:\n"+mpt);
+			System.out.println("\npath new:\n"+pathNew);
+			
+			// save the changes 
+			MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+			System.out.println("\nchanges:\n"+changes);
+			
+			// use the changes to calculate an update for the original path
+			byte[] updates = changes.getUpdates(key);
+			// update the original path
+			path.deserializeUpdates(updates);
+			System.out.println("\nafter updates:\n"+path);
+			
+			// should produce the new path
+			Assert.assertTrue(pathNew.equals(path));
+		} catch (IncompleteMPTException | InvalidMPTSerializationException e) {
+			Assert.fail(e.getMessage());
+		}
+
 	}
 	
 }

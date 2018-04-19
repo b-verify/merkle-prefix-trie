@@ -77,7 +77,9 @@ public class EmptyLeafNode implements Node {
 
 	@Override
 	public serialization.MptSerialization.Node serialize() {
-		throw new RuntimeException("tried to serialize an empty node - fatal error");
+		return serialization.MptSerialization.Node.newBuilder()
+				.setEmptyleaf(serialization.MptSerialization.EmptyLeaf.newBuilder())
+				.build();
 	}
 
 	@Override
@@ -101,8 +103,13 @@ public class EmptyLeafNode implements Node {
 	}
 
 	@Override
-	public void reset() {
+	public void markChangedAll() {
+		
+	}
 
+	@Override
+	public void markUnchangedAll() {
+		
 	}
 	
 }

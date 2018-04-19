@@ -20,7 +20,7 @@ public class Stub implements Node {
 	public Stub(byte[] hash) {
 		this.hash = hash.clone();
 	}
-
+	
 	@Override
 	public byte[] getHash() {
 		return this.hash.clone();
@@ -118,7 +118,12 @@ public class Stub implements Node {
 	}
 
 	@Override
-	public void reset() {
+	public void markChangedAll() {
+		
+	}
+
+	@Override
+	public void markUnchangedAll() {
 		
 	}
 }

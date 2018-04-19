@@ -1,14 +1,12 @@
 package mpt;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import crpyto.CryptographicDigest;
-
 import serialization.MptSerialization;
 
 /**
@@ -24,7 +22,7 @@ public class MerklePrefixTrie {
 
 	// we require that the root is always an interior node
 	// at index -1, empty prefix (which I usually represent by +)
-	private InteriorNode root;
+	protected InteriorNode root;
 
 	/**
 	 * Create an empty Merkle Prefix Trie
@@ -47,8 +45,6 @@ public class MerklePrefixTrie {
 				"insert(" + Utils.byteArrayAsHexString(key) + ", " + Utils.byteArrayAsHexString(value) + ")");
 		byte[] keyHash = CryptographicDigest.digest(key);
 		this.insertHelper(key, value, keyHash, -1, this.root);
-		// we call this to force updating the hash values
-		this.root.getHash();
 	}
 
 	private Node insertHelper(final byte[] key, final byte[] value, final byte[] keyHash, int currentBitIndex,
@@ -70,10 +66,14 @@ public class MerklePrefixTrie {
 			LeafNode nodeToAdd = new LeafNode(key, value);
 			if (currentNode.isEmpty()) {
 				// if the current leaf is empty, just replace it
-				return new LeafNode(key, value);
+				return nodeToAdd;
 			}
 			// otherwise we need to "split"
 			LeafNode currentLeafNode = (LeafNode) currentNode;
+			// mark the current node as "changed" even though 
+			// its value hasn't since it is now in a new location 
+			// in the MPT
+			currentLeafNode.markChangedAll();
 			return this.split(currentLeafNode, nodeToAdd, currentBitIndex);
 		}
 		boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
@@ -88,8 +88,7 @@ public class MerklePrefixTrie {
 			return currentNode;
 
 		}
-		Node newLeftChild = this.insertHelper(key, value, keyHash, currentBitIndex + 1, 
-				currentNode.getLeftChild());
+		Node newLeftChild = this.insertHelper(key, value, keyHash, currentBitIndex + 1, currentNode.getLeftChild());
 		currentNode.setLeftChild(newLeftChild);
 		return currentNode;
 	}
@@ -134,41 +133,15 @@ public class MerklePrefixTrie {
 		return new InteriorNode(a, b);
 	}
 
-	/**
-	 * Get the value associated with a given key. Returns null if the key is not in
-	 * the MPT.
-	 * 
-	 * @param key
-	 * @return the value if the key is in the MPT and null if the key is not.
-	 * @throws IncompleteMPTException
-	 *             - thrown if parts of the MPT are missing such that the search
-	 *             cannot be completed. (E.g. if a MPT conatins a single path, and
-	 *             searching for this key's prefix is not possible with just the
-	 *             path).
-	 */
 	public byte[] get(byte[] key) throws IncompleteMPTException {
 		byte[] keyHash = CryptographicDigest.digest(key);
-		LOGGER.log(Level.FINE, "get H(" + key + "): " + Utils.byteArrayAsBitString(keyHash));
-		return this.getKeyHelper(this.root, keyHash, -1);
+		return this.getHelper(this.root, keyHash, -1);
 	}
 
-	/**
-	 * Recursive helper function to search for the keyHash by checking progressively
-	 * longer prefixes in the MPT. Returns when it finds a leaf. If the key is not
-	 * in the tree it will eventually hit an EmptyLeafNode or a LeafNode with a
-	 * different keyHash. In this case this function will return null.
-	 * 
-	 * @param currentNode
-	 * @param keyHash
-	 * @param currentBitIndex
-	 * @throws IncompleteMPTException
-	 *             - if we attempt to go down a path we do not have (i.e. currently
-	 *             represent by only a stub)
-	 * @return
-	 */
-	private byte[] getKeyHelper(Node currentNode, byte[] keyHash, int currentBitIndex) throws IncompleteMPTException {
+	private byte[] getHelper(Node currentNode, byte[] keyHash, int currentBitIndex) throws IncompleteMPTException {
 		if (currentNode.isStub()) {
-			throw new IncompleteMPTException("encountered a stub - cannot complete search");
+			throw new IncompleteMPTException(
+					"stub encountered at: " + Utils.byteArrayPrefixAsBitString(keyHash, currentBitIndex));
 		}
 		if (currentNode.isLeaf()) {
 			if (!currentNode.isEmpty()) {
@@ -182,9 +155,9 @@ public class MerklePrefixTrie {
 		}
 		boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
 		if (bit) {
-			return this.getKeyHelper(currentNode.getRightChild(), keyHash, currentBitIndex + 1);
+			return this.getHelper(currentNode.getRightChild(), keyHash, currentBitIndex + 1);
 		}
-		return this.getKeyHelper(currentNode.getLeftChild(), keyHash, currentBitIndex + 1);
+		return this.getHelper(currentNode.getLeftChild(), keyHash, currentBitIndex + 1);
 	}
 
 	/**
@@ -224,20 +197,18 @@ public class MerklePrefixTrie {
 		return this.getNodeAtPrefixHelper(currentNode.getLeftChild(), fullPath, prefixEndIdx, currentIdx + 1);
 	}
 
-	public void delete(byte[] key) throws IncompleteMPTException{
+	public void delete(byte[] key) throws IncompleteMPTException {
 		byte[] keyHash = CryptographicDigest.digest(key);
-		LOGGER.log(Level.FINE, "delete("+Utils.byteArrayAsHexString(key)+")");
+		LOGGER.log(Level.FINE, "delete(" + Utils.byteArrayAsHexString(key) + ")");
 		this.deleteHelper(keyHash, -1, this.root);
 		// force updating the hash
 		this.root.getHash();
-	}	
-	
-	private Node deleteHelper(byte[] keyHash, int currentBitIndex, Node currentNode) 
-		throws IncompleteMPTException {
-		if (currentNode.isStub()) {
-			throw new IncompleteMPTException("stub encountered at: " +
-					Utils.byteArrayPrefixAsBitString(keyHash, currentBitIndex));
+	}
 
+	private Node deleteHelper(byte[] keyHash, int currentBitIndex, Node currentNode) throws IncompleteMPTException {
+		if (currentNode.isStub()) {
+			throw new IncompleteMPTException(
+					"stub encountered at: " + Utils.byteArrayPrefixAsBitString(keyHash, currentBitIndex));
 		}
 		if (currentNode.isLeaf()) {
 			if (!currentNode.isEmpty()) {
@@ -265,6 +236,9 @@ public class MerklePrefixTrie {
 			// if newRightChild is empty, and leftChild is a leaf
 			// we push the leftChild back up the MPT
 			if (newRightChild.isEmpty() && leftChild.isLeaf() && !isRoot) {
+				// we also mark the left subtree as changed 
+				// since its entire position has changed
+				leftChild.markChangedAll();
 				return leftChild;
 			}
 			// otherwise just update current (interior) node's
@@ -277,19 +251,113 @@ public class MerklePrefixTrie {
 			return newLeftChild;
 		}
 		if (newLeftChild.isEmpty() && rightChild.isLeaf() && !isRoot) {
+			rightChild.markChangedAll();
 			return rightChild;
 		}
 		currentNode.setLeftChild(newLeftChild);
 		return currentNode;
 	};
-	
-	/**
-	 * Get the cryptographic commitment to this set of (key, value) pairs
-	 * 
-	 * @return
-	 */
-	public byte[] getCommitment() {
+
+	public byte[] commitment() {
 		return this.root.getHash();
+	}
+
+	public void reset() {
+		this.root.markUnchangedAll();
+	}
+	
+	private static Node parseNodeUsingCachedValues(Node currentNode, MptSerialization.Node updatedNode)
+			throws InvalidMPTSerializationException {
+		switch(updatedNode.getNodeCase()) {
+		case EMPTYLEAF:
+			return new EmptyLeafNode();
+		case INTERIOR_NODE:
+			// the case here requires more care, since a child might be omitted, 
+			// in which case the client should use the current value (this 
+			// is a caching scheme for efficiency)
+			MptSerialization.InteriorNode interiorNode = updatedNode.getInteriorNode();
+			Node left = currentNode.getLeftChild();
+			Node right = currentNode.getRightChild();
+			if(interiorNode.hasLeft()) {
+				left = MerklePrefixTrie.parseNodeUsingCachedValues(left, interiorNode.getLeft());
+			}
+			if(interiorNode.hasRight()) {
+				right = MerklePrefixTrie.parseNodeUsingCachedValues(right, interiorNode.getRight());
+			}
+			return new InteriorNode(left, right);
+		case LEAF:
+			MptSerialization.Leaf leaf = updatedNode.getLeaf();
+			return new LeafNode(leaf.getKey().toByteArray(), leaf.getValue().toByteArray());
+		case STUB:
+			MptSerialization.Stub stub = updatedNode.getStub();
+			return new Stub(stub.getHash().toByteArray());
+		case NODE_NOT_SET:
+			throw new InvalidMPTSerializationException("tried to use a cached node that is not present");
+		default:
+			throw new InvalidMPTSerializationException("?????");
+		}
+	}
+	
+	private static Node parseNode(MptSerialization.Node nodeSerialization) throws InvalidMPTSerializationException {
+		switch (nodeSerialization.getNodeCase()) {
+		case INTERIOR_NODE:
+			MptSerialization.InteriorNode in = nodeSerialization.getInteriorNode();
+			if(!in.hasLeft() || !in.hasRight()) {
+				throw new InvalidMPTSerializationException("interior node does not have both children");
+			}
+			Node left = MerklePrefixTrie.parseNode(in.getLeft());
+			Node right = MerklePrefixTrie.parseNode(in.getRight());
+			return new InteriorNode(left, right);
+		case STUB:
+			MptSerialization.Stub stub = nodeSerialization.getStub();
+			if (stub.getHash().isEmpty()) {
+				throw new InvalidMPTSerializationException("stub doesn't have a hash");
+			}
+			return new Stub(stub.getHash().toByteArray());
+		case LEAF:
+			MptSerialization.Leaf leaf = nodeSerialization.getLeaf();
+			if (leaf.getKey().isEmpty() || leaf.getValue().isEmpty()) {
+				throw new InvalidMPTSerializationException("leaf doesn't have required keyhash and value");
+			}
+			return new LeafNode(leaf.getKey().toByteArray(), leaf.getValue().toByteArray());
+		case EMPTYLEAF:
+			return new EmptyLeafNode();
+		case NODE_NOT_SET:
+			throw new InvalidMPTSerializationException("no node included - fatal error");
+		default:
+			throw new InvalidMPTSerializationException("?????");
+		}
+	}
+	
+	public static MerklePrefixTrie deserialize(byte[] asbytes) throws InvalidMPTSerializationException {
+		MptSerialization.MerklePrefixTrie mpt;
+		try {
+			mpt = MptSerialization.MerklePrefixTrie.parseFrom(asbytes);
+		} catch (InvalidProtocolBufferException e) {
+			throw new InvalidMPTSerializationException(e.getMessage());
+		}
+		if (!mpt.hasRoot()) {
+			throw new InvalidMPTSerializationException("no root included");
+		}
+		// when we deserialize a full MPT we do not use any cached values
+		Node root = MerklePrefixTrie.parseNode(mpt.getRoot());
+		if (!(root instanceof InteriorNode)) {
+			throw new InvalidMPTSerializationException("root is not an interior node!");
+		}
+		InteriorNode rootInt = (InteriorNode) root;
+		return new MerklePrefixTrie(rootInt);
+	}
+	
+	public void deserializeUpdates(byte[] updateBytes) throws InvalidMPTSerializationException {
+		try {
+			MptSerialization.MerklePrefixTrie mptUpdate = MptSerialization.MerklePrefixTrie.parseFrom(updateBytes);
+			// when we deserialize updates to a MPT, 
+			// the current values are cached and omitted in updates!
+			Node newRoot = MerklePrefixTrie.parseNodeUsingCachedValues(this.root, mptUpdate.getRoot());
+			this.root = (InteriorNode) newRoot;
+		} catch (InvalidProtocolBufferException e) {
+			throw new InvalidMPTSerializationException(e.getMessage());
+		}
 	}
 
 	/**
@@ -352,163 +420,11 @@ public class MerklePrefixTrie {
 		return new InteriorNode(childOnPath, rightStub);
 	}
 
-	/**
-	 * Efficiently serializes this MPT. The serialization contains the minimal set
-	 * of information required to reconstruct and authenticate this MPT when
-	 * deserialized on the client.
-	 * 
-	 * @return
-	 */
 	public byte[] serialize() {
 		MptSerialization.Node rootSerialization = this.root.serialize();
 		MptSerialization.MerklePrefixTrie.Builder builder = MptSerialization.MerklePrefixTrie.newBuilder();
 		builder.setRoot(rootSerialization);
 		return builder.build().toByteArray();
-	}
-
-	/**
-	 * Parses a MPT from a byte serialization. Throws an InvalidMPTSerialization if
-	 * the tree cannot be deserialized properly
-	 * 
-	 * @param asbytes
-	 * @return
-	 * @throws InvalidMPTSerialization
-	 */
-	public static MerklePrefixTrie deserialize(byte[] asbytes) throws InvalidMPTSerializationException {
-		MptSerialization.MerklePrefixTrie mptProof;
-		try {
-			mptProof = MptSerialization.MerklePrefixTrie.parseFrom(asbytes);
-		} catch (InvalidProtocolBufferException e) {
-			throw new InvalidMPTSerializationException(e.getMessage());
-		}
-		if (!mptProof.hasRoot()) {
-			throw new InvalidMPTSerializationException("no root included");
-		}
-		Node root = MerklePrefixTrie.parseNode(mptProof.getRoot());
-		if (!(root instanceof InteriorNode)) {
-			throw new InvalidMPTSerializationException("root is not an interior node!");
-		}
-		InteriorNode rootInt = (InteriorNode) root;
-		return new MerklePrefixTrie(rootInt);
-	}
-
-	/**
-	 * Helper function with recursively parses the individual serialized nodes into
-	 * MerklePrefixTrie nodes according to the mpt.proto format. Throws
-	 * InvalidMPTSerialization if a node is not correctly formatted and cannot be
-	 * parsed
-	 * 
-	 * @param nodeSerialization
-	 * @return
-	 * @throws InvalidMPTSerialization
-	 */
-	private static Node parseNode(MptSerialization.Node nodeSerialization) throws InvalidMPTSerializationException {
-		switch (nodeSerialization.getNodeCase()) {
-		case INTERIOR_NODE:
-			MptSerialization.InteriorNode in = nodeSerialization.getInteriorNode();
-			Node left, right;
-			/*
-			 * If an interior node child is not present, we assume it is an empty child
-			 */
-			if (!in.hasLeft()) {
-				left = new EmptyLeafNode();
-			} else {
-				left = MerklePrefixTrie.parseNode(in.getLeft());
-			}
-			if (!in.hasRight()) {
-				right = new EmptyLeafNode();
-			} else {
-				right = MerklePrefixTrie.parseNode(in.getRight());
-			}
-			return new InteriorNode(left, right);
-		case STUB:
-			MptSerialization.Stub stub = nodeSerialization.getStub();
-			if (stub.getHash().isEmpty()) {
-				throw new InvalidMPTSerializationException("stub doesn't have a hash");
-			}
-			return new Stub(stub.getHash().toByteArray());
-		case LEAF:
-			MptSerialization.Leaf leaf = nodeSerialization.getLeaf();
-			if (leaf.getKey().isEmpty() || leaf.getValue().isEmpty()) {
-				throw new InvalidMPTSerializationException("leaf doesn't have required keyhash and value");
-			}
-			return new LeafNode(leaf.getKey().toByteArray(), leaf.getValue().toByteArray());
-		case NODE_NOT_SET:
-			throw new InvalidMPTSerializationException("no node included - fatal error");
-		}
-		return null;
-	}
-
-	public void deserializeUpdates(byte[] updateBytes) throws InvalidMPTSerializationException {
-		try {
-			MptSerialization.MerklePrefixTrieUpdate updateMsg = MptSerialization.MerklePrefixTrieUpdate
-					.parseFrom(updateBytes);
-			List<MptSerialization.Update> updates = updateMsg.getUpdatesList();
-			for (MptSerialization.Update update : updates) {
-				Node newStubOrLeaf = MerklePrefixTrie.parseNode(update.getNode());
-				if (!(newStubOrLeaf instanceof LeafNode || newStubOrLeaf instanceof Stub)) {
-					throw new InvalidMPTSerializationException(
-							"tried to insert something " + "other than a stub or leaf");
-				}
-				// perform update
-				Node newRoot = this.updateStubOrLeafHelper(this.root, newStubOrLeaf, update.getFullPath().toByteArray(),
-						update.getIndex(), -1);
-				// update the root (save the update)
-				this.root = (InteriorNode) newRoot;
-
-			}
-		} catch (InvalidProtocolBufferException e) {
-			throw new InvalidMPTSerializationException(e.getMessage());
-		}
-	}
-
-	/**
-	 * Recursive helper function. Given a stub or leaf and a prefix. This function
-	 * replaces the stub or leaf at the location of prefix with the updated stub or
-	 * leaf. If the node at that prefix does not exist, or is not a stub or a leaf
-	 * this method throws an error
-	 * 
-	 * @param currentLocation
-	 *            - current location in the trie
-	 * @param newStubOrLeaf
-	 *            - stub or leaf to insert
-	 * @param path
-	 *            - full hash of node
-	 * @param prefixEndIdx
-	 *            - end index - defines a prefix of path[:prefixEndIndx] - which
-	 *            corresponds to a location in the MPT
-	 * @param currentIdx
-	 *            - current location in the search path[:currentIndx]
-	 * @return
-	 * @throws InvalidMPTSerializationException
-	 */
-	private Node updateStubOrLeafHelper(Node currentLocation, Node newStubOrLeaf, byte[] path, int prefixEndIdx,
-			int currentIdx) throws InvalidMPTSerializationException {
-		// if we are at the correct location in the MPT
-		if (currentIdx == prefixEndIdx) {
-			// both the node we are inserting and the node
-			// we are replacing should be a stub or leaf
-			if ((currentLocation.isStub() || currentLocation.isLeaf())
-					&& (newStubOrLeaf.isStub() || newStubOrLeaf.isLeaf())) {
-				return newStubOrLeaf;
-			}
-			throw new InvalidMPTSerializationException(
-					"Both the node being and the node " + "being replaced should be stub or leaf");
-		}
-		// this shouldn't happen since we are not at the correct location in the MPT yet
-		if (currentLocation.isLeaf()) {
-			throw new InvalidMPTSerializationException(
-					"tried to insert at a path " + "not currently present in the MPT");
-		}
-		Node left = currentLocation.getLeftChild();
-		Node right = currentLocation.getRightChild();
-		boolean bit = Utils.getBit(path, currentIdx + 1);
-		if (bit) {
-			Node newRight = this.updateStubOrLeafHelper(right, newStubOrLeaf, path, prefixEndIdx, currentIdx + 1);
-			return new InteriorNode(left, newRight);
-		}
-		Node newLeft = this.updateStubOrLeafHelper(left, newStubOrLeaf, path, prefixEndIdx, currentIdx + 1);
-		return new InteriorNode(newLeft, right);
 	}
 
 	/**
@@ -541,14 +457,14 @@ public class MerklePrefixTrie {
 
 	@Override
 	public String toString() {
-		return this.toStringHelper("+", this.root);
+		return MerklePrefixTrie.toStringHelper("+", this.root);
 	}
 
-	private String toStringHelper(String prefix, Node node) {
+	protected static String toStringHelper(String prefix, Node node) {
 		String result = prefix + " " + node.toString();
 		if (!node.isLeaf() && !node.isStub()) {
-			String left = this.toStringHelper(prefix + "0", node.getLeftChild());
-			String right = this.toStringHelper(prefix + "1", node.getRightChild());
+			String left = MerklePrefixTrie.toStringHelper(prefix + "0", node.getLeftChild());
+			String right = MerklePrefixTrie.toStringHelper(prefix + "1", node.getRightChild());
 			result = result + "\n" + left + "\n" + right;
 		}
 		return result;

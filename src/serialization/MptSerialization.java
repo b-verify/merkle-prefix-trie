@@ -57,6 +57,19 @@ public final class MptSerialization {
      */
     serialization.MptSerialization.StubOrBuilder getStubOrBuilder();
 
+    /**
+     * <code>.serialization.EmptyLeaf emptyleaf = 4;</code>
+     */
+    boolean hasEmptyleaf();
+    /**
+     * <code>.serialization.EmptyLeaf emptyleaf = 4;</code>
+     */
+    serialization.MptSerialization.EmptyLeaf getEmptyleaf();
+    /**
+     * <code>.serialization.EmptyLeaf emptyleaf = 4;</code>
+     */
+    serialization.MptSerialization.EmptyLeafOrBuilder getEmptyleafOrBuilder();
+
     public serialization.MptSerialization.Node.NodeCase getNodeCase();
   }
   /**
@@ -152,6 +165,20 @@ public final class MptSerialization {
               nodeCase_ = 3;
               break;
             }
+            case 34: {
+              serialization.MptSerialization.EmptyLeaf.Builder subBuilder = null;
+              if (nodeCase_ == 4) {
+                subBuilder = ((serialization.MptSerialization.EmptyLeaf) node_).toBuilder();
+              }
+              node_ =
+                  input.readMessage(serialization.MptSerialization.EmptyLeaf.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((serialization.MptSerialization.EmptyLeaf) node_);
+                node_ = subBuilder.buildPartial();
+              }
+              nodeCase_ = 4;
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -183,6 +210,7 @@ public final class MptSerialization {
       INTERIOR_NODE(1),
       LEAF(2),
       STUB(3),
+      EMPTYLEAF(4),
       NODE_NOT_SET(0);
       private final int value;
       private NodeCase(int value) {
@@ -201,6 +229,7 @@ public final class MptSerialization {
           case 1: return INTERIOR_NODE;
           case 2: return LEAF;
           case 3: return STUB;
+          case 4: return EMPTYLEAF;
           case 0: return NODE_NOT_SET;
           default: return null;
         }
@@ -294,6 +323,32 @@ public final class MptSerialization {
       return serialization.MptSerialization.Stub.getDefaultInstance();
     }
 
+    public static final int EMPTYLEAF_FIELD_NUMBER = 4;
+    /**
+     * <code>.serialization.EmptyLeaf emptyleaf = 4;</code>
+     */
+    public boolean hasEmptyleaf() {
+      return nodeCase_ == 4;
+    }
+    /**
+     * <code>.serialization.EmptyLeaf emptyleaf = 4;</code>
+     */
+    public serialization.MptSerialization.EmptyLeaf getEmptyleaf() {
+      if (nodeCase_ == 4) {
+         return (serialization.MptSerialization.EmptyLeaf) node_;
+      }
+      return serialization.MptSerialization.EmptyLeaf.getDefaultInstance();
+    }
+    /**
+     * <code>.serialization.EmptyLeaf emptyleaf = 4;</code>
+     */
+    public serialization.MptSerialization.EmptyLeafOrBuilder getEmptyleafOrBuilder() {
+      if (nodeCase_ == 4) {
+         return (serialization.MptSerialization.EmptyLeaf) node_;
+      }
+      return serialization.MptSerialization.EmptyLeaf.getDefaultInstance();
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -315,6 +370,9 @@ public final class MptSerialization {
       if (nodeCase_ == 3) {
         output.writeMessage(3, (serialization.MptSerialization.Stub) node_);
       }
+      if (nodeCase_ == 4) {
+        output.writeMessage(4, (serialization.MptSerialization.EmptyLeaf) node_);
+      }
       unknownFields.writeTo(output);
     }
 
@@ -334,6 +392,10 @@ public final class MptSerialization {
       if (nodeCase_ == 3) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(3, (serialization.MptSerialization.Stub) node_);
+      }
+      if (nodeCase_ == 4) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, (serialization.MptSerialization.EmptyLeaf) node_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -367,6 +429,10 @@ public final class MptSerialization {
           result = result && getStub()
               .equals(other.getStub());
           break;
+        case 4:
+          result = result && getEmptyleaf()
+              .equals(other.getEmptyleaf());
+          break;
         case 0:
         default:
       }
@@ -393,6 +459,10 @@ public final class MptSerialization {
         case 3:
           hash = (37 * hash) + STUB_FIELD_NUMBER;
           hash = (53 * hash) + getStub().hashCode();
+          break;
+        case 4:
+          hash = (37 * hash) + EMPTYLEAF_FIELD_NUMBER;
+          hash = (53 * hash) + getEmptyleaf().hashCode();
           break;
         case 0:
         default:
@@ -576,6 +646,13 @@ public final class MptSerialization {
             result.node_ = stubBuilder_.build();
           }
         }
+        if (nodeCase_ == 4) {
+          if (emptyleafBuilder_ == null) {
+            result.node_ = node_;
+          } else {
+            result.node_ = emptyleafBuilder_.build();
+          }
+        }
         result.nodeCase_ = nodeCase_;
         onBuilt();
         return result;
@@ -629,6 +706,10 @@ public final class MptSerialization {
           }
           case STUB: {
             mergeStub(other.getStub());
+            break;
+          }
+          case EMPTYLEAF: {
+            mergeEmptyleaf(other.getEmptyleaf());
             break;
           }
           case NODE_NOT_SET: {
@@ -1083,6 +1164,142 @@ public final class MptSerialization {
         nodeCase_ = 3;
         onChanged();;
         return stubBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          serialization.MptSerialization.EmptyLeaf, serialization.MptSerialization.EmptyLeaf.Builder, serialization.MptSerialization.EmptyLeafOrBuilder> emptyleafBuilder_;
+      /**
+       * <code>.serialization.EmptyLeaf emptyleaf = 4;</code>
+       */
+      public boolean hasEmptyleaf() {
+        return nodeCase_ == 4;
+      }
+      /**
+       * <code>.serialization.EmptyLeaf emptyleaf = 4;</code>
+       */
+      public serialization.MptSerialization.EmptyLeaf getEmptyleaf() {
+        if (emptyleafBuilder_ == null) {
+          if (nodeCase_ == 4) {
+            return (serialization.MptSerialization.EmptyLeaf) node_;
+          }
+          return serialization.MptSerialization.EmptyLeaf.getDefaultInstance();
+        } else {
+          if (nodeCase_ == 4) {
+            return emptyleafBuilder_.getMessage();
+          }
+          return serialization.MptSerialization.EmptyLeaf.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.serialization.EmptyLeaf emptyleaf = 4;</code>
+       */
+      public Builder setEmptyleaf(serialization.MptSerialization.EmptyLeaf value) {
+        if (emptyleafBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          node_ = value;
+          onChanged();
+        } else {
+          emptyleafBuilder_.setMessage(value);
+        }
+        nodeCase_ = 4;
+        return this;
+      }
+      /**
+       * <code>.serialization.EmptyLeaf emptyleaf = 4;</code>
+       */
+      public Builder setEmptyleaf(
+          serialization.MptSerialization.EmptyLeaf.Builder builderForValue) {
+        if (emptyleafBuilder_ == null) {
+          node_ = builderForValue.build();
+          onChanged();
+        } else {
+          emptyleafBuilder_.setMessage(builderForValue.build());
+        }
+        nodeCase_ = 4;
+        return this;
+      }
+      /**
+       * <code>.serialization.EmptyLeaf emptyleaf = 4;</code>
+       */
+      public Builder mergeEmptyleaf(serialization.MptSerialization.EmptyLeaf value) {
+        if (emptyleafBuilder_ == null) {
+          if (nodeCase_ == 4 &&
+              node_ != serialization.MptSerialization.EmptyLeaf.getDefaultInstance()) {
+            node_ = serialization.MptSerialization.EmptyLeaf.newBuilder((serialization.MptSerialization.EmptyLeaf) node_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            node_ = value;
+          }
+          onChanged();
+        } else {
+          if (nodeCase_ == 4) {
+            emptyleafBuilder_.mergeFrom(value);
+          }
+          emptyleafBuilder_.setMessage(value);
+        }
+        nodeCase_ = 4;
+        return this;
+      }
+      /**
+       * <code>.serialization.EmptyLeaf emptyleaf = 4;</code>
+       */
+      public Builder clearEmptyleaf() {
+        if (emptyleafBuilder_ == null) {
+          if (nodeCase_ == 4) {
+            nodeCase_ = 0;
+            node_ = null;
+            onChanged();
+          }
+        } else {
+          if (nodeCase_ == 4) {
+            nodeCase_ = 0;
+            node_ = null;
+          }
+          emptyleafBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.serialization.EmptyLeaf emptyleaf = 4;</code>
+       */
+      public serialization.MptSerialization.EmptyLeaf.Builder getEmptyleafBuilder() {
+        return getEmptyleafFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.serialization.EmptyLeaf emptyleaf = 4;</code>
+       */
+      public serialization.MptSerialization.EmptyLeafOrBuilder getEmptyleafOrBuilder() {
+        if ((nodeCase_ == 4) && (emptyleafBuilder_ != null)) {
+          return emptyleafBuilder_.getMessageOrBuilder();
+        } else {
+          if (nodeCase_ == 4) {
+            return (serialization.MptSerialization.EmptyLeaf) node_;
+          }
+          return serialization.MptSerialization.EmptyLeaf.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.serialization.EmptyLeaf emptyleaf = 4;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          serialization.MptSerialization.EmptyLeaf, serialization.MptSerialization.EmptyLeaf.Builder, serialization.MptSerialization.EmptyLeafOrBuilder> 
+          getEmptyleafFieldBuilder() {
+        if (emptyleafBuilder_ == null) {
+          if (!(nodeCase_ == 4)) {
+            node_ = serialization.MptSerialization.EmptyLeaf.getDefaultInstance();
+          }
+          emptyleafBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              serialization.MptSerialization.EmptyLeaf, serialization.MptSerialization.EmptyLeaf.Builder, serialization.MptSerialization.EmptyLeafOrBuilder>(
+                  (serialization.MptSerialization.EmptyLeaf) node_,
+                  getParentForChildren(),
+                  isClean());
+          node_ = null;
+        }
+        nodeCase_ = 4;
+        onChanged();;
+        return emptyleafBuilder_;
       }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -1633,7 +1850,9 @@ public final class MptSerialization {
    * <pre>
    **
    *	InteriorNode has left or right children.
-   *	Only non-empty children need to be included.
+   *	Omitted children are used in caching strategies:
+   * 	If a child is omitted, the client can use the current 
+   * 	value.
    * </pre>
    *
    * Protobuf type {@code serialization.InteriorNode}
@@ -1949,7 +2168,9 @@ public final class MptSerialization {
      * <pre>
      **
      *	InteriorNode has left or right children.
-     *	Only non-empty children need to be included.
+     *	Omitted children are used in caching strategies:
+     * 	If a child is omitted, the client can use the current 
+     * 	value.
      * </pre>
      *
      * Protobuf type {@code serialization.InteriorNode}
@@ -2392,11 +2613,6 @@ public final class MptSerialization {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <pre>
-     * technically we only need to send the keyhash,
-     * but this might be more useful
-     * </pre>
-     *
      * <code>bytes key = 1;</code>
      */
     com.google.protobuf.ByteString getKey();
@@ -2496,11 +2712,6 @@ public final class MptSerialization {
     public static final int KEY_FIELD_NUMBER = 1;
     private com.google.protobuf.ByteString key_;
     /**
-     * <pre>
-     * technically we only need to send the keyhash,
-     * but this might be more useful
-     * </pre>
-     *
      * <code>bytes key = 1;</code>
      */
     public com.google.protobuf.ByteString getKey() {
@@ -2823,22 +3034,12 @@ public final class MptSerialization {
 
       private com.google.protobuf.ByteString key_ = com.google.protobuf.ByteString.EMPTY;
       /**
-       * <pre>
-       * technically we only need to send the keyhash,
-       * but this might be more useful
-       * </pre>
-       *
        * <code>bytes key = 1;</code>
        */
       public com.google.protobuf.ByteString getKey() {
         return key_;
       }
       /**
-       * <pre>
-       * technically we only need to send the keyhash,
-       * but this might be more useful
-       * </pre>
-       *
        * <code>bytes key = 1;</code>
        */
       public Builder setKey(com.google.protobuf.ByteString value) {
@@ -2851,11 +3052,6 @@ public final class MptSerialization {
         return this;
       }
       /**
-       * <pre>
-       * technically we only need to send the keyhash,
-       * but this might be more useful
-       * </pre>
-       *
        * <code>bytes key = 1;</code>
        */
       public Builder clearKey() {
@@ -2942,6 +3138,403 @@ public final class MptSerialization {
 
   }
 
+  public interface EmptyLeafOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:serialization.EmptyLeaf)
+      com.google.protobuf.MessageOrBuilder {
+  }
+  /**
+   * <pre>
+   **
+   *	Empty Leaf
+   * </pre>
+   *
+   * Protobuf type {@code serialization.EmptyLeaf}
+   */
+  public  static final class EmptyLeaf extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:serialization.EmptyLeaf)
+      EmptyLeafOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use EmptyLeaf.newBuilder() to construct.
+    private EmptyLeaf(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private EmptyLeaf() {
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private EmptyLeaf(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return serialization.MptSerialization.internal_static_serialization_EmptyLeaf_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return serialization.MptSerialization.internal_static_serialization_EmptyLeaf_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              serialization.MptSerialization.EmptyLeaf.class, serialization.MptSerialization.EmptyLeaf.Builder.class);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof serialization.MptSerialization.EmptyLeaf)) {
+        return super.equals(obj);
+      }
+      serialization.MptSerialization.EmptyLeaf other = (serialization.MptSerialization.EmptyLeaf) obj;
+
+      boolean result = true;
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static serialization.MptSerialization.EmptyLeaf parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static serialization.MptSerialization.EmptyLeaf parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static serialization.MptSerialization.EmptyLeaf parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static serialization.MptSerialization.EmptyLeaf parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static serialization.MptSerialization.EmptyLeaf parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static serialization.MptSerialization.EmptyLeaf parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static serialization.MptSerialization.EmptyLeaf parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static serialization.MptSerialization.EmptyLeaf parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static serialization.MptSerialization.EmptyLeaf parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static serialization.MptSerialization.EmptyLeaf parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static serialization.MptSerialization.EmptyLeaf parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static serialization.MptSerialization.EmptyLeaf parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(serialization.MptSerialization.EmptyLeaf prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     **
+     *	Empty Leaf
+     * </pre>
+     *
+     * Protobuf type {@code serialization.EmptyLeaf}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:serialization.EmptyLeaf)
+        serialization.MptSerialization.EmptyLeafOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return serialization.MptSerialization.internal_static_serialization_EmptyLeaf_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return serialization.MptSerialization.internal_static_serialization_EmptyLeaf_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                serialization.MptSerialization.EmptyLeaf.class, serialization.MptSerialization.EmptyLeaf.Builder.class);
+      }
+
+      // Construct using serialization.MptSerialization.EmptyLeaf.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return serialization.MptSerialization.internal_static_serialization_EmptyLeaf_descriptor;
+      }
+
+      public serialization.MptSerialization.EmptyLeaf getDefaultInstanceForType() {
+        return serialization.MptSerialization.EmptyLeaf.getDefaultInstance();
+      }
+
+      public serialization.MptSerialization.EmptyLeaf build() {
+        serialization.MptSerialization.EmptyLeaf result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public serialization.MptSerialization.EmptyLeaf buildPartial() {
+        serialization.MptSerialization.EmptyLeaf result = new serialization.MptSerialization.EmptyLeaf(this);
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof serialization.MptSerialization.EmptyLeaf) {
+          return mergeFrom((serialization.MptSerialization.EmptyLeaf)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(serialization.MptSerialization.EmptyLeaf other) {
+        if (other == serialization.MptSerialization.EmptyLeaf.getDefaultInstance()) return this;
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        serialization.MptSerialization.EmptyLeaf parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (serialization.MptSerialization.EmptyLeaf) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:serialization.EmptyLeaf)
+    }
+
+    // @@protoc_insertion_point(class_scope:serialization.EmptyLeaf)
+    private static final serialization.MptSerialization.EmptyLeaf DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new serialization.MptSerialization.EmptyLeaf();
+    }
+
+    public static serialization.MptSerialization.EmptyLeaf getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<EmptyLeaf>
+        PARSER = new com.google.protobuf.AbstractParser<EmptyLeaf>() {
+      public EmptyLeaf parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new EmptyLeaf(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<EmptyLeaf> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<EmptyLeaf> getParserForType() {
+      return PARSER;
+    }
+
+    public serialization.MptSerialization.EmptyLeaf getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface MerklePrefixTrieOrBuilder extends
       // @@protoc_insertion_point(interface_extends:serialization.MerklePrefixTrie)
       com.google.protobuf.MessageOrBuilder {
@@ -2962,8 +3555,7 @@ public final class MptSerialization {
   /**
    * <pre>
    **
-   *	A full or partial Merkle Prefix
-   *	Trie 
+   *	A full or partial MerklePrefixTrie 
    * </pre>
    *
    * Protobuf type {@code serialization.MerklePrefixTrie}
@@ -3228,8 +3820,7 @@ public final class MptSerialization {
     /**
      * <pre>
      **
-     *	A full or partial Merkle Prefix
-     *	Trie 
+     *	A full or partial MerklePrefixTrie 
      * </pre>
      *
      * Protobuf type {@code serialization.MerklePrefixTrie}
@@ -3536,1527 +4127,6 @@ public final class MptSerialization {
 
   }
 
-  public interface UpdateOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:serialization.Update)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <pre>
-     * the full_path + index are just a way to 
-     * transmit a prefix (location) in the tree
-     * </pre>
-     *
-     * <code>bytes full_path = 1;</code>
-     */
-    com.google.protobuf.ByteString getFullPath();
-
-    /**
-     * <code>uint32 index = 2;</code>
-     */
-    int getIndex();
-
-    /**
-     * <code>.serialization.Node node = 3;</code>
-     */
-    boolean hasNode();
-    /**
-     * <code>.serialization.Node node = 3;</code>
-     */
-    serialization.MptSerialization.Node getNode();
-    /**
-     * <code>.serialization.Node node = 3;</code>
-     */
-    serialization.MptSerialization.NodeOrBuilder getNodeOrBuilder();
-  }
-  /**
-   * <pre>
-   **
-   *	An Update. In the MerklePrefixTrie message, the locations 
-   *	of the nodes is implict from the serialization.
-   * 	However if we wish to send only the updated values
-   * 	(and use a caching scheme on the client) we need to 
-   * 	make the location explicit
-   * </pre>
-   *
-   * Protobuf type {@code serialization.Update}
-   */
-  public  static final class Update extends
-      com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:serialization.Update)
-      UpdateOrBuilder {
-  private static final long serialVersionUID = 0L;
-    // Use Update.newBuilder() to construct.
-    private Update(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
-      super(builder);
-    }
-    private Update() {
-      fullPath_ = com.google.protobuf.ByteString.EMPTY;
-      index_ = 0;
-    }
-
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
-      return this.unknownFields;
-    }
-    private Update(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      this();
-      if (extensionRegistry == null) {
-        throw new java.lang.NullPointerException();
-      }
-      int mutable_bitField0_ = 0;
-      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder();
-      try {
-        boolean done = false;
-        while (!done) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              done = true;
-              break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
-            case 10: {
-
-              fullPath_ = input.readBytes();
-              break;
-            }
-            case 16: {
-
-              index_ = input.readUInt32();
-              break;
-            }
-            case 26: {
-              serialization.MptSerialization.Node.Builder subBuilder = null;
-              if (node_ != null) {
-                subBuilder = node_.toBuilder();
-              }
-              node_ = input.readMessage(serialization.MptSerialization.Node.parser(), extensionRegistry);
-              if (subBuilder != null) {
-                subBuilder.mergeFrom(node_);
-                node_ = subBuilder.buildPartial();
-              }
-
-              break;
-            }
-          }
-        }
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(this);
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(
-            e).setUnfinishedMessage(this);
-      } finally {
-        this.unknownFields = unknownFields.build();
-        makeExtensionsImmutable();
-      }
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return serialization.MptSerialization.internal_static_serialization_Update_descriptor;
-    }
-
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return serialization.MptSerialization.internal_static_serialization_Update_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              serialization.MptSerialization.Update.class, serialization.MptSerialization.Update.Builder.class);
-    }
-
-    public static final int FULL_PATH_FIELD_NUMBER = 1;
-    private com.google.protobuf.ByteString fullPath_;
-    /**
-     * <pre>
-     * the full_path + index are just a way to 
-     * transmit a prefix (location) in the tree
-     * </pre>
-     *
-     * <code>bytes full_path = 1;</code>
-     */
-    public com.google.protobuf.ByteString getFullPath() {
-      return fullPath_;
-    }
-
-    public static final int INDEX_FIELD_NUMBER = 2;
-    private int index_;
-    /**
-     * <code>uint32 index = 2;</code>
-     */
-    public int getIndex() {
-      return index_;
-    }
-
-    public static final int NODE_FIELD_NUMBER = 3;
-    private serialization.MptSerialization.Node node_;
-    /**
-     * <code>.serialization.Node node = 3;</code>
-     */
-    public boolean hasNode() {
-      return node_ != null;
-    }
-    /**
-     * <code>.serialization.Node node = 3;</code>
-     */
-    public serialization.MptSerialization.Node getNode() {
-      return node_ == null ? serialization.MptSerialization.Node.getDefaultInstance() : node_;
-    }
-    /**
-     * <code>.serialization.Node node = 3;</code>
-     */
-    public serialization.MptSerialization.NodeOrBuilder getNodeOrBuilder() {
-      return getNode();
-    }
-
-    private byte memoizedIsInitialized = -1;
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!fullPath_.isEmpty()) {
-        output.writeBytes(1, fullPath_);
-      }
-      if (index_ != 0) {
-        output.writeUInt32(2, index_);
-      }
-      if (node_ != null) {
-        output.writeMessage(3, getNode());
-      }
-      unknownFields.writeTo(output);
-    }
-
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!fullPath_.isEmpty()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, fullPath_);
-      }
-      if (index_ != 0) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(2, index_);
-      }
-      if (node_ != null) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, getNode());
-      }
-      size += unknownFields.getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof serialization.MptSerialization.Update)) {
-        return super.equals(obj);
-      }
-      serialization.MptSerialization.Update other = (serialization.MptSerialization.Update) obj;
-
-      boolean result = true;
-      result = result && getFullPath()
-          .equals(other.getFullPath());
-      result = result && (getIndex()
-          == other.getIndex());
-      result = result && (hasNode() == other.hasNode());
-      if (hasNode()) {
-        result = result && getNode()
-            .equals(other.getNode());
-      }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + FULL_PATH_FIELD_NUMBER;
-      hash = (53 * hash) + getFullPath().hashCode();
-      hash = (37 * hash) + INDEX_FIELD_NUMBER;
-      hash = (53 * hash) + getIndex();
-      if (hasNode()) {
-        hash = (37 * hash) + NODE_FIELD_NUMBER;
-        hash = (53 * hash) + getNode().hashCode();
-      }
-      hash = (29 * hash) + unknownFields.hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static serialization.MptSerialization.Update parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static serialization.MptSerialization.Update parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static serialization.MptSerialization.Update parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static serialization.MptSerialization.Update parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static serialization.MptSerialization.Update parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static serialization.MptSerialization.Update parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static serialization.MptSerialization.Update parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static serialization.MptSerialization.Update parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static serialization.MptSerialization.Update parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-    public static serialization.MptSerialization.Update parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static serialization.MptSerialization.Update parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static serialization.MptSerialization.Update parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(serialization.MptSerialization.Update prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * <pre>
-     **
-     *	An Update. In the MerklePrefixTrie message, the locations 
-     *	of the nodes is implict from the serialization.
-     * 	However if we wish to send only the updated values
-     * 	(and use a caching scheme on the client) we need to 
-     * 	make the location explicit
-     * </pre>
-     *
-     * Protobuf type {@code serialization.Update}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:serialization.Update)
-        serialization.MptSerialization.UpdateOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return serialization.MptSerialization.internal_static_serialization_Update_descriptor;
-      }
-
-      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return serialization.MptSerialization.internal_static_serialization_Update_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                serialization.MptSerialization.Update.class, serialization.MptSerialization.Update.Builder.class);
-      }
-
-      // Construct using serialization.MptSerialization.Update.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessageV3
-                .alwaysUseFieldBuilders) {
-        }
-      }
-      public Builder clear() {
-        super.clear();
-        fullPath_ = com.google.protobuf.ByteString.EMPTY;
-
-        index_ = 0;
-
-        if (nodeBuilder_ == null) {
-          node_ = null;
-        } else {
-          node_ = null;
-          nodeBuilder_ = null;
-        }
-        return this;
-      }
-
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return serialization.MptSerialization.internal_static_serialization_Update_descriptor;
-      }
-
-      public serialization.MptSerialization.Update getDefaultInstanceForType() {
-        return serialization.MptSerialization.Update.getDefaultInstance();
-      }
-
-      public serialization.MptSerialization.Update build() {
-        serialization.MptSerialization.Update result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      public serialization.MptSerialization.Update buildPartial() {
-        serialization.MptSerialization.Update result = new serialization.MptSerialization.Update(this);
-        result.fullPath_ = fullPath_;
-        result.index_ = index_;
-        if (nodeBuilder_ == null) {
-          result.node_ = node_;
-        } else {
-          result.node_ = nodeBuilder_.build();
-        }
-        onBuilt();
-        return result;
-      }
-
-      public Builder clone() {
-        return (Builder) super.clone();
-      }
-      public Builder setField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return (Builder) super.setField(field, value);
-      }
-      public Builder clearField(
-          com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
-      }
-      public Builder clearOneof(
-          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
-      }
-      public Builder setRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
-      }
-      public Builder addRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
-      }
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof serialization.MptSerialization.Update) {
-          return mergeFrom((serialization.MptSerialization.Update)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(serialization.MptSerialization.Update other) {
-        if (other == serialization.MptSerialization.Update.getDefaultInstance()) return this;
-        if (other.getFullPath() != com.google.protobuf.ByteString.EMPTY) {
-          setFullPath(other.getFullPath());
-        }
-        if (other.getIndex() != 0) {
-          setIndex(other.getIndex());
-        }
-        if (other.hasNode()) {
-          mergeNode(other.getNode());
-        }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
-        return this;
-      }
-
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        serialization.MptSerialization.Update parsedMessage = null;
-        try {
-          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (serialization.MptSerialization.Update) e.getUnfinishedMessage();
-          throw e.unwrapIOException();
-        } finally {
-          if (parsedMessage != null) {
-            mergeFrom(parsedMessage);
-          }
-        }
-        return this;
-      }
-
-      private com.google.protobuf.ByteString fullPath_ = com.google.protobuf.ByteString.EMPTY;
-      /**
-       * <pre>
-       * the full_path + index are just a way to 
-       * transmit a prefix (location) in the tree
-       * </pre>
-       *
-       * <code>bytes full_path = 1;</code>
-       */
-      public com.google.protobuf.ByteString getFullPath() {
-        return fullPath_;
-      }
-      /**
-       * <pre>
-       * the full_path + index are just a way to 
-       * transmit a prefix (location) in the tree
-       * </pre>
-       *
-       * <code>bytes full_path = 1;</code>
-       */
-      public Builder setFullPath(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  
-        fullPath_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * the full_path + index are just a way to 
-       * transmit a prefix (location) in the tree
-       * </pre>
-       *
-       * <code>bytes full_path = 1;</code>
-       */
-      public Builder clearFullPath() {
-        
-        fullPath_ = getDefaultInstance().getFullPath();
-        onChanged();
-        return this;
-      }
-
-      private int index_ ;
-      /**
-       * <code>uint32 index = 2;</code>
-       */
-      public int getIndex() {
-        return index_;
-      }
-      /**
-       * <code>uint32 index = 2;</code>
-       */
-      public Builder setIndex(int value) {
-        
-        index_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>uint32 index = 2;</code>
-       */
-      public Builder clearIndex() {
-        
-        index_ = 0;
-        onChanged();
-        return this;
-      }
-
-      private serialization.MptSerialization.Node node_ = null;
-      private com.google.protobuf.SingleFieldBuilderV3<
-          serialization.MptSerialization.Node, serialization.MptSerialization.Node.Builder, serialization.MptSerialization.NodeOrBuilder> nodeBuilder_;
-      /**
-       * <code>.serialization.Node node = 3;</code>
-       */
-      public boolean hasNode() {
-        return nodeBuilder_ != null || node_ != null;
-      }
-      /**
-       * <code>.serialization.Node node = 3;</code>
-       */
-      public serialization.MptSerialization.Node getNode() {
-        if (nodeBuilder_ == null) {
-          return node_ == null ? serialization.MptSerialization.Node.getDefaultInstance() : node_;
-        } else {
-          return nodeBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>.serialization.Node node = 3;</code>
-       */
-      public Builder setNode(serialization.MptSerialization.Node value) {
-        if (nodeBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          node_ = value;
-          onChanged();
-        } else {
-          nodeBuilder_.setMessage(value);
-        }
-
-        return this;
-      }
-      /**
-       * <code>.serialization.Node node = 3;</code>
-       */
-      public Builder setNode(
-          serialization.MptSerialization.Node.Builder builderForValue) {
-        if (nodeBuilder_ == null) {
-          node_ = builderForValue.build();
-          onChanged();
-        } else {
-          nodeBuilder_.setMessage(builderForValue.build());
-        }
-
-        return this;
-      }
-      /**
-       * <code>.serialization.Node node = 3;</code>
-       */
-      public Builder mergeNode(serialization.MptSerialization.Node value) {
-        if (nodeBuilder_ == null) {
-          if (node_ != null) {
-            node_ =
-              serialization.MptSerialization.Node.newBuilder(node_).mergeFrom(value).buildPartial();
-          } else {
-            node_ = value;
-          }
-          onChanged();
-        } else {
-          nodeBuilder_.mergeFrom(value);
-        }
-
-        return this;
-      }
-      /**
-       * <code>.serialization.Node node = 3;</code>
-       */
-      public Builder clearNode() {
-        if (nodeBuilder_ == null) {
-          node_ = null;
-          onChanged();
-        } else {
-          node_ = null;
-          nodeBuilder_ = null;
-        }
-
-        return this;
-      }
-      /**
-       * <code>.serialization.Node node = 3;</code>
-       */
-      public serialization.MptSerialization.Node.Builder getNodeBuilder() {
-        
-        onChanged();
-        return getNodeFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.serialization.Node node = 3;</code>
-       */
-      public serialization.MptSerialization.NodeOrBuilder getNodeOrBuilder() {
-        if (nodeBuilder_ != null) {
-          return nodeBuilder_.getMessageOrBuilder();
-        } else {
-          return node_ == null ?
-              serialization.MptSerialization.Node.getDefaultInstance() : node_;
-        }
-      }
-      /**
-       * <code>.serialization.Node node = 3;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilderV3<
-          serialization.MptSerialization.Node, serialization.MptSerialization.Node.Builder, serialization.MptSerialization.NodeOrBuilder> 
-          getNodeFieldBuilder() {
-        if (nodeBuilder_ == null) {
-          nodeBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              serialization.MptSerialization.Node, serialization.MptSerialization.Node.Builder, serialization.MptSerialization.NodeOrBuilder>(
-                  getNode(),
-                  getParentForChildren(),
-                  isClean());
-          node_ = null;
-        }
-        return nodeBuilder_;
-      }
-      public final Builder setUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
-      }
-
-      public final Builder mergeUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.mergeUnknownFields(unknownFields);
-      }
-
-
-      // @@protoc_insertion_point(builder_scope:serialization.Update)
-    }
-
-    // @@protoc_insertion_point(class_scope:serialization.Update)
-    private static final serialization.MptSerialization.Update DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new serialization.MptSerialization.Update();
-    }
-
-    public static serialization.MptSerialization.Update getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<Update>
-        PARSER = new com.google.protobuf.AbstractParser<Update>() {
-      public Update parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new Update(input, extensionRegistry);
-      }
-    };
-
-    public static com.google.protobuf.Parser<Update> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<Update> getParserForType() {
-      return PARSER;
-    }
-
-    public serialization.MptSerialization.Update getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface MerklePrefixTrieUpdateOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:serialization.MerklePrefixTrieUpdate)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>repeated .serialization.Update updates = 1;</code>
-     */
-    java.util.List<serialization.MptSerialization.Update> 
-        getUpdatesList();
-    /**
-     * <code>repeated .serialization.Update updates = 1;</code>
-     */
-    serialization.MptSerialization.Update getUpdates(int index);
-    /**
-     * <code>repeated .serialization.Update updates = 1;</code>
-     */
-    int getUpdatesCount();
-    /**
-     * <code>repeated .serialization.Update updates = 1;</code>
-     */
-    java.util.List<? extends serialization.MptSerialization.UpdateOrBuilder> 
-        getUpdatesOrBuilderList();
-    /**
-     * <code>repeated .serialization.Update updates = 1;</code>
-     */
-    serialization.MptSerialization.UpdateOrBuilder getUpdatesOrBuilder(
-        int index);
-  }
-  /**
-   * <pre>
-   **
-   *	Updates to a Merkle Prefix Trie
-   * </pre>
-   *
-   * Protobuf type {@code serialization.MerklePrefixTrieUpdate}
-   */
-  public  static final class MerklePrefixTrieUpdate extends
-      com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:serialization.MerklePrefixTrieUpdate)
-      MerklePrefixTrieUpdateOrBuilder {
-  private static final long serialVersionUID = 0L;
-    // Use MerklePrefixTrieUpdate.newBuilder() to construct.
-    private MerklePrefixTrieUpdate(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
-      super(builder);
-    }
-    private MerklePrefixTrieUpdate() {
-      updates_ = java.util.Collections.emptyList();
-    }
-
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
-      return this.unknownFields;
-    }
-    private MerklePrefixTrieUpdate(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      this();
-      if (extensionRegistry == null) {
-        throw new java.lang.NullPointerException();
-      }
-      int mutable_bitField0_ = 0;
-      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder();
-      try {
-        boolean done = false;
-        while (!done) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              done = true;
-              break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
-            case 10: {
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                updates_ = new java.util.ArrayList<serialization.MptSerialization.Update>();
-                mutable_bitField0_ |= 0x00000001;
-              }
-              updates_.add(
-                  input.readMessage(serialization.MptSerialization.Update.parser(), extensionRegistry));
-              break;
-            }
-          }
-        }
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(this);
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(
-            e).setUnfinishedMessage(this);
-      } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-          updates_ = java.util.Collections.unmodifiableList(updates_);
-        }
-        this.unknownFields = unknownFields.build();
-        makeExtensionsImmutable();
-      }
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return serialization.MptSerialization.internal_static_serialization_MerklePrefixTrieUpdate_descriptor;
-    }
-
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return serialization.MptSerialization.internal_static_serialization_MerklePrefixTrieUpdate_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              serialization.MptSerialization.MerklePrefixTrieUpdate.class, serialization.MptSerialization.MerklePrefixTrieUpdate.Builder.class);
-    }
-
-    public static final int UPDATES_FIELD_NUMBER = 1;
-    private java.util.List<serialization.MptSerialization.Update> updates_;
-    /**
-     * <code>repeated .serialization.Update updates = 1;</code>
-     */
-    public java.util.List<serialization.MptSerialization.Update> getUpdatesList() {
-      return updates_;
-    }
-    /**
-     * <code>repeated .serialization.Update updates = 1;</code>
-     */
-    public java.util.List<? extends serialization.MptSerialization.UpdateOrBuilder> 
-        getUpdatesOrBuilderList() {
-      return updates_;
-    }
-    /**
-     * <code>repeated .serialization.Update updates = 1;</code>
-     */
-    public int getUpdatesCount() {
-      return updates_.size();
-    }
-    /**
-     * <code>repeated .serialization.Update updates = 1;</code>
-     */
-    public serialization.MptSerialization.Update getUpdates(int index) {
-      return updates_.get(index);
-    }
-    /**
-     * <code>repeated .serialization.Update updates = 1;</code>
-     */
-    public serialization.MptSerialization.UpdateOrBuilder getUpdatesOrBuilder(
-        int index) {
-      return updates_.get(index);
-    }
-
-    private byte memoizedIsInitialized = -1;
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      for (int i = 0; i < updates_.size(); i++) {
-        output.writeMessage(1, updates_.get(i));
-      }
-      unknownFields.writeTo(output);
-    }
-
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      for (int i = 0; i < updates_.size(); i++) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, updates_.get(i));
-      }
-      size += unknownFields.getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof serialization.MptSerialization.MerklePrefixTrieUpdate)) {
-        return super.equals(obj);
-      }
-      serialization.MptSerialization.MerklePrefixTrieUpdate other = (serialization.MptSerialization.MerklePrefixTrieUpdate) obj;
-
-      boolean result = true;
-      result = result && getUpdatesList()
-          .equals(other.getUpdatesList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      if (getUpdatesCount() > 0) {
-        hash = (37 * hash) + UPDATES_FIELD_NUMBER;
-        hash = (53 * hash) + getUpdatesList().hashCode();
-      }
-      hash = (29 * hash) + unknownFields.hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static serialization.MptSerialization.MerklePrefixTrieUpdate parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static serialization.MptSerialization.MerklePrefixTrieUpdate parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static serialization.MptSerialization.MerklePrefixTrieUpdate parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static serialization.MptSerialization.MerklePrefixTrieUpdate parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static serialization.MptSerialization.MerklePrefixTrieUpdate parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static serialization.MptSerialization.MerklePrefixTrieUpdate parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static serialization.MptSerialization.MerklePrefixTrieUpdate parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static serialization.MptSerialization.MerklePrefixTrieUpdate parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static serialization.MptSerialization.MerklePrefixTrieUpdate parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-    public static serialization.MptSerialization.MerklePrefixTrieUpdate parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static serialization.MptSerialization.MerklePrefixTrieUpdate parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static serialization.MptSerialization.MerklePrefixTrieUpdate parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(serialization.MptSerialization.MerklePrefixTrieUpdate prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * <pre>
-     **
-     *	Updates to a Merkle Prefix Trie
-     * </pre>
-     *
-     * Protobuf type {@code serialization.MerklePrefixTrieUpdate}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:serialization.MerklePrefixTrieUpdate)
-        serialization.MptSerialization.MerklePrefixTrieUpdateOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return serialization.MptSerialization.internal_static_serialization_MerklePrefixTrieUpdate_descriptor;
-      }
-
-      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return serialization.MptSerialization.internal_static_serialization_MerklePrefixTrieUpdate_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                serialization.MptSerialization.MerklePrefixTrieUpdate.class, serialization.MptSerialization.MerklePrefixTrieUpdate.Builder.class);
-      }
-
-      // Construct using serialization.MptSerialization.MerklePrefixTrieUpdate.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessageV3
-                .alwaysUseFieldBuilders) {
-          getUpdatesFieldBuilder();
-        }
-      }
-      public Builder clear() {
-        super.clear();
-        if (updatesBuilder_ == null) {
-          updates_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000001);
-        } else {
-          updatesBuilder_.clear();
-        }
-        return this;
-      }
-
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return serialization.MptSerialization.internal_static_serialization_MerklePrefixTrieUpdate_descriptor;
-      }
-
-      public serialization.MptSerialization.MerklePrefixTrieUpdate getDefaultInstanceForType() {
-        return serialization.MptSerialization.MerklePrefixTrieUpdate.getDefaultInstance();
-      }
-
-      public serialization.MptSerialization.MerklePrefixTrieUpdate build() {
-        serialization.MptSerialization.MerklePrefixTrieUpdate result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      public serialization.MptSerialization.MerklePrefixTrieUpdate buildPartial() {
-        serialization.MptSerialization.MerklePrefixTrieUpdate result = new serialization.MptSerialization.MerklePrefixTrieUpdate(this);
-        int from_bitField0_ = bitField0_;
-        if (updatesBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) == 0x00000001)) {
-            updates_ = java.util.Collections.unmodifiableList(updates_);
-            bitField0_ = (bitField0_ & ~0x00000001);
-          }
-          result.updates_ = updates_;
-        } else {
-          result.updates_ = updatesBuilder_.build();
-        }
-        onBuilt();
-        return result;
-      }
-
-      public Builder clone() {
-        return (Builder) super.clone();
-      }
-      public Builder setField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return (Builder) super.setField(field, value);
-      }
-      public Builder clearField(
-          com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
-      }
-      public Builder clearOneof(
-          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
-      }
-      public Builder setRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
-      }
-      public Builder addRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
-      }
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof serialization.MptSerialization.MerklePrefixTrieUpdate) {
-          return mergeFrom((serialization.MptSerialization.MerklePrefixTrieUpdate)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(serialization.MptSerialization.MerklePrefixTrieUpdate other) {
-        if (other == serialization.MptSerialization.MerklePrefixTrieUpdate.getDefaultInstance()) return this;
-        if (updatesBuilder_ == null) {
-          if (!other.updates_.isEmpty()) {
-            if (updates_.isEmpty()) {
-              updates_ = other.updates_;
-              bitField0_ = (bitField0_ & ~0x00000001);
-            } else {
-              ensureUpdatesIsMutable();
-              updates_.addAll(other.updates_);
-            }
-            onChanged();
-          }
-        } else {
-          if (!other.updates_.isEmpty()) {
-            if (updatesBuilder_.isEmpty()) {
-              updatesBuilder_.dispose();
-              updatesBuilder_ = null;
-              updates_ = other.updates_;
-              bitField0_ = (bitField0_ & ~0x00000001);
-              updatesBuilder_ = 
-                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                   getUpdatesFieldBuilder() : null;
-            } else {
-              updatesBuilder_.addAllMessages(other.updates_);
-            }
-          }
-        }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
-        return this;
-      }
-
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        serialization.MptSerialization.MerklePrefixTrieUpdate parsedMessage = null;
-        try {
-          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (serialization.MptSerialization.MerklePrefixTrieUpdate) e.getUnfinishedMessage();
-          throw e.unwrapIOException();
-        } finally {
-          if (parsedMessage != null) {
-            mergeFrom(parsedMessage);
-          }
-        }
-        return this;
-      }
-      private int bitField0_;
-
-      private java.util.List<serialization.MptSerialization.Update> updates_ =
-        java.util.Collections.emptyList();
-      private void ensureUpdatesIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-          updates_ = new java.util.ArrayList<serialization.MptSerialization.Update>(updates_);
-          bitField0_ |= 0x00000001;
-         }
-      }
-
-      private com.google.protobuf.RepeatedFieldBuilderV3<
-          serialization.MptSerialization.Update, serialization.MptSerialization.Update.Builder, serialization.MptSerialization.UpdateOrBuilder> updatesBuilder_;
-
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public java.util.List<serialization.MptSerialization.Update> getUpdatesList() {
-        if (updatesBuilder_ == null) {
-          return java.util.Collections.unmodifiableList(updates_);
-        } else {
-          return updatesBuilder_.getMessageList();
-        }
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public int getUpdatesCount() {
-        if (updatesBuilder_ == null) {
-          return updates_.size();
-        } else {
-          return updatesBuilder_.getCount();
-        }
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public serialization.MptSerialization.Update getUpdates(int index) {
-        if (updatesBuilder_ == null) {
-          return updates_.get(index);
-        } else {
-          return updatesBuilder_.getMessage(index);
-        }
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public Builder setUpdates(
-          int index, serialization.MptSerialization.Update value) {
-        if (updatesBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureUpdatesIsMutable();
-          updates_.set(index, value);
-          onChanged();
-        } else {
-          updatesBuilder_.setMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public Builder setUpdates(
-          int index, serialization.MptSerialization.Update.Builder builderForValue) {
-        if (updatesBuilder_ == null) {
-          ensureUpdatesIsMutable();
-          updates_.set(index, builderForValue.build());
-          onChanged();
-        } else {
-          updatesBuilder_.setMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public Builder addUpdates(serialization.MptSerialization.Update value) {
-        if (updatesBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureUpdatesIsMutable();
-          updates_.add(value);
-          onChanged();
-        } else {
-          updatesBuilder_.addMessage(value);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public Builder addUpdates(
-          int index, serialization.MptSerialization.Update value) {
-        if (updatesBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureUpdatesIsMutable();
-          updates_.add(index, value);
-          onChanged();
-        } else {
-          updatesBuilder_.addMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public Builder addUpdates(
-          serialization.MptSerialization.Update.Builder builderForValue) {
-        if (updatesBuilder_ == null) {
-          ensureUpdatesIsMutable();
-          updates_.add(builderForValue.build());
-          onChanged();
-        } else {
-          updatesBuilder_.addMessage(builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public Builder addUpdates(
-          int index, serialization.MptSerialization.Update.Builder builderForValue) {
-        if (updatesBuilder_ == null) {
-          ensureUpdatesIsMutable();
-          updates_.add(index, builderForValue.build());
-          onChanged();
-        } else {
-          updatesBuilder_.addMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public Builder addAllUpdates(
-          java.lang.Iterable<? extends serialization.MptSerialization.Update> values) {
-        if (updatesBuilder_ == null) {
-          ensureUpdatesIsMutable();
-          com.google.protobuf.AbstractMessageLite.Builder.addAll(
-              values, updates_);
-          onChanged();
-        } else {
-          updatesBuilder_.addAllMessages(values);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public Builder clearUpdates() {
-        if (updatesBuilder_ == null) {
-          updates_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000001);
-          onChanged();
-        } else {
-          updatesBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public Builder removeUpdates(int index) {
-        if (updatesBuilder_ == null) {
-          ensureUpdatesIsMutable();
-          updates_.remove(index);
-          onChanged();
-        } else {
-          updatesBuilder_.remove(index);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public serialization.MptSerialization.Update.Builder getUpdatesBuilder(
-          int index) {
-        return getUpdatesFieldBuilder().getBuilder(index);
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public serialization.MptSerialization.UpdateOrBuilder getUpdatesOrBuilder(
-          int index) {
-        if (updatesBuilder_ == null) {
-          return updates_.get(index);  } else {
-          return updatesBuilder_.getMessageOrBuilder(index);
-        }
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public java.util.List<? extends serialization.MptSerialization.UpdateOrBuilder> 
-           getUpdatesOrBuilderList() {
-        if (updatesBuilder_ != null) {
-          return updatesBuilder_.getMessageOrBuilderList();
-        } else {
-          return java.util.Collections.unmodifiableList(updates_);
-        }
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public serialization.MptSerialization.Update.Builder addUpdatesBuilder() {
-        return getUpdatesFieldBuilder().addBuilder(
-            serialization.MptSerialization.Update.getDefaultInstance());
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public serialization.MptSerialization.Update.Builder addUpdatesBuilder(
-          int index) {
-        return getUpdatesFieldBuilder().addBuilder(
-            index, serialization.MptSerialization.Update.getDefaultInstance());
-      }
-      /**
-       * <code>repeated .serialization.Update updates = 1;</code>
-       */
-      public java.util.List<serialization.MptSerialization.Update.Builder> 
-           getUpdatesBuilderList() {
-        return getUpdatesFieldBuilder().getBuilderList();
-      }
-      private com.google.protobuf.RepeatedFieldBuilderV3<
-          serialization.MptSerialization.Update, serialization.MptSerialization.Update.Builder, serialization.MptSerialization.UpdateOrBuilder> 
-          getUpdatesFieldBuilder() {
-        if (updatesBuilder_ == null) {
-          updatesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-              serialization.MptSerialization.Update, serialization.MptSerialization.Update.Builder, serialization.MptSerialization.UpdateOrBuilder>(
-                  updates_,
-                  ((bitField0_ & 0x00000001) == 0x00000001),
-                  getParentForChildren(),
-                  isClean());
-          updates_ = null;
-        }
-        return updatesBuilder_;
-      }
-      public final Builder setUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
-      }
-
-      public final Builder mergeUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.mergeUnknownFields(unknownFields);
-      }
-
-
-      // @@protoc_insertion_point(builder_scope:serialization.MerklePrefixTrieUpdate)
-    }
-
-    // @@protoc_insertion_point(class_scope:serialization.MerklePrefixTrieUpdate)
-    private static final serialization.MptSerialization.MerklePrefixTrieUpdate DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new serialization.MptSerialization.MerklePrefixTrieUpdate();
-    }
-
-    public static serialization.MptSerialization.MerklePrefixTrieUpdate getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<MerklePrefixTrieUpdate>
-        PARSER = new com.google.protobuf.AbstractParser<MerklePrefixTrieUpdate>() {
-      public MerklePrefixTrieUpdate parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new MerklePrefixTrieUpdate(input, extensionRegistry);
-      }
-    };
-
-    public static com.google.protobuf.Parser<MerklePrefixTrieUpdate> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<MerklePrefixTrieUpdate> getParserForType() {
-      return PARSER;
-    }
-
-    public serialization.MptSerialization.MerklePrefixTrieUpdate getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_serialization_Node_descriptor;
   private static final 
@@ -5078,20 +4148,15 @@ public final class MptSerialization {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_serialization_Leaf_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_serialization_EmptyLeaf_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_serialization_EmptyLeaf_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_serialization_MerklePrefixTrie_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_serialization_MerklePrefixTrie_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_serialization_Update_descriptor;
-  private static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_serialization_Update_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_serialization_MerklePrefixTrieUpdate_descriptor;
-  private static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_serialization_MerklePrefixTrieUpdate_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -5101,20 +4166,18 @@ public final class MptSerialization {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\020protos/mpt.proto\022\rserialization\"\216\001\n\004No" +
+      "\n\020protos/mpt.proto\022\rserialization\"\275\001\n\004No" +
       "de\0224\n\rinterior_node\030\001 \001(\0132\033.serializatio" +
       "n.InteriorNodeH\000\022#\n\004leaf\030\002 \001(\0132\023.seriali" +
       "zation.LeafH\000\022#\n\004stub\030\003 \001(\0132\023.serializat" +
-      "ion.StubH\000B\006\n\004node\"\024\n\004Stub\022\014\n\004hash\030\001 \001(\014" +
-      "\"U\n\014InteriorNode\022!\n\004left\030\001 \001(\0132\023.seriali" +
-      "zation.Node\022\"\n\005right\030\002 \001(\0132\023.serializati" +
-      "on.Node\"\"\n\004Leaf\022\013\n\003key\030\001 \001(\014\022\r\n\005value\030\002 " +
-      "\001(\014\"5\n\020MerklePrefixTrie\022!\n\004root\030\001 \001(\0132\023." +
-      "serialization.Node\"M\n\006Update\022\021\n\tfull_pat" +
-      "h\030\001 \001(\014\022\r\n\005index\030\002 \001(\r\022!\n\004node\030\003 \001(\0132\023.s" +
-      "erialization.Node\"@\n\026MerklePrefixTrieUpd" +
-      "ate\022&\n\007updates\030\001 \003(\0132\025.serialization.Upd" +
-      "ateB\022B\020MptSerializationb\006proto3"
+      "ion.StubH\000\022-\n\temptyleaf\030\004 \001(\0132\030.serializ" +
+      "ation.EmptyLeafH\000B\006\n\004node\"\024\n\004Stub\022\014\n\004has" +
+      "h\030\001 \001(\014\"U\n\014InteriorNode\022!\n\004left\030\001 \001(\0132\023." +
+      "serialization.Node\022\"\n\005right\030\002 \001(\0132\023.seri" +
+      "alization.Node\"\"\n\004Leaf\022\013\n\003key\030\001 \001(\014\022\r\n\005v" +
+      "alue\030\002 \001(\014\"\013\n\tEmptyLeaf\"5\n\020MerklePrefixT" +
+      "rie\022!\n\004root\030\001 \001(\0132\023.serialization.NodeB\022" +
+      "B\020MptSerializationb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -5133,7 +4196,7 @@ public final class MptSerialization {
     internal_static_serialization_Node_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_serialization_Node_descriptor,
-        new java.lang.String[] { "InteriorNode", "Leaf", "Stub", "Node", });
+        new java.lang.String[] { "InteriorNode", "Leaf", "Stub", "Emptyleaf", "Node", });
     internal_static_serialization_Stub_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_serialization_Stub_fieldAccessorTable = new
@@ -5152,24 +4215,18 @@ public final class MptSerialization {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_serialization_Leaf_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_serialization_MerklePrefixTrie_descriptor =
+    internal_static_serialization_EmptyLeaf_descriptor =
       getDescriptor().getMessageTypes().get(4);
+    internal_static_serialization_EmptyLeaf_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_serialization_EmptyLeaf_descriptor,
+        new java.lang.String[] { });
+    internal_static_serialization_MerklePrefixTrie_descriptor =
+      getDescriptor().getMessageTypes().get(5);
     internal_static_serialization_MerklePrefixTrie_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_serialization_MerklePrefixTrie_descriptor,
         new java.lang.String[] { "Root", });
-    internal_static_serialization_Update_descriptor =
-      getDescriptor().getMessageTypes().get(5);
-    internal_static_serialization_Update_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_serialization_Update_descriptor,
-        new java.lang.String[] { "FullPath", "Index", "Node", });
-    internal_static_serialization_MerklePrefixTrieUpdate_descriptor =
-      getDescriptor().getMessageTypes().get(6);
-    internal_static_serialization_MerklePrefixTrieUpdate_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_serialization_MerklePrefixTrieUpdate_descriptor,
-        new java.lang.String[] { "Updates", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

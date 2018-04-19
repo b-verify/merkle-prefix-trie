@@ -12,6 +12,7 @@ message Node{
 		InteriorNode interior_node = 1;
 		Leaf leaf = 2;
 		Stub stub = 3;
+		EmptyLeaf emptyleaf = 4;
 	}
 }
 
@@ -25,7 +26,9 @@ message Stub {
 
 /**
 *	InteriorNode has left or right children.
-*	Only non-empty children need to be included.
+*	Omitted children are used in caching strategies:
+* 	If a child is omitted, the client can use the current 
+* 	value.
 */
 message InteriorNode {
 	Node left = 1;
@@ -36,44 +39,23 @@ message InteriorNode {
 *	Leaf in the tree
 */
 message Leaf{
-	// technically we only need to send the keyhash,
-	// but this might be more useful
 	bytes key = 1;	
 	bytes value = 2;
 }
 
 /**
-*	A full or partial Merkle Prefix
-*	Trie 
+*	Empty Leaf
+*/
+message EmptyLeaf{
+
+}
+
+/**
+*	A full or partial MerklePrefixTrie 
 */
 message MerklePrefixTrie{
 	Node root = 1;
 }
-
-/**
-*	An Update. In the MerklePrefixTrie message, the locations 
-*	of the nodes is implict from the serialization.
-* 	However if we wish to send only the updated values
-* 	(and use a caching scheme on the client) we need to 
-* 	make the location explicit
-*/
-message Update{
-	// the full_path + index are just a way to 
-	// transmit a prefix (location) in the tree
-	bytes full_path = 1;
-	uint32 index = 2;
-	Node node = 3;
-}
-
-/**
-*	Updates to a Merkle Prefix Trie
-*/
-message MerklePrefixTrieUpdate{
-	repeated Update updates = 1;
-}
-
-
-
 
 
 

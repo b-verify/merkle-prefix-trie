@@ -36,16 +36,10 @@ public class InteriorNode implements Node {
 	
 	public MptSerialization.Node serialize() {
 		MptSerialization.InteriorNode.Builder builder = MptSerialization.InteriorNode.newBuilder();
-		// empty nodes are not serialized 
-		// to save space
-		if(!this.leftChild.isEmpty()) {
-			serialization.MptSerialization.Node leftChildSerialized = this.leftChild.serialize();
-			builder.setLeft(leftChildSerialized);
-		}
-		if(!this.rightChild.isEmpty()) {
-			serialization.MptSerialization.Node rightChildSerialized = this.rightChild.serialize();
-			builder.setRight(rightChildSerialized);
-		}
+		serialization.MptSerialization.Node leftChildSerialized = this.leftChild.serialize();
+		serialization.MptSerialization.Node rightChildSerialized = this.rightChild.serialize();
+		builder.setLeft(leftChildSerialized);
+		builder.setRight(rightChildSerialized);
 		MptSerialization.Node node = MptSerialization.Node
 				.newBuilder()
 				.setInteriorNode(builder.build())
@@ -150,8 +144,26 @@ public class InteriorNode implements Node {
 	}
 
 	@Override
-	public void reset() {
-		this.changed = false;
+	public void markChangedAll() {
+		// because a node can only be changed
+		// if its parent is changed, we 
+		// can ignore entire subtrees to speed this up
+		if(!this.leftChild.changed()) {
+			this.leftChild.markChangedAll();
+		}
+		if(!this.rightChild.changed()) {
+			this.rightChild.markChangedAll();
+		}
+	}
+
+	@Override
+	public void markUnchangedAll() {
+		if(this.leftChild.changed()) {
+			this.leftChild.markUnchangedAll();
+		}
+		if(this.rightChild.changed()) {
+			this.rightChild.markUnchangedAll();
+		}			
 	}
 
 }

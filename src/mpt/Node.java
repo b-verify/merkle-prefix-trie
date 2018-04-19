@@ -100,9 +100,16 @@ public interface Node {
 	boolean changed();
 	
 	/**
-	 * Resets the node to be unchanged.
+	 * Marks the entire (sub)tree rooted at this node 
+	 * as changed
 	 */
-	void reset();
+	void markChangedAll();
+	
+	/**
+	 * Marks the entire (sub)tree rooted at this node
+	 * as unchanged
+	 */
+	void markUnchangedAll();
 	
 	/**
 	 * Return a (recursive) serialization of this node

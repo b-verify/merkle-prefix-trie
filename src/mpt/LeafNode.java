@@ -64,7 +64,7 @@ public class LeafNode implements Node {
 	public byte[] getHash() {
 		if(this.recalculateHash) {
 			// witness
-			this.commitmentHash = CryptographicDigest.witnessKeyAndValue(key, value);
+			this.commitmentHash = CryptographicDigest.witnessKeyAndValue(this.key, this.value);
 			this.recalculateHash = false;
 		}
 		return this.commitmentHash.clone();
@@ -126,10 +126,12 @@ public class LeafNode implements Node {
 
 	@Override
 	public void setValue(byte[] value) {
-		// update the value and the witness
-		this.value = value.clone();
-		this.changed = true;
-		this.recalculateHash = true;
+		if(!Arrays.equals(this.value, value)) {
+			// update the value and the witness
+			this.value = value.clone();
+			this.changed = true;
+			this.recalculateHash = true;
+		}
 	}
 
 	@Override
@@ -147,8 +149,14 @@ public class LeafNode implements Node {
 		return this.changed;
 	}
 
+
 	@Override
-	public void reset() {
+	public void markChangedAll() {
+		this.changed = true;
+	}
+
+	@Override
+	public void markUnchangedAll() {
 		this.changed = false;
 	}
 	

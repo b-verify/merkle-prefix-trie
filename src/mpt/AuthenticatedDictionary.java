@@ -1,7 +1,6 @@
 package mpt;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * A Persistent Authenticated Dictionary (PAD). A PAD 
@@ -23,8 +22,9 @@ public interface AuthenticatedDictionary {
 	/**
 	 * Inserts a (key,value) mapping into the dictionary. 
 	 * If the key is mapped to some other value then 
-	 * the current mapping is overwritten. The authentication 
-	 * information is immediately updated. 
+	 * the current mapping is overwritten. Authentication information 
+	 * is only updated lazily when commitment() is called allowing 
+	 * for efficient inserts of many keys
 	 * 
 	 * @param key - arbitrary bytes representing the key
 	 * @param value - arbitrary bytes representing the value
@@ -32,18 +32,6 @@ public interface AuthenticatedDictionary {
 	 * to insert the value
 	 */
 	public void insert(byte[] key, byte[] value) throws IncompleteMPTException;
-	
-	/**
-	 * Insert a batch consisting of multiple (key, value) 
-	 * mappings into the dictionary. Authentication information
-	 * is updated efficiently - meaning that inserting 
-	 * a batch of key values is much more efficient than individually
-	 * inserting each mapping.
-	 * @param keys
-	 * @param values
-	 * @throws IncompleteMPTException
-	 */
-	public void insertBatch(List<Map.Entry<byte[], byte[]>> kvpairs) throws IncompleteMPTException;
 		
 	/**
 	 * Removes any mapping associated with key from the dictionary.
@@ -57,10 +45,11 @@ public interface AuthenticatedDictionary {
 	/**
 	 * Returns an authenticated dictionary containing only the authentication
 	 * information that has changed (as a result of inserts and deletes) 
-	 * since the last call to reset()
+	 * since the last call to reset(). The parts of the MPT that have 
+	 * not changed are replaced with Stubs.
 	 * @return
 	 */
-	public AuthenticatedDictionary getChangedNodes();
+	public MerklePrefixTrieDelta copyChangesOnly();
 	
 	/**
 	 * Marks all nodes as "unchanged". This is used to reset
@@ -104,7 +93,7 @@ public interface AuthenticatedDictionary {
 	
 	/**
 	 * Returns a cryptographic commitment to the set of (key,value) 
-	 * mappings contained in this dictionary.
+	 * mappings contained in this dictionary. 
 	 * @return
 	 */
 	public byte[] commitment();
