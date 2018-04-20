@@ -7,8 +7,16 @@ import java.util.Map;
 public class Utils {
 	
 	public static MerklePrefixTrieFull makeMerklePrefixTrie(int numberOfEntries, String salt) {
-		return Utils.makeMerklePrefixTrie(
-				Utils.getKeyValuePairs(numberOfEntries, salt));
+		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
+		for(int i = 0; i < numberOfEntries; i++) {
+			String keyString = "key"+Integer.toString(i);
+			String valueString = "value"+Integer.toString(i)+salt;
+			if(i % 1000 == 0) {
+				System.out.println("made "+(i+1)+" of "+numberOfEntries);
+			}
+			mpt.insert(keyString.getBytes(), valueString.getBytes());
+		}
+		return mpt;
 	}
 	
 	public static List<Map.Entry<String, String>> getKeyValuePairs(int numberOfEntries, String salt){
