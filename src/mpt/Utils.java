@@ -137,29 +137,5 @@ public class Utils {
 		}
 		return bitString;
 	}
-	
-	/**
-	 * Get the overlapping prefix between two byte sequences. 
-	 * This is defined to be the first index i that the two byte
-	 * sequences diverge at byteSeqA[i] != Utils.getBit(byteSeqB, i)
-	 * @param byteSeqA
-	 * @param byteSeqB
-	 * @return an integer >= 0 representing the overlapping prefix index
-	 */
-	public static int getOverlappingPrefix(final byte[] byteSeqA, final byte[] byteSeqB) {
-		assert byteSeqA.length == byteSeqB.length;
-		int idx = 0;
-		for(int byteIdx = 0; byteIdx < byteSeqA.length; byteIdx++) {
-			for (int bitIndex = 7; bitIndex >= 0; bitIndex--) {
-				boolean bitA = Utils.getBit(byteSeqA[byteIdx], bitIndex);
-				boolean bitB = Utils.getBit(byteSeqB[byteIdx], bitIndex);
-				if(bitA != bitB) {
-					return idx;
-				}
-				idx++;
-			}
-		}
-		return idx;
-	}
 
 }

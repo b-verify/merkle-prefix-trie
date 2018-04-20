@@ -173,8 +173,12 @@ public class MerklePrefixTriePartial {
 			// in which case the client should use the current value (this 
 			// is a caching scheme for efficiency)
 			MptSerialization.InteriorNode interiorNode = updatedNode.getInteriorNode();
-			Node left = currentNode.getLeftChild();
-			Node right = currentNode.getRightChild();
+			Node left = null;
+			Node right = null;
+			if(currentNode != null) {
+				left = currentNode.getLeftChild();
+				right = currentNode.getRightChild();	
+			}
 			if(interiorNode.hasLeft()) {
 				left = MerklePrefixTriePartial.parseNodeUsingCachedValues(left, interiorNode.getLeft());
 			}

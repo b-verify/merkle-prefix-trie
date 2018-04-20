@@ -317,16 +317,6 @@ public class MerklePrefixTrieTest {
 		}
 	}
 	
-	@Test 
-	public void testGetPrefixOverlap() {
-		byte[] a = new byte[] {9, 100};
-		byte[] b = new byte[] {9, 1};
-		// 0000100101100100
-		// 0000100100000001
-		// 0123456789	<- overlap is 9 [includes first differing index]
-		Assert.assertEquals(9, Utils.getOverlappingPrefix(a, b));
-	}
-	
 	@Test
 	public void testGetBitVariedManyBytes() {
 		byte[] MANY_BYTES = new byte[] {9, 100, (byte) 200, 32};
@@ -819,6 +809,119 @@ public class MerklePrefixTrieTest {
 			Assert.fail(e.getMessage());
 		}
 
+	}
+	
+	@Test
+	public void testDeltaGenerateInsertsDeletesAndChanges() {
+		MerklePrefixTrie mpt = new MerklePrefixTrie();
+
+		// insert the entries
+		mpt.insert("A".getBytes(), "1".getBytes());
+		mpt.insert("B".getBytes(), "2".getBytes());
+		mpt.insert("C".getBytes(), "3".getBytes());
+		mpt.insert("D".getBytes(), "3".getBytes());		
+		mpt.insert("E".getBytes(), "2".getBytes());		
+		mpt.insert("F".getBytes(), "1".getBytes());	
+
+		System.out.println("\noriginal:\n"+mpt);
+
+		// create a partial tree
+		MerklePrefixTriePartial partialmpt = new  MerklePrefixTriePartial(mpt);
+		System.out.println("\npartial:\n"+partialmpt);
+		
+		// add a path
+		byte[] key1 = "E".getBytes();
+		byte[] key2 = "F".getBytes();
+		List<byte[]> keys = new ArrayList<>();
+		keys.add(key1);
+		keys.add(key2);
+		partialmpt.addPath(mpt, key1);
+		partialmpt.addPath(mpt, key2);
+		System.out.println("\npartial with paths :\n"+partialmpt);
+		
+		mpt.reset();
+		mpt.insert("G".getBytes(), "100".getBytes());
+		mpt.insert("A".getBytes(), "101".getBytes());
+		mpt.delete("B".getBytes());
+		System.out.println("\nupdated:\n"+mpt);
+		
+		MerklePrefixTriePartial partialmptNew = new  MerklePrefixTriePartial(mpt);
+		partialmptNew.addPath(mpt, key1);
+		partialmptNew.addPath(mpt, key2);
+
+		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+		System.out.println("\nchanges :\n"+changes);
+
+		byte[] updates = changes.getUpdates(keys);
+		try {
+			partialmpt.deserializeUpdates(updates);
+			System.out.println("\npartial with updates :\n"+partialmpt);
+			Assert.assertEquals(partialmptNew, partialmpt);
+			
+		} catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+
+	}
+	
+	@Test
+	public void testDeltaGenerateInsertsDeletesAndChangesLargeMpt() {
+		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(1000, "");
+		MerklePrefixTriePartial paths = new MerklePrefixTriePartial(mpt);
+		byte[] key1 = ("key"+Integer.toString(112)).getBytes();
+		byte[] key2 = ("key"+Integer.toString(204)).getBytes();
+		byte[] key3 = ("key"+Integer.toString(681)).getBytes();
+		byte[] key4 = ("key"+Integer.toString(939)).getBytes();
+		List<byte[]> keys = new ArrayList<>();
+		keys.add(key1);
+		keys.add(key2);
+		keys.add(key3);
+		keys.add(key4);
+		paths.addPath(mpt, key1);
+		paths.addPath(mpt, key2);
+		paths.addPath(mpt, key3);
+		paths.addPath(mpt, key4);
+		
+		mpt.reset();
+		// now delete some keys 
+		for(int key = 300; key < 400; key++) {
+			final byte[] keyByte = ("key"+Integer.toString(key)).getBytes();
+			mpt.delete(keyByte);
+		}
+		// insert some new keys
+		for(int key = 1000; key < 2000; key++) {
+			final byte[] keyByte = ("key"+Integer.toString(key)).getBytes();
+			final byte[] valueByte = ("value"+Integer.toString(key)).getBytes();
+			mpt.insert(keyByte, valueByte);
+		}
+		// modify some key-value mappings
+		for(int key = 0; key < 200; key++) {
+			final byte[] keyByte = ("key"+Integer.toString(key)).getBytes();
+			final byte[] valueByte = ("value"+Integer.toString(key)+"new").getBytes();
+			mpt.insert(keyByte, valueByte);
+		}
+		
+		// update paths
+		MerklePrefixTriePartial newPaths = new MerklePrefixTriePartial(mpt);
+		newPaths.addPath(mpt, key1);
+		newPaths.addPath(mpt, key2);
+		newPaths.addPath(mpt, key3);
+		newPaths.addPath(mpt, key4);
+		
+		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+		byte[] updates = changes.getUpdates(keys);
+		try {
+			paths.deserializeUpdates(updates);
+			System.out.println(paths);
+			System.out.println("\n"+newPaths);
+			Assert.assertEquals(newPaths, paths);
+		}catch(Exception e) {
+			System.out.println(e.toString());
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+			Assert.fail(e.getMessage());
+		}
+		
 	}
 	
 }
