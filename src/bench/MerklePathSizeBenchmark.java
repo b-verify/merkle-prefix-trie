@@ -29,8 +29,7 @@ public class MerklePathSizeBenchmark {
 		BigInteger total_size = BigInteger.ZERO;
 		int max_size = 0;
 		for(Map.Entry<String, String> kvpair : kvpairs) {
-			MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt);
-			path.addPath(mpt, kvpair.getKey().getBytes());
+			MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt, kvpair.getKey().getBytes());
 			byte[] serialized = path.serialize();
 			int size = serialized.length;
 			total_size = total_size.add(BigInteger.valueOf(size));

@@ -18,6 +18,9 @@ public class MerklePrefixTrieDelta {
 	}
 
 	private static Node copyChangesOnlyHelper(Node currentNode) {
+		if(!currentNode.changed()) {
+			return new Stub(currentNode.getHash());
+		}
 		if (currentNode.isLeaf()) {
 			if (currentNode.isEmpty()) {
 				return new EmptyLeafNode();
@@ -25,9 +28,6 @@ public class MerklePrefixTrieDelta {
 			if (currentNode.changed()) {
 				return new LeafNode(currentNode.getKey(), currentNode.getValue());
 			}
-			return new Stub(currentNode.getHash());
-		}
-		if(!currentNode.changed()) {
 			return new Stub(currentNode.getHash());
 		}
 		Node leftChild = MerklePrefixTrieDelta.copyChangesOnlyHelper(currentNode.getLeftChild());
@@ -54,30 +54,42 @@ public class MerklePrefixTrieDelta {
 	}
 	
 	private static MptSerialization.Node getUpdatesHelper(List<byte[]> matchingKeyHashes, int currentBitIndex, Node currentNode){
-		// stub values haven't changed - so we can avoid re-transmitting it by caching it 
-		// on the client 
+		// case: stub - this location has not changed 
+		// 				--> avoid re-transmitting it by caching it on the client 
 		if(currentNode.isStub()) {
 			return null;
 		}
-		// if the value of currentNode has changed...
-		// and if none of our keys match just return a stub here
+		// case: non-stub - this location has changed 
+		// subcase: no matching keys - value is not needed
 		if(matchingKeyHashes.size() == 0) {
+			// if empty, just send empty node
+			if(currentNode.isEmpty()) {
+				return MptSerialization.Node.newBuilder()
+						.setEmptyleaf(MptSerialization.EmptyLeaf.newBuilder())
+						.build();
+			}
+			// if non-empty send stub
 			return MptSerialization.Node.newBuilder()
 					.setStub(MptSerialization.Stub.newBuilder()
 							.setHash(ByteString.copyFrom(currentNode.getHash())))
 					.build();
 		}
+		// subcase: have a matching key and at end of path 
 		if(currentNode.isLeaf()) {
+			// if empty, just send empty node
 			if(currentNode.isEmpty()) {
 				return MptSerialization.Node.newBuilder().setEmptyleaf(
 						MptSerialization.EmptyLeaf.newBuilder()).build();
 			}
+			// if non-empty send entire leaf (since value needed)
 			return MptSerialization.Node.newBuilder().setLeaf(
 						MptSerialization.Leaf.newBuilder()
 							.setKey(ByteString.copyFrom(currentNode.getKey()))
 							.setValue(ByteString.copyFrom(currentNode.getValue())))
 					.build();
 		}
+		// subcase: have a matching leaf and at intermediate node
+		
 		// divide up keys into those that match the right prefix (...1)
 		// and those that match the left prefix (...0)
 		List<byte[]> matchRight = new ArrayList<byte[]>();

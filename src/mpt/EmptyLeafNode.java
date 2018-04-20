@@ -3,8 +3,6 @@ package mpt;
 import crpyto.CryptographicDigest;
 
 /**
- * IMMUTABLE
- * 
  * This class represents an empty leaf in the tree. Empty leaves 
  * do not have associated values and use the special marker
  * hash of all 0s. 
@@ -16,6 +14,14 @@ public class EmptyLeafNode implements Node {
 	// hash is all zeros
 	public static final byte[] EMPTY_HASH = new byte[CryptographicDigest.getSizeBytes()];
 	public static final String EMPTY_MSG = "<EmptyLeafNode Hash: " + Utils.byteArrayAsHexString(EMPTY_HASH) + ">";
+	
+	// an empty leaf node can still be "changed" - if its location in the MPT changes
+	// even though the empty leaf has a pre-defined hash value
+	private boolean changed; 
+	
+	public EmptyLeafNode() {
+		this.changed = true;
+	}
 
 	@Override
 	public byte[] getValue() {
@@ -99,17 +105,17 @@ public class EmptyLeafNode implements Node {
 
 	@Override
 	public boolean changed() {
-		return false;
+		return this.changed;
 	}
 
 	@Override
 	public void markChangedAll() {
-		
+		this.changed = true;
 	}
 
 	@Override
 	public void markUnchangedAll() {
-		
+		this.changed = false;		
 	}
 	
 }

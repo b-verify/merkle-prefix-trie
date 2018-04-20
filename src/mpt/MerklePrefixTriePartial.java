@@ -1,6 +1,8 @@
 package mpt;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -17,57 +19,59 @@ public class MerklePrefixTriePartial {
 				new Stub(fullMPT.root.getRightChild().getHash()));
 	}
 	
+	public MerklePrefixTriePartial(MerklePrefixTrie fullMPT, byte[] key) {
+		List<byte[]> keyHashes = new ArrayList<>();
+		keyHashes.add(CryptographicDigest.digest(key));
+		Node root = MerklePrefixTriePartial.copyMultiplePaths(keyHashes, fullMPT.root, -1);
+		this.root = (InteriorNode) root;
+	}
+	
+	public MerklePrefixTriePartial(MerklePrefixTrie fullMPT, List<byte[]> keys) {
+		List<byte[]> keyHashes = new ArrayList<>();
+		for(byte[] key : keys) {
+			keyHashes.add(CryptographicDigest.digest(key));
+		}
+		Node root = MerklePrefixTriePartial.copyMultiplePaths(keyHashes, fullMPT.root, -1);
+		this.root = (InteriorNode) root;
+	}
+	
 	private MerklePrefixTriePartial(InteriorNode root) {
 		this.root = root;
 	}
 	
-	public void addPath(MerklePrefixTrie fullMPT, byte[] key) {
-		byte[] keyHash = CryptographicDigest.digest(key);
-		System.out.println("adding path for: "+Utils.byteArrayAsBitString(keyHash));
-		Node newRoot = MerklePrefixTriePartial.addPathHelper(this.root, fullMPT.root, keyHash, -1);
-		this.root = (InteriorNode) newRoot;
-	}
-	
-	private static Node addPathHelper(final Node thisNode, 
-			final Node copyNode, final byte[] keyHash, int currentBitIndex) {
-		System.out.println("this node: "+thisNode+" copy node: "+copyNode);
+	private static Node copyMultiplePaths(List<byte[]> matchingKeyHashes, Node copyNode, int currentBitIndex) {
+		// case: if this is not on the path to the key hash 
+		if(matchingKeyHashes.size() == 0) {
+			if(copyNode.isEmpty()) {
+				return new EmptyLeafNode();
+			}
+			return new Stub(copyNode.getHash());
+		}
+		// case: if this is on the path to a key hash
+		// subcase: if we are at the end of a path
 		if(copyNode.isLeaf()) {
 			if(copyNode.isEmpty()) {
 				return new EmptyLeafNode();
 			}
-			return new LeafNode(copyNode.getKey(), copyNode.getValue());				
+			return new LeafNode(copyNode.getKey(), copyNode.getValue());
 		}
-		Node leftChild = copyNode.getLeftChild();
-		Node rightChild = copyNode.getRightChild();
-		Node thisLeftChild = null;
-		Node thisRightChild = null;
-		if(thisNode != null) {
-			if(!thisNode.isStub()) {
-				thisLeftChild = thisNode.getLeftChild();
-				thisRightChild = thisNode.getRightChild();
+		// subcase: intermediate node
+		
+		// divide up keys into those that match the right prefix (...1)
+		// and those that match the left prefix (...0)
+		List<byte[]> matchRight = new ArrayList<byte[]>();
+		List<byte[]> matchLeft = new ArrayList<byte[]>();
+		for(byte[] keyHash : matchingKeyHashes) {
+			final boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
+			if(bit) {
+				matchRight.add(keyHash);
+			}else {
+				matchLeft.add(keyHash);
 			}
 		}
-		boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
-		if(bit) {
-			rightChild = MerklePrefixTriePartial.addPathHelper(
-					thisRightChild, copyNode.getRightChild(), keyHash, currentBitIndex+1);
-			// use this left child if we have one 
-			if(thisLeftChild != null) {
-				// and it is not a stub 
-				if(!thisLeftChild.isStub()) {
-					return new InteriorNode(thisLeftChild, rightChild);					
-				}
-			}
-			return new InteriorNode(new Stub(leftChild.getHash()), rightChild);
-		}
-		leftChild = MerklePrefixTriePartial.addPathHelper(
-				thisLeftChild, copyNode.getLeftChild(), keyHash, currentBitIndex+1); 
-		if(thisRightChild != null) {
-			if(!thisRightChild.isStub()) {
-				return new InteriorNode(leftChild, thisRightChild);			
-			}
-		}
-		return new InteriorNode(leftChild, new Stub(rightChild.getHash()));
+		Node leftChild = MerklePrefixTriePartial.copyMultiplePaths(matchLeft, copyNode.getLeftChild(), currentBitIndex+1);
+		Node rightChild = MerklePrefixTriePartial.copyMultiplePaths(matchRight, copyNode.getRightChild(), currentBitIndex+1);
+		return new InteriorNode(leftChild, rightChild);
 	}
 	
 	public byte[] get(byte[] key) throws IncompleteMPTException {
