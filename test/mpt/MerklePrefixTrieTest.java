@@ -4,6 +4,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -514,6 +515,9 @@ public class MerklePrefixTrieTest {
 		MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt);
 		path.addPath(mpt, key);
 		
+		System.out.println("\noriginal:\n"+mpt);
+		System.out.println("\npath original:\n"+path);
+		
 		// change value
 		mpt.insert("C".getBytes(), "100".getBytes());
 		mpt.insert("D".getBytes(), "101".getBytes());		
@@ -522,14 +526,23 @@ public class MerklePrefixTrieTest {
 		// calculate a new path to a key
 		MerklePrefixTriePartial newPath = new MerklePrefixTriePartial(mpt);
 		newPath.addPath(mpt, key);
-		try {
-			// save the changes 
-			MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+		
+		System.out.println("\nnew:\n"+mpt);
+		System.out.println("\npath new:\n"+newPath);
+		
+		// save the changes 
+		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+	
+		System.out.println("\nchanges:\n"+changes);
+
+		// use the changes to calculate an update for the original path
+		byte[] updates = changes.getUpdates(key);
 			
-			// use the changes to calculate an update for the original path
-			byte[] updates = changes.getUpdates(key);
+		try {
 			// update the original path
 			path.deserializeUpdates(updates);
+			
+			System.out.println("\nafter updates:\n"+path);
 			
 			// should produce the new path
 			Assert.assertTrue(newPath.equals(path));
@@ -569,6 +582,7 @@ public class MerklePrefixTrieTest {
 		
 		// save the changes 
 		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+
 		try {
 			// use the changes to calculate an update for the original path
 			byte[] updates = changes.getUpdates(key);
@@ -756,5 +770,55 @@ public class MerklePrefixTrieTest {
 
 	}
 	
+	@Test
+	public void testDeltaGenerateUpdatesMultiplePaths() {
+		MerklePrefixTrie mpt = new MerklePrefixTrie();
+
+		// insert the entries
+		mpt.insert("A".getBytes(), "1".getBytes());
+		mpt.insert("B".getBytes(), "2".getBytes());
+		mpt.insert("C".getBytes(), "3".getBytes());
+		mpt.insert("D".getBytes(), "3".getBytes());		
+		mpt.insert("E".getBytes(), "2".getBytes());		
+		mpt.insert("F".getBytes(), "1".getBytes());	
+
+		System.out.println("\noriginal:\n"+mpt);
+
+		// create a partial tree
+		MerklePrefixTriePartial partialmpt = new  MerklePrefixTriePartial(mpt);
+		System.out.println("\npartial:\n"+partialmpt);
+		
+		// add a path
+		byte[] key1 = "E".getBytes();
+		byte[] key2 = "F".getBytes();
+		List<byte[]> keys = new ArrayList<>();
+		keys.add(key1);
+		keys.add(key2);
+		partialmpt.addPath(mpt, key1);
+		partialmpt.addPath(mpt, key2);
+		System.out.println("\npartial with paths :\n"+partialmpt);
+		
+		mpt.reset();
+		mpt.insert("G".getBytes(), "100".getBytes());
+		mpt.insert("A".getBytes(), "101".getBytes());
+		System.out.println("\nupdated:\n"+mpt);
+
+		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+		System.out.println("\nchanges :\n"+changes);
+
+		byte[] updates = changes.getUpdates(keys);
+		try {
+			partialmpt.deserializeUpdates(updates);
+			System.out.println("\npartial with updates :\n"+partialmpt);
+			Assert.assertTrue(Arrays.equals(mpt.get(key1), partialmpt.get(key1)));
+			Assert.assertTrue(Arrays.equals(mpt.get(key2), partialmpt.get(key2)));
+			Assert.assertTrue(Arrays.equals(mpt.commitment(), partialmpt.commitment()));
+			Assert.assertTrue(Arrays.equals(mpt.commitment(), partialmpt.commitment()));
+			
+		} catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+
+	}
 	
 }
