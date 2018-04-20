@@ -1,4 +1,5 @@
 # A Java Implementation of Merkle Prefix Tries (MPT) 
+[![Build Status](https://travis-ci.org/henryaspegren/b_verify-merkle-prefix-trie.svg?branch=master)](https://travis-ci.org/henryaspegren/b_verify-merkle-prefix-trie)
 
 This is a full implementation of Merkle Prefix Tries that tries to exploit efficient serialization and client caching to reduce proof sizes in an online, dynamic setting
 
