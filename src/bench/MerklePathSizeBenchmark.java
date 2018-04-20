@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
-import mpt.MerklePrefixTrie;
+import mpt.MerklePrefixTrieFull;
 import mpt.MerklePrefixTriePartial;
 import mpt.Utils;
 
@@ -17,7 +17,7 @@ public class MerklePathSizeBenchmark {
 		List<Map.Entry<String, String>> kvpairs = Utils.getKeyValuePairs(n, salt);
 		// make a MPT with 10k entries
 		System.out.println("adding kv pairs");
-		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(kvpairs);
+		MerklePrefixTrieFull mpt = Utils.makeMerklePrefixTrie(kvpairs);
 		System.out.println("done- calculating commitment");
 		byte[] commitment = mpt.commitment();
 		System.out.println("commitment: "+Utils.byteArrayAsHexString(commitment));

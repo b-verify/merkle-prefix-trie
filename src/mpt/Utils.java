@@ -6,7 +6,7 @@ import java.util.Map;
 
 public class Utils {
 	
-	public static MerklePrefixTrie makeMerklePrefixTrie(int numberOfEntries, String salt) {
+	public static MerklePrefixTrieFull makeMerklePrefixTrie(int numberOfEntries, String salt) {
 		return Utils.makeMerklePrefixTrie(
 				Utils.getKeyValuePairs(numberOfEntries, salt));
 	}
@@ -21,8 +21,8 @@ public class Utils {
 		return list;
 	}
 	
-	public static MerklePrefixTrie makeMerklePrefixTrie(List<Map.Entry<String, String>> kvpairs) {
-		MerklePrefixTrie mpt = new MerklePrefixTrie();
+	public static MerklePrefixTrieFull makeMerklePrefixTrie(List<Map.Entry<String, String>> kvpairs) {
+		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
 		int i = 1;
 		for(Map.Entry<String, String> kvpair : kvpairs) {
 			if(i % 1000 == 0) {

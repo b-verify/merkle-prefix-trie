@@ -9,24 +9,60 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import crpyto.CryptographicDigest;
 import serialization.MptSerialization;
 
-public class MerklePrefixTriePartial {
+/**
+ * Partial Merkle Prefix Tries contain a subset of the information 
+ * of the Full Merkle Prefix Trie. The omitted portions are tracked internally
+ * with "Stubs" which only store the hash of the omitted portion. Because
+ * they contain a subset of the authentication information, 
+ * the partial Merkle Prefix Trie can only support some operations and 
+ * may not have enough information for others. 
+ * 
+ * @author henryaspegren
+ *
+ */
+public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 	
 	private InteriorNode root;
 
-	public MerklePrefixTriePartial(MerklePrefixTrie fullMPT) {
+	/**
+	 * Create a partial MPT from the full MPT. Since no keys are provided 
+	 * this just copies the root.
+	 * @param fullMPT - full MPT to copy from
+	 */
+	public MerklePrefixTriePartial(MerklePrefixTrieFull fullMPT) {
 		// just copies the root
 		this.root = new InteriorNode(new Stub(fullMPT.root.getLeftChild().getHash()),
 				new Stub(fullMPT.root.getRightChild().getHash()));
 	}
 	
-	public MerklePrefixTriePartial(MerklePrefixTrie fullMPT, byte[] key) {
+	/**
+	 * Create a partial MPT from the full MPT such that 
+	 * the partial contains specified key mapping 
+	 * (if the mapping exists and a path to a leaf if it 
+	 * does not) and authentication information from the 
+	 * full MPT.
+	 * 
+	 * @param fullMPT - the full MPT to copy the key mapping
+	 * and authentication information from.
+	 * @param key - the key to copy
+	 */
+	public MerklePrefixTriePartial(MerklePrefixTrieFull fullMPT, byte[] key) {
 		List<byte[]> keyHashes = new ArrayList<>();
 		keyHashes.add(CryptographicDigest.digest(key));
 		Node root = MerklePrefixTriePartial.copyMultiplePaths(keyHashes, fullMPT.root, -1);
 		this.root = (InteriorNode) root;
 	}
 	
-	public MerklePrefixTriePartial(MerklePrefixTrie fullMPT, List<byte[]> keys) {
+	/**
+	 * Create a partial MPT from the full MPT such that 
+	 * the partial contains the specified key mappings 
+	 * (if the key exists and a path to a leaf if it does not) 
+	 * along with the required authentication information. 
+	 * @param fullMPT - the full MPT to copy mappings and authentication 
+	 * information from 
+	 * @param keys - the key mappings to copy
+	 */
+	public MerklePrefixTriePartial(MerklePrefixTrieFull fullMPT, List<byte[]> keys) {
 		List<byte[]> keyHashes = new ArrayList<>();
 		for(byte[] key : keys) {
 			keyHashes.add(CryptographicDigest.digest(key));
@@ -39,7 +75,7 @@ public class MerklePrefixTriePartial {
 		this.root = root;
 	}
 	
-	private static Node copyMultiplePaths(List<byte[]> matchingKeyHashes, Node copyNode, int currentBitIndex) {
+	private static Node copyMultiplePaths(final List<byte[]> matchingKeyHashes, final Node copyNode, final int currentBitIndex) {
 		// case: if this is not on the path to the key hash 
 		if(matchingKeyHashes.size() == 0) {
 			if(copyNode.isEmpty()) {
@@ -74,14 +110,15 @@ public class MerklePrefixTriePartial {
 		return new InteriorNode(leftChild, rightChild);
 	}
 	
-	public byte[] get(byte[] key) throws IncompleteMPTException {
+	public byte[] get(final byte[] key) throws InsufficientAuthenticationDataException {
 		byte[] keyHash = CryptographicDigest.digest(key);
 		return MerklePrefixTriePartial.getHelper(this.root, keyHash, -1);
 	}
 
-	private static byte[] getHelper(Node currentNode, byte[] keyHash, int currentBitIndex) throws IncompleteMPTException {
+	private static byte[] getHelper(final Node currentNode, final byte[] keyHash, final int currentBitIndex) 
+			throws InsufficientAuthenticationDataException {
 		if (currentNode.isStub()) {
-			throw new IncompleteMPTException(
+			throw new InsufficientAuthenticationDataException(
 					"stub encountered at: " + Utils.byteArrayPrefixAsBitString(keyHash, currentBitIndex));
 		}
 		if (currentNode.isLeaf()) {
@@ -105,26 +142,32 @@ public class MerklePrefixTriePartial {
 		return this.root.getHash();
 	}
 	
-	public static MerklePrefixTriePartial deserialize(byte[] asbytes) throws InvalidMPTSerializationException {
+	/**
+	 * Deserialize a partial MPT from bytes
+	 * @param asbytes
+	 * @return
+	 * @throws InvalidSerializationException - if the serialization cannot be decoded
+	 */
+	public static MerklePrefixTriePartial deserialize(byte[] asbytes) throws InvalidSerializationException {
 		MptSerialization.MerklePrefixTrie mpt;
 		try {
 			mpt = MptSerialization.MerklePrefixTrie.parseFrom(asbytes);
 		} catch (InvalidProtocolBufferException e) {
-			throw new InvalidMPTSerializationException(e.getMessage());
+			throw new InvalidSerializationException(e.getMessage());
 		}
 		if (!mpt.hasRoot()) {
-			throw new InvalidMPTSerializationException("no root included");
+			throw new InvalidSerializationException("no root included");
 		}
 		// when we deserialize a full MPT we do not use any cached values
 		Node root = MerklePrefixTriePartial.parseNode(mpt.getRoot());
 		if (!(root instanceof InteriorNode)) {
-			throw new InvalidMPTSerializationException("root is not an interior node!");
+			throw new InvalidSerializationException("root is not an interior node!");
 		}
 		InteriorNode rootInt = (InteriorNode) root;
 		return new MerklePrefixTriePartial(rootInt);
 	}
 	
-	public void deserializeUpdates(byte[] updateBytes) throws InvalidMPTSerializationException {
+	public void deserializeUpdates(byte[] updateBytes) throws InvalidSerializationException {
 		try {
 			MptSerialization.MerklePrefixTrie mptUpdate = MptSerialization.MerklePrefixTrie.parseFrom(updateBytes);
 			// when we deserialize updates to a MPT, 
@@ -132,16 +175,16 @@ public class MerklePrefixTriePartial {
 			Node newRoot = MerklePrefixTriePartial.parseNodeUsingCachedValues(this.root, mptUpdate.getRoot());
 			this.root = (InteriorNode) newRoot;
 		} catch (InvalidProtocolBufferException e) {
-			throw new InvalidMPTSerializationException(e.getMessage());
+			throw new InvalidSerializationException(e.getMessage());
 		}
 	}
 	
-	private static Node parseNode(MptSerialization.Node nodeSerialization) throws InvalidMPTSerializationException {
+	private static Node parseNode(MptSerialization.Node nodeSerialization) throws InvalidSerializationException {
 		switch (nodeSerialization.getNodeCase()) {
 		case INTERIOR_NODE:
 			MptSerialization.InteriorNode in = nodeSerialization.getInteriorNode();
 			if(!in.hasLeft() || !in.hasRight()) {
-				throw new InvalidMPTSerializationException("interior node does not have both children");
+				throw new InvalidSerializationException("interior node does not have both children");
 			}
 			Node left = MerklePrefixTriePartial.parseNode(in.getLeft());
 			Node right = MerklePrefixTriePartial.parseNode(in.getRight());
@@ -149,26 +192,26 @@ public class MerklePrefixTriePartial {
 		case STUB:
 			MptSerialization.Stub stub = nodeSerialization.getStub();
 			if (stub.getHash().isEmpty()) {
-				throw new InvalidMPTSerializationException("stub doesn't have a hash");
+				throw new InvalidSerializationException("stub doesn't have a hash");
 			}
 			return new Stub(stub.getHash().toByteArray());
 		case LEAF:
 			MptSerialization.Leaf leaf = nodeSerialization.getLeaf();
 			if (leaf.getKey().isEmpty() || leaf.getValue().isEmpty()) {
-				throw new InvalidMPTSerializationException("leaf doesn't have required keyhash and value");
+				throw new InvalidSerializationException("leaf doesn't have required keyhash and value");
 			}
 			return new LeafNode(leaf.getKey().toByteArray(), leaf.getValue().toByteArray());
 		case EMPTYLEAF:
 			return new EmptyLeafNode();
 		case NODE_NOT_SET:
-			throw new InvalidMPTSerializationException("no node included - fatal error");
+			throw new InvalidSerializationException("no node included - fatal error");
 		default:
-			throw new InvalidMPTSerializationException("?????");
+			throw new InvalidSerializationException("?????");
 		}
 	}
 	
 	private static Node parseNodeUsingCachedValues(Node currentNode, MptSerialization.Node updatedNode)
-			throws InvalidMPTSerializationException {
+			throws InvalidSerializationException {
 		switch(updatedNode.getNodeCase()) {
 		case EMPTYLEAF:
 			return new EmptyLeafNode();
@@ -197,9 +240,9 @@ public class MerklePrefixTriePartial {
 			MptSerialization.Stub stub = updatedNode.getStub();
 			return new Stub(stub.getHash().toByteArray());
 		case NODE_NOT_SET:
-			throw new InvalidMPTSerializationException("tried to use a cached node that is not present");
+			throw new InvalidSerializationException("tried to use a cached node that is not present");
 		default:
-			throw new InvalidMPTSerializationException("?????");
+			throw new InvalidSerializationException("?????");
 		}
 	}
 	
@@ -221,6 +264,6 @@ public class MerklePrefixTriePartial {
 	
 	@Override
 	public String toString() {
-		return "<MerklePrefixTriePartial \n"+MerklePrefixTrie.toStringHelper("+", this.root)+"\n>";
+		return "<MerklePrefixTriePartial \n"+MerklePrefixTrieFull.toStringHelper("+", this.root)+"\n>";
 	}
 }

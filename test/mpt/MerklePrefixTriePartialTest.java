@@ -11,7 +11,7 @@ public class MerklePrefixTriePartialTest {
 	
 	@Test
 	public void testCopySinglePathDepth1() {
-		MerklePrefixTrie mpt = new MerklePrefixTrie();
+		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
 		byte[] bytes = new byte[] {0};
 		try {
 			mpt.insert(bytes, "1".getBytes());
@@ -25,7 +25,7 @@ public class MerklePrefixTriePartialTest {
 	
 	@Test
 	public void testCreatePartialTrieBasic() {
-			MerklePrefixTrie mpt = new MerklePrefixTrie();
+			MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
 
 		// insert the entries
 		mpt.insert("A".getBytes(), "1".getBytes());
@@ -45,7 +45,7 @@ public class MerklePrefixTriePartialTest {
 		try {
 			Assert.assertTrue(Arrays.equals("1".getBytes(), partialmpt.get(key)));
 			Assert.assertTrue(Arrays.equals(mpt.commitment(), partialmpt.commitment()));	
-		} catch (IncompleteMPTException e) {
+		} catch (InsufficientAuthenticationDataException e) {
 			Assert.fail(e.getMessage());
 		}
 
@@ -54,7 +54,7 @@ public class MerklePrefixTriePartialTest {
 	@Test
 	public void testCopyTwoPathsAdjacentKeysInMPT() {
 		try {
-			MerklePrefixTrie mpt = new MerklePrefixTrie();
+			MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
 			byte[] first = new byte[] {0};
 			byte[] second = new byte[] {1};
 			List<byte[]> keys = new ArrayList<>();
@@ -73,7 +73,7 @@ public class MerklePrefixTriePartialTest {
 	
 	@Test
 	public void testCreatePartialTrieMultiplePaths() {
-		MerklePrefixTrie mpt = new MerklePrefixTrie();
+		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
 
 		// insert the entries
 		mpt.insert("A".getBytes(), "1".getBytes());
@@ -97,17 +97,16 @@ public class MerklePrefixTriePartialTest {
 			Assert.assertTrue(Arrays.equals("2".getBytes(), partialmpt.get(key1)));
 			Assert.assertTrue(Arrays.equals("1".getBytes(), partialmpt.get(key2)));
 			Assert.assertTrue(Arrays.equals(mpt.commitment(), partialmpt.commitment()));
-		} catch (IncompleteMPTException e) {
+		} catch (InsufficientAuthenticationDataException e) {
 			Assert.fail(e.getMessage());
 		}
-
 	}
 	
 	@Test
 	public void testCopyPathKeyPresent() {
 		int n = 1000;
 		String salt = "path test";
-		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(1000, salt);
+		MerklePrefixTrieFull mpt = Utils.makeMerklePrefixTrie(1000, salt);
 		try {
 			for(int key = 0; key < n; key++) {
 				String keyString = "key"+Integer.toString(key);
@@ -125,7 +124,7 @@ public class MerklePrefixTriePartialTest {
 	public void testCopyPathKeyNotPresent() {
 		int n = 1000;
 		String salt = "path test";
-		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(1000, salt);
+		MerklePrefixTrieFull mpt = Utils.makeMerklePrefixTrie(1000, salt);
 		try {
 			for(int offset = 1; offset < 1000; offset++) {
 				// not in tree
@@ -147,7 +146,7 @@ public class MerklePrefixTriePartialTest {
 	public void testPathSerialization() {
 		int key = 100;
 		String salt = "serialization";
-		MerklePrefixTrie mpt = Utils.makeMerklePrefixTrie(1000, salt);
+		MerklePrefixTrieFull mpt = Utils.makeMerklePrefixTrie(1000, salt);
 		String keyString = "key"+Integer.toString(key);
 		String valueString = "value"+Integer.toString(key)+salt;
 		MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt, keyString.getBytes());
@@ -158,7 +157,7 @@ public class MerklePrefixTriePartialTest {
 					Arrays.equals(fromBytes.get(keyString.getBytes()), valueString.getBytes()));
 			Assert.assertTrue("deserialized path commitment matches" ,
 					Arrays.equals(fromBytes.commitment(), mpt.commitment()));
-		} catch (InvalidMPTSerializationException | IncompleteMPTException e) {
+		} catch (InvalidSerializationException | InsufficientAuthenticationDataException e) {
 			Assert.fail(e.getMessage());
 		}
 	}

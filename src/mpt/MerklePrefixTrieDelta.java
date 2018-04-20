@@ -8,16 +8,33 @@ import com.google.protobuf.ByteString;
 import crpyto.CryptographicDigest;
 import serialization.MptSerialization;
 
-public class MerklePrefixTrieDelta {
+/**
+ * This class tracks the changes to a Merkle Prefix Trie (a delta).
+ * This delta contains ONLY the changed nodes. Nodes that have 
+ * not been changed are represented as STUBS. 
+ * 
+ * This information can be used to construct update proofs for
+ * clients 
+ * 
+ * @author henryaspegren
+ *
+ */
+public class MerklePrefixTrieDelta implements AuthenticatedDictionaryChanges {
 	
 	protected InteriorNode root;
 	
-	public MerklePrefixTrieDelta(MerklePrefixTrie mpt) {
+	/**
+	 * Construct a MerklePrefixTrieDelta from a full MPT. It only copies
+	 * the changes the from the MPT (where changes are defined as any nodes
+	 * altered by inserts or deletes since the last call to mpt.reset())
+	 * @param mpt - The MPT to copy changes from
+	 */
+	public MerklePrefixTrieDelta(MerklePrefixTrieFull mpt) {
 		InteriorNode copiedRootOnlyChanges = (InteriorNode) MerklePrefixTrieDelta.copyChangesOnlyHelper(mpt.root);
 		this.root = copiedRootOnlyChanges;
 	}
 
-	private static Node copyChangesOnlyHelper(Node currentNode) {
+	private static Node copyChangesOnlyHelper(final Node currentNode) {
 		if(!currentNode.changed()) {
 			return new Stub(currentNode.getHash());
 		}
@@ -35,13 +52,13 @@ public class MerklePrefixTrieDelta {
 		return new InteriorNode(leftChild, rightChild);
 	}
 
-	public byte[] getUpdates(byte[] key) {
+	public byte[] getUpdates(final byte[] key) {
 		List<byte[]> keys = new ArrayList<byte[]>();
 		keys.add(key);
 		return this.getUpdates(keys);
 	}
 	
-	public byte[] getUpdates(List<byte[]> keys) {
+	public byte[] getUpdates(final List<byte[]> keys) {
 		List<byte[]> keyHashes = new ArrayList<byte[]>();
 		for(byte[] key : keys) {
 			keyHashes.add(CryptographicDigest.digest(key));
@@ -53,7 +70,8 @@ public class MerklePrefixTrieDelta {
 		return tree.toByteArray();
 	}
 	
-	private static MptSerialization.Node getUpdatesHelper(List<byte[]> matchingKeyHashes, int currentBitIndex, Node currentNode){
+	private static MptSerialization.Node getUpdatesHelper(final List<byte[]> matchingKeyHashes, 
+			final int currentBitIndex, final Node currentNode){
 		// case: stub - this location has not changed 
 		// 				--> avoid re-transmitting it by caching it on the client 
 		if(currentNode.isStub()) {
@@ -121,7 +139,7 @@ public class MerklePrefixTrieDelta {
 		
 	@Override
 	public String toString() {
-		return "<MerklePrefixTrieDelta \n"+MerklePrefixTrie.toStringHelper("+", this.root)+"\n>";
+		return "<MerklePrefixTrieDelta \n"+MerklePrefixTrieFull.toStringHelper("+", this.root)+"\n>";
 	}
 
 }

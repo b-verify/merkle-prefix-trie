@@ -6,11 +6,11 @@ package mpt;
  * @author henryaspegren
  *
  */
-public class InvalidMPTSerializationException extends Exception {
+public class InvalidSerializationException extends Exception {
 	
 	private static final long serialVersionUID = 1L;
 
-	public InvalidMPTSerializationException(String message) {
+	public InvalidSerializationException(String message) {
 		super(message);
 	}
 	
