@@ -2,6 +2,8 @@ package mpt;
 
 import java.util.List;
 
+import serialization.MptSerialization;
+
 /**
  * This is the interface the server should use for keeping 
  * track of changes to an Authenticated Dictionary
@@ -26,14 +28,16 @@ public interface AuthenticatedDictionaryChanges {
 	 * caches unchanged values on the client and 
 	 * avoids retransmitting them.
 	 * 
-	 * The client can deserialize this update and 
+	 * The client can process this update and 
 	 * her view of the authenticated dictionary will 
 	 * now reflect the update.
 	 * 
 	 * @param key - arbitrary bytes
-	 * @return
+	 * @return a protobuf encoded representation of the
+	 * updates which can be serialized and deserialized
+	 * by the client
 	 */
-	public byte[] getUpdates(final byte[] key);
+	public MptSerialization.MerklePrefixTrie getUpdates(final byte[] key);
 	
 	
 	/**
@@ -46,11 +50,13 @@ public interface AuthenticatedDictionaryChanges {
 	 * caches unchanged values on the client and 
 	 * avoids retransmitting them.
 	 * 
-	 * The client can deserialize this update 
+	 * The client can process this update 
 	 * and her view of the authenticated dictionary
 	 * will now reflect the update.
 	 * @param keys
-	 * @return
+	 * @return a protobuf encoded representation of the
+	 * updates which can be serialized and deserialized
+	 * by the client
 	 */
-	public byte[] getUpdates(final List<byte[]> keys);
+	public MptSerialization.MerklePrefixTrie getUpdates(final List<byte[]> keys);
 }

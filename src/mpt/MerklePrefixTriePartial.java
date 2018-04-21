@@ -167,16 +167,13 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 		return new MerklePrefixTriePartial(rootInt);
 	}
 	
-	public void deserializeUpdates(byte[] updateBytes) throws InvalidSerializationException {
-		try {
-			MptSerialization.MerklePrefixTrie mptUpdate = MptSerialization.MerklePrefixTrie.parseFrom(updateBytes);
-			// when we deserialize updates to a MPT, 
-			// the current values are cached and omitted in updates!
-			Node newRoot = MerklePrefixTriePartial.parseNodeUsingCachedValues(this.root, mptUpdate.getRoot());
-			this.root = (InteriorNode) newRoot;
-		} catch (InvalidProtocolBufferException e) {
-			throw new InvalidSerializationException(e.getMessage());
+	@Override
+	public void processUpdates(MptSerialization.MerklePrefixTrie updates) throws InvalidSerializationException {
+		if(!updates.hasRoot()) {
+			throw new InvalidSerializationException("update has no root");
 		}
+		Node newRoot = MerklePrefixTriePartial.parseNodeUsingCachedValues(this.root, updates.getRoot());
+		this.root = (InteriorNode) newRoot;
 	}
 	
 	private static Node parseNode(MptSerialization.Node nodeSerialization) throws InvalidSerializationException {

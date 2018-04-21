@@ -52,13 +52,13 @@ public class MerklePrefixTrieDelta implements AuthenticatedDictionaryChanges {
 		return new InteriorNode(leftChild, rightChild);
 	}
 
-	public byte[] getUpdates(final byte[] key) {
+	public MptSerialization.MerklePrefixTrie getUpdates(final byte[] key) {
 		List<byte[]> keys = new ArrayList<byte[]>();
 		keys.add(key);
 		return this.getUpdates(keys);
 	}
 	
-	public byte[] getUpdates(final List<byte[]> keys) {
+	public MptSerialization.MerklePrefixTrie getUpdates(final List<byte[]> keys) {
 		List<byte[]> keyHashes = new ArrayList<byte[]>();
 		for(byte[] key : keys) {
 			keyHashes.add(CryptographicDigest.digest(key));
@@ -67,7 +67,7 @@ public class MerklePrefixTrieDelta implements AuthenticatedDictionaryChanges {
 		MptSerialization.MerklePrefixTrie tree = MptSerialization.MerklePrefixTrie.newBuilder()
 				.setRoot(root)
 				.build();
-		return tree.toByteArray();
+		return tree;
 	}
 	
 	private static MptSerialization.Node getUpdatesHelper(final List<byte[]> matchingKeyHashes, 

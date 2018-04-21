@@ -1,5 +1,7 @@
 package mpt;
 
+import serialization.MptSerialization;
+
 /**
  * This is the interface the client should rely on for using an
  * Authenticated Dictionary. 
@@ -43,11 +45,12 @@ public interface AuthenticatedDictionaryClient {
 	/**
 	 * Updates the authenticated dictionary to reflect changes. This 
 	 * will change the commitment as mappings have been inserted or removed
-	 * @param updateBytes - a serialized byte representation of this update
+	 * @param updates - a protobuf representation of this update (which 
+	 * can be serialized and deserialized)
 	 * @throws InvalidSerializationException - thrown if the update cannot
 	 * be performed.
 	 */
-	public void deserializeUpdates(byte[] updateBytes) throws InvalidSerializationException;
+	public void processUpdates(MptSerialization.MerklePrefixTrie updates) throws InvalidSerializationException;
 	
 	/**
 	 * Serialize the authenticated dictionary as a concise byte representation

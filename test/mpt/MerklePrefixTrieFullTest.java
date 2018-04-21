@@ -14,6 +14,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import crpyto.CryptographicDigest;
+import serialization.MptSerialization.MerklePrefixTrie;
 
 public class MerklePrefixTrieFullTest {
 	
@@ -425,11 +426,11 @@ public class MerklePrefixTrieFullTest {
 		System.out.println("\nchanges:\n"+changes);
 
 		// use the changes to calculate an update for the original path
-		byte[] updates = changes.getUpdates(key);
+		MerklePrefixTrie updates = changes.getUpdates(key);
 			
 		try {
 			// update the original path
-			path.deserializeUpdates(updates);
+			path.processUpdates(updates);
 			
 			System.out.println("\nafter updates:\n"+path);
 			
@@ -471,9 +472,9 @@ public class MerklePrefixTrieFullTest {
 
 		try {
 			// use the changes to calculate an update for the original path
-			byte[] updates = changes.getUpdates(key);
+			MerklePrefixTrie updates = changes.getUpdates(key);
 			// update the original path
-			path.deserializeUpdates(updates);
+			path.processUpdates(updates);
 			
 			// should produce the new path
 			Assert.assertTrue(newPath.equals(path));
@@ -520,9 +521,9 @@ public class MerklePrefixTrieFullTest {
 		System.out.println("\nchanges:\n"+changes);
 		try {
 			// use the changes to calculate an update for the original path
-			byte[] updates = changes.getUpdates(key);
+			MerklePrefixTrie updates = changes.getUpdates(key);
 			// update the original path
-			path.deserializeUpdates(updates);
+			path.processUpdates(updates);
 			
 			System.out.println("\nafter updates:\n"+path);
 
@@ -574,9 +575,9 @@ public class MerklePrefixTrieFullTest {
 		System.out.println("\nchanges:\n"+changes);
 		try {
 			// use the changes to calculate an update for the original path
-			byte[] updates = changes.getUpdates(key);
+			MerklePrefixTrie updates = changes.getUpdates(key);
 			// update the original path
-			path.deserializeUpdates(updates);
+			path.processUpdates(updates);
 			
 			System.out.println("\nafter updates:\n"+path);
 
@@ -624,9 +625,9 @@ public class MerklePrefixTrieFullTest {
 		System.out.println("\nchanges:\n"+changes);
 		try {
 			// use the changes to calculate an update for the original path
-			byte[] updates = changes.getUpdates(key);
+			MerklePrefixTrie updates = changes.getUpdates(key);
 			// update the original path
-			path.deserializeUpdates(updates);
+			path.processUpdates(updates);
 			System.out.println("\nafter updates:\n"+path);
 			
 			// should produce the new path
@@ -668,9 +669,9 @@ public class MerklePrefixTrieFullTest {
 		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
 		System.out.println("\nchanges :\n"+changes);
 
-		byte[] updates = changes.getUpdates(keys);
+		MerklePrefixTrie updates = changes.getUpdates(keys);
 		try {
-			partialmpt.deserializeUpdates(updates);
+			partialmpt.processUpdates(updates);
 			System.out.println("\npartial with updates :\n"+partialmpt);
 			Assert.assertTrue(Arrays.equals(mpt.get(key1), partialmpt.get(key1)));
 			Assert.assertTrue(Arrays.equals(mpt.get(key2), partialmpt.get(key2)));
@@ -717,9 +718,9 @@ public class MerklePrefixTrieFullTest {
 		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
 		System.out.println("\nchanges :\n"+changes);
 
-		byte[] updates = changes.getUpdates(keys);
+		MerklePrefixTrie updates = changes.getUpdates(keys);
 		try {
-			partialmpt.deserializeUpdates(updates);
+			partialmpt.processUpdates(updates);
 			System.out.println("\npartial with updates :\n"+partialmpt);
 			Assert.assertEquals(partialmptNew, partialmpt);
 			
@@ -766,9 +767,9 @@ public class MerklePrefixTrieFullTest {
 		MerklePrefixTriePartial newPaths = new MerklePrefixTriePartial(mpt, keys);
 		
 		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
-		byte[] updates = changes.getUpdates(keys);
+		MerklePrefixTrie updates = changes.getUpdates(keys);
 		try {
-			paths.deserializeUpdates(updates);
+			paths.processUpdates(updates);
 			System.out.println(paths);
 			System.out.println("\n"+newPaths);
 			Assert.assertEquals(newPaths, paths);
