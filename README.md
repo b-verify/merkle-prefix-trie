@@ -1,10 +1,10 @@
-# A Java Implementation of Merkle Prefix Tries (MPT) 
+# A Java Implementation of Authenticated Dictionaries and Authenticated Sets Using Merkle Prefix Tries (MPT) 
 [![Build Status](https://travis-ci.org/henryaspegren/b_verify-merkle-prefix-trie.svg?branch=master)](https://travis-ci.org/henryaspegren/b_verify-merkle-prefix-trie)
 
-This is a full implementation of Merkle Prefix Tries that tries to exploit efficient serialization and client caching to reduce proof sizes in an online, dynamic setting
+This is a full implementation of <b>Authenticated Dictionaries<b> (<i>a set of key-value mappings</i>) and <b>Authenticated Sets</b> (a set of values) using Merkle Prefix Tries. This datastructure allows very small lograthmic proofs of membership and non-membership. These data structures also support updates for use in a dynamic setting. These updates are very small because the implementation exploits client caching to avoid retransmitting unchanged internal values.
 
 # Benchmarks
-For a tree with 
+For a dictionary with 
 `10^6  entries`
 which we can generate in less than a minute, here are the stats:
 
@@ -13,6 +13,9 @@ which we can generate in less than a minute, here are the stats:
 `Average path proof size 	(bytes): 1021`
 
 `Max path proof size     	(bytes): 1908`
+
+To reproduce these benchmarks run
+`$sh benchmark.sh`
 
 
 # Serialization 
