@@ -1,4 +1,4 @@
-package mpt;
+package mpt.dictionary;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,6 +7,14 @@ import java.util.List;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import crpyto.CryptographicDigest;
+import mpt.core.EmptyLeafNode;
+import mpt.core.InsufficientAuthenticationDataException;
+import mpt.core.InteriorNode;
+import mpt.core.InvalidSerializationException;
+import mpt.core.DictionaryLeafNode;
+import mpt.core.Node;
+import mpt.core.Stub;
+import mpt.core.Utils;
 import serialization.MptSerialization;
 
 /**
@@ -20,7 +28,7 @@ import serialization.MptSerialization;
  * @author henryaspegren
  *
  */
-public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
+public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 	
 	private InteriorNode root;
 
@@ -29,7 +37,7 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 	 * this just copies the root.
 	 * @param fullMPT - full MPT to copy from
 	 */
-	public MerklePrefixTriePartial(MerklePrefixTrieFull fullMPT) {
+	public MPTDictionaryPartial(MPTDictionaryFull fullMPT) {
 		// just copies the root
 		this.root = new InteriorNode(new Stub(fullMPT.root.getLeftChild().getHash()),
 				new Stub(fullMPT.root.getRightChild().getHash()));
@@ -46,10 +54,10 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 	 * and authentication information from.
 	 * @param key - the key to copy
 	 */
-	public MerklePrefixTriePartial(MerklePrefixTrieFull fullMPT, byte[] key) {
+	public MPTDictionaryPartial(MPTDictionaryFull fullMPT, byte[] key) {
 		List<byte[]> keyHashes = new ArrayList<>();
 		keyHashes.add(CryptographicDigest.digest(key));
-		Node root = MerklePrefixTriePartial.copyMultiplePaths(keyHashes, fullMPT.root, -1);
+		Node root = MPTDictionaryPartial.copyMultiplePaths(keyHashes, fullMPT.root, -1);
 		this.root = (InteriorNode) root;
 	}
 	
@@ -62,16 +70,16 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 	 * information from 
 	 * @param keys - the key mappings to copy
 	 */
-	public MerklePrefixTriePartial(MerklePrefixTrieFull fullMPT, List<byte[]> keys) {
+	public MPTDictionaryPartial(MPTDictionaryFull fullMPT, List<byte[]> keys) {
 		List<byte[]> keyHashes = new ArrayList<>();
 		for(byte[] key : keys) {
 			keyHashes.add(CryptographicDigest.digest(key));
 		}
-		Node root = MerklePrefixTriePartial.copyMultiplePaths(keyHashes, fullMPT.root, -1);
+		Node root = MPTDictionaryPartial.copyMultiplePaths(keyHashes, fullMPT.root, -1);
 		this.root = (InteriorNode) root;
 	}
 	
-	private MerklePrefixTriePartial(InteriorNode root) {
+	private MPTDictionaryPartial(InteriorNode root) {
 		this.root = root;
 	}
 	
@@ -89,7 +97,7 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 			if(copyNode.isEmpty()) {
 				return new EmptyLeafNode();
 			}
-			return new LeafNode(copyNode.getKey(), copyNode.getValue());
+			return new DictionaryLeafNode(copyNode.getKey(), copyNode.getValue());
 		}
 		// subcase: intermediate node
 		
@@ -105,14 +113,15 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 				matchLeft.add(keyHash);
 			}
 		}
-		Node leftChild = MerklePrefixTriePartial.copyMultiplePaths(matchLeft, copyNode.getLeftChild(), currentBitIndex+1);
-		Node rightChild = MerklePrefixTriePartial.copyMultiplePaths(matchRight, copyNode.getRightChild(), currentBitIndex+1);
+		Node leftChild = MPTDictionaryPartial.copyMultiplePaths(matchLeft, copyNode.getLeftChild(), currentBitIndex+1);
+		Node rightChild = MPTDictionaryPartial.copyMultiplePaths(matchRight, copyNode.getRightChild(), currentBitIndex+1);
 		return new InteriorNode(leftChild, rightChild);
 	}
 	
+	@Override
 	public byte[] get(final byte[] key) throws InsufficientAuthenticationDataException {
 		byte[] keyHash = CryptographicDigest.digest(key);
-		return MerklePrefixTriePartial.getHelper(this.root, keyHash, -1);
+		return MPTDictionaryPartial.getHelper(this.root, keyHash, -1);
 	}
 
 	private static byte[] getHelper(final Node currentNode, final byte[] keyHash, final int currentBitIndex) 
@@ -133,9 +142,9 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 		}
 		boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
 		if (bit) {
-			return MerklePrefixTriePartial.getHelper(currentNode.getRightChild(), keyHash, currentBitIndex + 1);
+			return MPTDictionaryPartial.getHelper(currentNode.getRightChild(), keyHash, currentBitIndex + 1);
 		}
-		return MerklePrefixTriePartial.getHelper(currentNode.getLeftChild(), keyHash, currentBitIndex + 1);
+		return MPTDictionaryPartial.getHelper(currentNode.getLeftChild(), keyHash, currentBitIndex + 1);
 	}
 	
 	public byte[] commitment() {
@@ -148,7 +157,7 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 	 * @return
 	 * @throws InvalidSerializationException - if the serialization cannot be decoded
 	 */
-	public static MerklePrefixTriePartial deserialize(byte[] asbytes) throws InvalidSerializationException {
+	public static MPTDictionaryPartial deserialize(byte[] asbytes) throws InvalidSerializationException {
 		MptSerialization.MerklePrefixTrie mpt;
 		try {
 			mpt = MptSerialization.MerklePrefixTrie.parseFrom(asbytes);
@@ -159,12 +168,12 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 			throw new InvalidSerializationException("no root included");
 		}
 		// when we deserialize a full MPT we do not use any cached values
-		Node root = MerklePrefixTriePartial.parseNode(mpt.getRoot());
+		Node root = MPTDictionaryPartial.parseNode(mpt.getRoot());
 		if (!(root instanceof InteriorNode)) {
 			throw new InvalidSerializationException("root is not an interior node!");
 		}
 		InteriorNode rootInt = (InteriorNode) root;
-		return new MerklePrefixTriePartial(rootInt);
+		return new MPTDictionaryPartial(rootInt);
 	}
 	
 	@Override
@@ -172,7 +181,7 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 		if(!updates.hasRoot()) {
 			throw new InvalidSerializationException("update has no root");
 		}
-		Node newRoot = MerklePrefixTriePartial.parseNodeUsingCachedValues(this.root, updates.getRoot());
+		Node newRoot = MPTDictionaryPartial.parseNodeUsingCachedValues(this.root, updates.getRoot());
 		this.root = (InteriorNode) newRoot;
 	}
 	
@@ -183,8 +192,8 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 			if(!in.hasLeft() || !in.hasRight()) {
 				throw new InvalidSerializationException("interior node does not have both children");
 			}
-			Node left = MerklePrefixTriePartial.parseNode(in.getLeft());
-			Node right = MerklePrefixTriePartial.parseNode(in.getRight());
+			Node left = MPTDictionaryPartial.parseNode(in.getLeft());
+			Node right = MPTDictionaryPartial.parseNode(in.getRight());
 			return new InteriorNode(left, right);
 		case STUB:
 			MptSerialization.Stub stub = nodeSerialization.getStub();
@@ -197,7 +206,7 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 			if (leaf.getKey().isEmpty() || leaf.getValue().isEmpty()) {
 				throw new InvalidSerializationException("leaf doesn't have required keyhash and value");
 			}
-			return new LeafNode(leaf.getKey().toByteArray(), leaf.getValue().toByteArray());
+			return new DictionaryLeafNode(leaf.getKey().toByteArray(), leaf.getValue().toByteArray());
 		case EMPTYLEAF:
 			return new EmptyLeafNode();
 		case NODE_NOT_SET:
@@ -224,15 +233,15 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 				right = currentNode.getRightChild();	
 			}
 			if(interiorNode.hasLeft()) {
-				left = MerklePrefixTriePartial.parseNodeUsingCachedValues(left, interiorNode.getLeft());
+				left = MPTDictionaryPartial.parseNodeUsingCachedValues(left, interiorNode.getLeft());
 			}
 			if(interiorNode.hasRight()) {
-				right = MerklePrefixTriePartial.parseNodeUsingCachedValues(right, interiorNode.getRight());
+				right = MPTDictionaryPartial.parseNodeUsingCachedValues(right, interiorNode.getRight());
 			}
 			return new InteriorNode(left, right);
 		case LEAF:
 			MptSerialization.Leaf leaf = updatedNode.getLeaf();
-			return new LeafNode(leaf.getKey().toByteArray(), leaf.getValue().toByteArray());
+			return new DictionaryLeafNode(leaf.getKey().toByteArray(), leaf.getValue().toByteArray());
 		case STUB:
 			MptSerialization.Stub stub = updatedNode.getStub();
 			return new Stub(stub.getHash().toByteArray());
@@ -243,6 +252,7 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 		}
 	}
 	
+	@Override
 	public byte[] serialize() {
 		MptSerialization.Node rootSerialization = this.root.serialize();
 		MptSerialization.MerklePrefixTrie.Builder builder = MptSerialization.MerklePrefixTrie.newBuilder();
@@ -252,8 +262,8 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 	
 	@Override
 	public boolean equals(Object other) {
-		if(other instanceof MerklePrefixTriePartial) {
-			MerklePrefixTriePartial otherPartialMPT = (MerklePrefixTriePartial) other;
+		if(other instanceof MPTDictionaryPartial) {
+			MPTDictionaryPartial otherPartialMPT = (MPTDictionaryPartial) other;
 			return otherPartialMPT.root.equals(this.root);
 		}
 		return false;
@@ -261,6 +271,6 @@ public class MerklePrefixTriePartial implements AuthenticatedDictionaryClient {
 	
 	@Override
 	public String toString() {
-		return "<MerklePrefixTriePartial \n"+MerklePrefixTrieFull.toStringHelper("+", this.root)+"\n>";
+		return "<MPTDictionaryPartial \n"+MPTDictionaryFull.toStringHelper("+", this.root)+"\n>";
 	}
 }

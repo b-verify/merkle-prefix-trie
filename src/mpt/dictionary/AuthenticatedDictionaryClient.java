@@ -1,5 +1,7 @@
-package mpt;
+package mpt.dictionary;
 
+import mpt.core.InsufficientAuthenticationDataException;
+import mpt.core.InvalidSerializationException;
 import serialization.MptSerialization;
 
 /**

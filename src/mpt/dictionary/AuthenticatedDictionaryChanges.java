@@ -1,4 +1,4 @@
-package mpt;
+package mpt.dictionary;
 
 import java.util.List;
 

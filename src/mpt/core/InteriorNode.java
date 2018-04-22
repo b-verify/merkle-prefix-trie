@@ -1,4 +1,4 @@
-package mpt;
+package mpt.core;
 
 import crpyto.CryptographicDigest;
 import serialization.MptSerialization;

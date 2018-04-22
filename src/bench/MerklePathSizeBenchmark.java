@@ -2,9 +2,9 @@ package bench;
 
 import java.math.BigInteger;
 
-import mpt.MerklePrefixTrieFull;
-import mpt.MerklePrefixTriePartial;
-import mpt.Utils;
+import mpt.core.Utils;
+import mpt.dictionary.MPTDictionaryFull;
+import mpt.dictionary.MPTDictionaryPartial;
 
 public class MerklePathSizeBenchmark {
 	
@@ -13,7 +13,7 @@ public class MerklePathSizeBenchmark {
 		String salt = "size benchmark";
 		// make a MPT with 10^7 entries
 		System.out.println("adding kv pairs");
-		MerklePrefixTrieFull mpt = Utils.makeMerklePrefixTrie(n, salt);
+		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(n, salt);
 		System.out.println("done- calculating commitment");
 		byte[] commitment = mpt.commitment();
 		System.out.println("commitment: "+Utils.byteArrayAsHexString(commitment));
@@ -26,7 +26,7 @@ public class MerklePathSizeBenchmark {
 		int max_size = 0;
 		for(int i = 0; i < n; i++) {
 			String keyString = "key"+Integer.toString(i);
-			MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt, keyString.getBytes());
+			MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, keyString.getBytes());
 			byte[] serialized = path.serialize();
 			int size = serialized.length;
 			total_size = total_size.add(BigInteger.valueOf(size));

@@ -1,4 +1,4 @@
-package mpt;
+package mpt.set;
 
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -7,34 +7,38 @@ import java.util.logging.Logger;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import crpyto.CryptographicDigest;
+import mpt.core.EmptyLeafNode;
+import mpt.core.InteriorNode;
+import mpt.core.InvalidSerializationException;
+import mpt.core.Node;
+import mpt.core.SetLeafNode;
+import mpt.core.Utils;
 import serialization.MptSerialization;
 
 /**
- * A Full Merkle Prefix Trie (MPT). This stores 
- * all mappings and authentication information. 
+ * An implementation of a FULL authenticated set using a Merkle Prefix Trie (MPT).
+ * A FULL authenticated set stores all the value in the set along with 
+ * authentication information. 
  * 
- *  Internally it contains NO STUBs and each node 
- *  tracks if it has been changed. Tracking changes 
- *  allow for lazy recalculation of hashes and 
- *  to keep track of updates. 
- *  
- *  MPT use structural equality
- *
- * @author Henry Aspegren, Chung Eun (Christina) Lee
+ * Internally this MPT cannot contain any stubs and leaf nodes are set leaf nodes
+ * rather than dictionary leaf nodes. 
+ * 
+ * 
+ * @author henryaspegren
  *
  */
-public class MerklePrefixTrieFull implements AuthenticatedDictionaryServer {
+public class MPTSetFull implements AuthenticatedSetServer {
 
-	private static final Logger LOGGER = Logger.getLogger(MerklePrefixTrieFull.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(MPTSetFull.class.getName());
 
 	// we require that the root is always an interior node
 	// at index -1, empty prefix (which I usually represent by +)
 	protected InteriorNode root;
 
 	/**
-	 * Create an empty Merkle Prefix Trie
+	 * Create an empty Merkle Prefix Trie Set
 	 */
-	public MerklePrefixTrieFull() {
+	public MPTSetFull() {
 		this.root = new InteriorNode(new EmptyLeafNode(), new EmptyLeafNode());
 	}
 
@@ -43,59 +47,59 @@ public class MerklePrefixTrieFull implements AuthenticatedDictionaryServer {
 	 * because it assumes that the internal structure of root is correct. This is
 	 * not safe to expose to clients.
 	 */
-	private MerklePrefixTrieFull(InteriorNode root) {
+	private MPTSetFull(InteriorNode root) {
 		this.root = root;
 	}
 
-	public void insert(final byte[] key, final byte[] value) {
+	@Override
+	public void insert(final byte[] value) {
 		LOGGER.log(Level.FINE,
-				"insert(" + Utils.byteArrayAsHexString(key) + ", " + Utils.byteArrayAsHexString(value) + ")");
-		byte[] keyHash = CryptographicDigest.digest(key);
-		MerklePrefixTrieFull.insertHelper(key, value, keyHash, -1, this.root);
+				"insert(" + Utils.byteArrayAsHexString(value) + ")");
+		byte[] valueHash = CryptographicDigest.digest(value);
+		MPTSetFull.insertHelper(value, valueHash, -1, this.root);
 	}
 
-	private static Node insertHelper(final byte[] key, final byte[] value, final byte[] keyHash, 
+	private static Node insertHelper(final byte[] value, final byte[] valueHash, 
 			final int currentBitIndex, final Node currentNode) {
 		// when we hit a leaf we know where we need to insert
 		if (currentNode.isLeaf()) {
-			// this key is already in the tree, update existing mapping
-			if (Arrays.equals(currentNode.getKeyHash(), keyHash)) {
-				// update the value
-				currentNode.setValue(value);
+			// this value is already in the set - no need to do anything
+			if (Arrays.equals(currentNode.getKeyHash(), valueHash)) {
 				return currentNode;
 			}
-			// if the key is not in the tree add it
-			LeafNode nodeToAdd = new LeafNode(key, value);
+			// otherwise value is not in the set 
+			// and we need to add it 
+			SetLeafNode nodeToAdd = new SetLeafNode(value);
 			if (currentNode.isEmpty()) {
 				// if the current leaf is empty, just replace it
 				return nodeToAdd;
 			}
 			// otherwise we need to "split"
-			LeafNode currentLeafNode = (LeafNode) currentNode;
+			SetLeafNode currentLeafNode = (SetLeafNode) currentNode;
 			// mark the current node as "changed" even though 
 			// its value hasn't since it is now in a new location 
 			// in the MPT
 			currentLeafNode.markChangedAll();
-			return MerklePrefixTrieFull.split(currentLeafNode, nodeToAdd, currentBitIndex);
+			return MPTSetFull.split(currentLeafNode, nodeToAdd, currentBitIndex);
 		}
-		boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
+		boolean bit = Utils.getBit(valueHash, currentBitIndex + 1);
 		/*
 		 * Encoding: if bit is 1 -> go right if bit is 0 -> go left
 		 */
 		if (bit) {
-			Node newRightChild = MerklePrefixTrieFull.insertHelper(key, value, keyHash, currentBitIndex + 1,
+			Node newRightChild = MPTSetFull.insertHelper(value, valueHash, currentBitIndex + 1,
 					currentNode.getRightChild());
 			// update the right child
 			currentNode.setRightChild(newRightChild);
 			return currentNode;
 
 		}
-		Node newLeftChild = MerklePrefixTrieFull.insertHelper(key, value, keyHash, currentBitIndex + 1, currentNode.getLeftChild());
+		Node newLeftChild = MPTSetFull.insertHelper(value, valueHash, currentBitIndex + 1, currentNode.getLeftChild());
 		currentNode.setLeftChild(newLeftChild);
 		return currentNode;
 	}
 
-	private static Node split(final LeafNode a, final LeafNode b, final int currentBitIndex) {
+	private static Node split(final SetLeafNode a, final SetLeafNode b, final int currentBitIndex) {
 		assert !Arrays.equals(a.getKeyHash(), b.getKeyHash());
 		boolean bitA = Utils.getBit(a.getKeyHash(), currentBitIndex + 1);
 		boolean bitB = Utils.getBit(b.getKeyHash(), currentBitIndex + 1);
@@ -105,7 +109,7 @@ public class MerklePrefixTrieFull implements AuthenticatedDictionaryServer {
 			Node res;
 			if (bitA) {
 				// if bit is 1 add on the right
-				res = MerklePrefixTrieFull.split(a, b, currentBitIndex + 1);
+				res = MPTSetFull.split(a, b, currentBitIndex + 1);
 				return new InteriorNode(new EmptyLeafNode(), res);
 			}
 			// if bit is 0 add on the left
@@ -121,42 +125,45 @@ public class MerklePrefixTrieFull implements AuthenticatedDictionaryServer {
 		return new InteriorNode(a, b);
 	}
 
-	public byte[] get(final byte[] key)  {
-		byte[] keyHash = CryptographicDigest.digest(key);
-		return MerklePrefixTrieFull.getHelper(this.root, keyHash, -1);
+	@Override
+	public boolean inSet(final byte[] value)  {
+		byte[] valueHash = CryptographicDigest.digest(value);
+		return MPTSetFull.getHelper(this.root, valueHash, -1);
 	}
 
-	private static byte[] getHelper(final Node currentNode, final byte[] keyHash, final int currentBitIndex) {
+	private static boolean getHelper(final Node currentNode, final byte[] valueHash, final int currentBitIndex) {
+		// search is over
 		if (currentNode.isLeaf()) {
 			if (!currentNode.isEmpty()) {
-				// if the current node is NonEmpty and matches the Key
-				if (Arrays.equals(currentNode.getKeyHash(), keyHash)) {
-					return currentNode.getValue();
+				// if we found the value - return true
+				if (Arrays.equals(currentNode.getKeyHash(), valueHash)) {
+					return true;
 				}
 			}
-			// otherwise key not in the MPT - return null;
-			return null;
+			// otherwise return false
+			return false;
 		}
-		boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
+		boolean bit = Utils.getBit(valueHash, currentBitIndex + 1);
 		if (bit) {
-			return MerklePrefixTrieFull.getHelper(currentNode.getRightChild(), keyHash, currentBitIndex + 1);
+			return MPTSetFull.getHelper(currentNode.getRightChild(), valueHash, currentBitIndex + 1);
 		}
-		return MerklePrefixTrieFull.getHelper(currentNode.getLeftChild(), keyHash, currentBitIndex + 1);
+		return MPTSetFull.getHelper(currentNode.getLeftChild(), valueHash, currentBitIndex + 1);
 	}
 
-	public void delete(final byte[] key) {
-		byte[] keyHash = CryptographicDigest.digest(key);
-		LOGGER.log(Level.FINE, "delete(" + Utils.byteArrayAsHexString(key) + ")");
-		MerklePrefixTrieFull.deleteHelper(keyHash, -1, this.root, true);
+	@Override
+	public void delete(final byte[] value) {
+		byte[] valueHash = CryptographicDigest.digest(value);
+		LOGGER.log(Level.FINE, "delete(" + Utils.byteArrayAsHexString(value) + ")");
+		MPTSetFull.deleteHelper(valueHash, -1, this.root, true);
 		// force updating the hash
 		this.root.getHash();
 	}
 
-	private static Node deleteHelper(final byte[] keyHash, final int currentBitIndex, final Node currentNode, 
+	private static Node deleteHelper(final byte[] valueHash, final int currentBitIndex, final Node currentNode, 
 			final boolean isRoot) {
 		if (currentNode.isLeaf()) {
 			if (!currentNode.isEmpty()) {
-				if (Arrays.equals(currentNode.getKeyHash(), keyHash)) {
+				if (Arrays.equals(currentNode.getKeyHash(), valueHash)) {
 					return new EmptyLeafNode();
 				}
 			}
@@ -165,12 +172,12 @@ public class MerklePrefixTrieFull implements AuthenticatedDictionaryServer {
 		}
 		// we have to watch out to make sure that if this is the root node
 		// that we return an InteriorNode and don't propagate up an empty node
-		boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
+		boolean bit = Utils.getBit(valueHash, currentBitIndex + 1);
 		Node leftChild = currentNode.getLeftChild();
 		Node rightChild = currentNode.getRightChild();
 		if (bit) {
 			// delete key from the right subtree
-			Node newRightChild = MerklePrefixTrieFull.deleteHelper(keyHash, currentBitIndex + 1, rightChild, false);
+			Node newRightChild = MPTSetFull.deleteHelper(valueHash, currentBitIndex + 1, rightChild, false);
 			// if left subtree is empty, and rightChild is leaf
 			// we push the newRightChild back up the MPT
 			if (leftChild.isEmpty() && newRightChild.isLeaf() && !isRoot) {
@@ -189,7 +196,7 @@ public class MerklePrefixTrieFull implements AuthenticatedDictionaryServer {
 			currentNode.setRightChild(newRightChild);
 			return currentNode;
 		}
-		Node newLeftChild = MerklePrefixTrieFull.deleteHelper(keyHash, currentBitIndex + 1, leftChild, false);
+		Node newLeftChild = MPTSetFull.deleteHelper(valueHash, currentBitIndex + 1, leftChild, false);
 		if (rightChild.isEmpty() && newLeftChild.isLeaf() && !isRoot) {
 			return newLeftChild;
 		}
@@ -201,12 +208,9 @@ public class MerklePrefixTrieFull implements AuthenticatedDictionaryServer {
 		return currentNode;
 	};
 
+	@Override
 	public byte[] commitment() {
 		return this.root.getHash();
-	};
-
-	public void reset() {
-		this.root.markUnchangedAll();
 	};
 	
 	private static Node parseNode(MptSerialization.Node nodeSerialization) throws InvalidSerializationException {
@@ -216,17 +220,17 @@ public class MerklePrefixTrieFull implements AuthenticatedDictionaryServer {
 			if(!in.hasLeft() || !in.hasRight()) {
 				throw new InvalidSerializationException("interior node does not have both children");
 			}
-			Node left = MerklePrefixTrieFull.parseNode(in.getLeft());
-			Node right = MerklePrefixTrieFull.parseNode(in.getRight());
+			Node left = MPTSetFull.parseNode(in.getLeft());
+			Node right = MPTSetFull.parseNode(in.getRight());
 			return new InteriorNode(left, right);
 		case STUB:
 			throw new InvalidSerializationException("serialized full mpt should not have stubs");
 		case LEAF:
 			MptSerialization.Leaf leaf = nodeSerialization.getLeaf();
-			if (leaf.getKey().isEmpty() || leaf.getValue().isEmpty()) {
-				throw new InvalidSerializationException("leaf doesn't have required keyhash and value");
+			if (!leaf.getKey().isEmpty() || leaf.getValue().isEmpty()) {
+				throw new InvalidSerializationException("set leaf should only have a value");
 			}
-			return new LeafNode(leaf.getKey().toByteArray(), leaf.getValue().toByteArray());
+			return new SetLeafNode(leaf.getValue().toByteArray());
 		case EMPTYLEAF:
 			return new EmptyLeafNode();
 		case NODE_NOT_SET:
@@ -242,7 +246,7 @@ public class MerklePrefixTrieFull implements AuthenticatedDictionaryServer {
 	 * @return
 	 * @throws InvalidSerializationException - if the serialization cannot be decoded
 	 */
-	public static MerklePrefixTrieFull deserialize(byte[] asbytes) throws InvalidSerializationException {
+	public static MPTSetFull deserialize(byte[] asbytes) throws InvalidSerializationException {
 		MptSerialization.MerklePrefixTrie mpt;
 		try {
 			mpt = MptSerialization.MerklePrefixTrie.parseFrom(asbytes);
@@ -253,14 +257,15 @@ public class MerklePrefixTrieFull implements AuthenticatedDictionaryServer {
 			throw new InvalidSerializationException("no root included");
 		}
 		// when we deserialize a full MPT we do not use any cached values
-		Node root = MerklePrefixTrieFull.parseNode(mpt.getRoot());
+		Node root = MPTSetFull.parseNode(mpt.getRoot());
 		if (!(root instanceof InteriorNode)) {
 			throw new InvalidSerializationException("root is not an interior node!");
 		}
 		InteriorNode rootInt = (InteriorNode) root;
-		return new MerklePrefixTrieFull(rootInt);
+		return new MPTSetFull(rootInt);
 	}
 
+	@Override
 	public byte[] serialize() {
 		MptSerialization.Node rootSerialization = this.root.serialize();
 		MptSerialization.MerklePrefixTrie.Builder builder = MptSerialization.MerklePrefixTrie.newBuilder();
@@ -292,14 +297,14 @@ public class MerklePrefixTrieFull implements AuthenticatedDictionaryServer {
 
 	@Override
 	public String toString() {
-		return MerklePrefixTrieFull.toStringHelper("+", this.root);
+		return MPTSetFull.toStringHelper("+", this.root);
 	}
 
 	protected static String toStringHelper(String prefix, Node node) {
 		String result = prefix + " " + node.toString();
 		if (!node.isLeaf() && !node.isStub()) {
-			String left = MerklePrefixTrieFull.toStringHelper(prefix + "0", node.getLeftChild());
-			String right = MerklePrefixTrieFull.toStringHelper(prefix + "1", node.getRightChild());
+			String left = MPTSetFull.toStringHelper(prefix + "0", node.getLeftChild());
+			String right = MPTSetFull.toStringHelper(prefix + "1", node.getRightChild());
 			result = result + "\n" + left + "\n" + right;
 		}
 		return result;
@@ -311,10 +316,11 @@ public class MerklePrefixTrieFull implements AuthenticatedDictionaryServer {
 	 */
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof MerklePrefixTrieFull) {
-			MerklePrefixTrieFull othermpt = (MerklePrefixTrieFull) other;
+		if (other instanceof MPTSetFull) {
+			MPTSetFull othermpt = (MPTSetFull) other;
 			return this.root.equals(othermpt.root);
 		}
 		return false;
 	}
+
 }

@@ -1,4 +1,4 @@
-package mpt;
+package mpt.dictionary.test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -14,9 +14,14 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import crpyto.CryptographicDigest;
+import mpt.core.InvalidSerializationException;
+import mpt.core.Utils;
+import mpt.dictionary.MPTDictionaryDelta;
+import mpt.dictionary.MPTDictionaryFull;
+import mpt.dictionary.MPTDictionaryPartial;
 import serialization.MptSerialization.MerklePrefixTrie;
 
-public class MerklePrefixTrieFullTest {
+public class MPTDictionaryFullTest {
 	
 	@Test 
 	public void testTrieInsertionsManyOrdersProduceTheSameTrie() {
@@ -24,11 +29,11 @@ public class MerklePrefixTrieFullTest {
 		int numberOfShuffles = 10;
 		String salt = "test";
 		List<Map.Entry<String, String>> kvpairs = Utils.getKeyValuePairs(numberOfKeys, salt);
-		MerklePrefixTrieFull mptBase = Utils.makeMerklePrefixTrie(kvpairs);
+		MPTDictionaryFull mptBase = Utils.makeMPTDictionaryFull(kvpairs);
 		byte[] commitment = mptBase.commitment();
 		for(int iteration = 0; iteration <  numberOfShuffles; iteration++) {
 			Collections.shuffle(kvpairs);
-			MerklePrefixTrieFull mpt2 = Utils.makeMerklePrefixTrie(kvpairs);
+			MPTDictionaryFull mpt2 = Utils.makeMPTDictionaryFull(kvpairs);
 			byte[] commitment2 = mpt2.commitment();
 			Assert.assertTrue(Arrays.equals(commitment, commitment2));
 		}
@@ -36,7 +41,7 @@ public class MerklePrefixTrieFullTest {
 		
 	@Test
 	public void testMPTInsertionBasic() {
-		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
 
 		// insert the entries
 		mpt.insert("A".getBytes(), "1".getBytes());
@@ -66,7 +71,7 @@ public class MerklePrefixTrieFullTest {
 	
 	@Test
 	public void testMPTInsertionBasicMultipleUpdatesGetMostRecentValue() {
-		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
 		// insert the entries
 		mpt.insert("A".getBytes(), "1".getBytes());
 		mpt.insert("B".getBytes(), "1".getBytes());
@@ -102,7 +107,7 @@ public class MerklePrefixTrieFullTest {
 	
 	@Test
 	public void testTrieDeleteBasic() {
-		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
 		
 		// insert the entries
 		mpt.insert("A".getBytes(), "1".getBytes());
@@ -126,7 +131,7 @@ public class MerklePrefixTrieFullTest {
 		Assert.assertEquals(null, mpt.get("F".getBytes()));
 		
 		// make a tree with the same entries, added in a different order
-		MerklePrefixTrieFull mpt2 = new MerklePrefixTrieFull();
+		MPTDictionaryFull mpt2 = new MPTDictionaryFull();
 		mpt2.insert("E".getBytes(), "2".getBytes());	
 		mpt2.insert("A".getBytes(), "1".getBytes());
 		mpt2.insert("C".getBytes(), "3".getBytes());
@@ -140,7 +145,7 @@ public class MerklePrefixTrieFullTest {
 	public void testTrieInsertionsGet() {
 		int numberOfEntries = 1000;
 		String salt = "";
-		MerklePrefixTrieFull mpt = Utils.makeMerklePrefixTrie(numberOfEntries, salt);
+		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(numberOfEntries, salt);
 		try {
 			for(int key = 0; key < numberOfEntries; key++) {
 				String keyString = "key"+Integer.toString(key);
@@ -160,7 +165,7 @@ public class MerklePrefixTrieFullTest {
 	public void testTrieMultipleInsertionsGetMostRecentValue() {
 		int numberOfEntries = 1000;
 		String salt = "";
-		MerklePrefixTrieFull mpt = Utils.makeMerklePrefixTrie(numberOfEntries, salt);
+		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(numberOfEntries, salt);
 		salt = "modified";
 		for(int key = 0; key < numberOfEntries; key++) {
 			String keyString = "key"+Integer.toString(key);
@@ -185,7 +190,7 @@ public class MerklePrefixTrieFullTest {
 	public void testTrieDeletions() {
 		int numberOfEntries = 1000;
 		String salt = "";
-		MerklePrefixTrieFull mpt = Utils.makeMerklePrefixTrie(numberOfEntries, salt);
+		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(numberOfEntries, salt);
 		for(int key = 0; key < numberOfEntries; key++) {
 			String keyString = "key"+Integer.toString(key);
 			String valueString = "value"+Integer.toString(key)+salt;
@@ -203,17 +208,17 @@ public class MerklePrefixTrieFullTest {
 				Assert.assertTrue(Arrays.equals(mpt.get(keyString.getBytes()), valueString.getBytes()));
 			}
 		}
-		MerklePrefixTrieFull mpt2 = Utils.makeMerklePrefixTrie(500, salt);
+		MPTDictionaryFull mpt2 = Utils.makeMPTDictionaryFull(500, salt);
 		Assert.assertTrue(Arrays.equals(mpt.commitment(), mpt2.commitment()));
 	}
 	
 	@Test
 	public void testTrieSerializationFullTrie() {
 		List<Map.Entry<String, String>> kvpairs = Utils.getKeyValuePairs(1000, "test");
-		MerklePrefixTrieFull mpt = Utils.makeMerklePrefixTrie(kvpairs);
+		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(kvpairs);
 		byte[] asbytes = mpt.serialize();
 		try {
-			MerklePrefixTrieFull mptFromBytes = MerklePrefixTrieFull.deserialize(asbytes);
+			MPTDictionaryFull mptFromBytes = MPTDictionaryFull.deserialize(asbytes);
 			Assert.assertTrue(mptFromBytes.equals(mpt));
 		}catch(Exception e) {
 			Assert.fail(e.getMessage());
@@ -223,18 +228,18 @@ public class MerklePrefixTrieFullTest {
 	@Test
 	public void testEqualityBasic() {
 		List<Map.Entry<String, String>> kvpairs = Utils.getKeyValuePairs(1000, "test");
-		MerklePrefixTrieFull mpt = Utils.makeMerklePrefixTrie(kvpairs);
+		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(kvpairs);
 		// shuffle the kvpairs so that they are inserted in a different order
 		Collections.shuffle(kvpairs);
-		MerklePrefixTrieFull mpt2 = Utils.makeMerklePrefixTrie(kvpairs);
-		MerklePrefixTrieFull mpt3 = Utils.makeMerklePrefixTrie(kvpairs.subList(0, 500));
+		MPTDictionaryFull mpt2 = Utils.makeMPTDictionaryFull(kvpairs);
+		MPTDictionaryFull mpt3 = Utils.makeMPTDictionaryFull(kvpairs.subList(0, 500));
 		Assert.assertTrue(mpt.equals(mpt2));
 		Assert.assertFalse(mpt.equals(mpt3));
 	}
 	
 	@Test
 	public void testEqualitySymmetric() {
-		MerklePrefixTrieFull mpt = Utils.makeMerklePrefixTrie(1000, "some salt changes the hash");
+		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(1000, "some salt changes the hash");
 		Assert.assertTrue(mpt.equals(mpt));
 	}
 	
@@ -321,7 +326,7 @@ public class MerklePrefixTrieFullTest {
 	
 	@Test
 	public void testSetSplitLeaf() {
-		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
 		
 		byte[] first = new byte[] {2}; //path = 10
 		
@@ -346,7 +351,7 @@ public class MerklePrefixTrieFullTest {
 	
 	@Test
 	public void testSetNewPrefixSingleLength() {
-		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
 		
 		//insert 10
 		byte[] first = new byte[] { 2 };
@@ -373,7 +378,7 @@ public class MerklePrefixTrieFullTest {
 	
 	@Test
 	public void testSetBranchFromExistingPrefix() {
-		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
 		//insert 1000
 		byte[] first = new byte[] { 8 };
 		System.out.println("SETTING FIRST");
@@ -392,7 +397,7 @@ public class MerklePrefixTrieFullTest {
 
 	@Test
 	public void testMPTBasicUpdateSequenceChangeValues() {
-		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
 		// insert the entries
 		mpt.insert("A".getBytes(), "1".getBytes());
 		mpt.insert("B".getBytes(), "2".getBytes());
@@ -405,7 +410,7 @@ public class MerklePrefixTrieFullTest {
 
 		// copy a path to a key
 		byte[] key = "F".getBytes();
-		MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt, key);
+		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, key);
 		
 		System.out.println("\noriginal:\n"+mpt);
 		System.out.println("\npath original:\n"+path);
@@ -416,12 +421,12 @@ public class MerklePrefixTrieFullTest {
 		mpt.insert("E".getBytes(), "102".getBytes());		
 		
 		// calculate a new path to a key
-		MerklePrefixTriePartial newPath = new MerklePrefixTriePartial(mpt, key);		
+		MPTDictionaryPartial newPath = new MPTDictionaryPartial(mpt, key);		
 		System.out.println("\nnew:\n"+mpt);
 		System.out.println("\npath new:\n"+newPath);
 		
 		// save the changes 
-		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+		MPTDictionaryDelta changes = new MPTDictionaryDelta(mpt);
 	
 		System.out.println("\nchanges:\n"+changes);
 
@@ -444,7 +449,7 @@ public class MerklePrefixTrieFullTest {
 	
 	@Test
 	public void testMPTBasicUpdateSequenceInsertValues() {
-		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
 		// insert the entries
 		mpt.insert("A".getBytes(), "1".getBytes());
 		mpt.insert("B".getBytes(), "2".getBytes());
@@ -457,7 +462,7 @@ public class MerklePrefixTrieFullTest {
 
 		// copy a path to a key
 		byte[] key = "F".getBytes();
-		MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt, key);		
+		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, key);		
 		// change values
 		mpt.insert("G".getBytes(), "100".getBytes());
 		mpt.insert("H".getBytes(), "101".getBytes());
@@ -465,10 +470,10 @@ public class MerklePrefixTrieFullTest {
 		mpt.insert("J".getBytes(), "103".getBytes());
 		
 		// calculate a new path to a key
-		MerklePrefixTriePartial newPath = new MerklePrefixTriePartial(mpt, key);
+		MPTDictionaryPartial newPath = new MPTDictionaryPartial(mpt, key);
 		
 		// save the changes 
-		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+		MPTDictionaryDelta changes = new MPTDictionaryDelta(mpt);
 
 		try {
 			// use the changes to calculate an update for the original path
@@ -486,7 +491,7 @@ public class MerklePrefixTrieFullTest {
 	
 	@Test
 	public void testMPTBasicUpdateSequenceDeleteValues() {
-		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
 		// insert the entries
 		mpt.insert("A".getBytes(), "1".getBytes());
 		mpt.insert("B".getBytes(), "2".getBytes());
@@ -499,7 +504,7 @@ public class MerklePrefixTrieFullTest {
 
 		// copy a path to a key
 		byte[] key = "F".getBytes();
-		MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt, key);		
+		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, key);		
 		System.out.println("\noriginal:\n"+mpt);
 		System.out.println("\npath original:\n"+path);
 		
@@ -510,13 +515,13 @@ public class MerklePrefixTrieFullTest {
 		mpt.delete("D".getBytes());
 
 		// calculate a new path to a key
-		MerklePrefixTriePartial newPath = new MerklePrefixTriePartial(mpt, key);
+		MPTDictionaryPartial newPath = new MPTDictionaryPartial(mpt, key);
 		
 		System.out.println("\nnew:\n"+mpt);
 		System.out.println("\npath new:\n"+newPath);
 		
 		// save the changes 
-		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+		MPTDictionaryDelta changes = new MPTDictionaryDelta(mpt);
 		
 		System.out.println("\nchanges:\n"+changes);
 		try {
@@ -537,7 +542,7 @@ public class MerklePrefixTrieFullTest {
 	
 	@Test
 	public void testMPTBasicUpdateSequenceDeleteValuesEntireSubtreeMovedUp() {
-		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
 		// insert the entries
 		mpt.insert("A".getBytes(), "1".getBytes());
 		mpt.insert("B".getBytes(), "2".getBytes());
@@ -552,7 +557,7 @@ public class MerklePrefixTrieFullTest {
 
 		// copy a path to a key
 		byte[] key = "B".getBytes();
-		MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt, key);		
+		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, key);		
 		System.out.println("\noriginal:\n"+mpt);
 		System.out.println("\npath original:\n"+path);
 		
@@ -564,13 +569,13 @@ public class MerklePrefixTrieFullTest {
 		mpt.delete("H".getBytes());
 
 		// calculate a new path to a key
-		MerklePrefixTriePartial newPath = new MerklePrefixTriePartial(mpt, key);
+		MPTDictionaryPartial newPath = new MPTDictionaryPartial(mpt, key);
 		
 		System.out.println("\nnew:\n"+mpt);
 		System.out.println("\npath new:\n"+newPath);
 		
 		// save the changes 
-		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+		MPTDictionaryDelta changes = new MPTDictionaryDelta(mpt);
 		
 		System.out.println("\nchanges:\n"+changes);
 		try {
@@ -591,7 +596,7 @@ public class MerklePrefixTrieFullTest {
 
 	@Test
 	public void testMPTBasicUpdateSequence() {
-		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
 		// insert the entries
 		mpt.insert("A".getBytes(), "1".getBytes());
 		mpt.insert("B".getBytes(), "2".getBytes());
@@ -607,7 +612,7 @@ public class MerklePrefixTrieFullTest {
 
 		// copy a path to a key
 		byte[] key = "F".getBytes();
-		MerklePrefixTriePartial path = new MerklePrefixTriePartial(mpt, key);
+		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, key);
 		System.out.println("\noriginal:\n"+mpt);
 		System.out.println("\npath original:\n"+path);
 		
@@ -616,12 +621,12 @@ public class MerklePrefixTrieFullTest {
 		mpt.insert("G".getBytes(), "1".getBytes());
 		
 		// calculate a new path to a key
-		MerklePrefixTriePartial newPath = new MerklePrefixTriePartial(mpt, key);
+		MPTDictionaryPartial newPath = new MPTDictionaryPartial(mpt, key);
 		System.out.println("\nnew:\n"+mpt);
 		System.out.println("\npath new:\n"+newPath);
 		
 		// save the changes 
-		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+		MPTDictionaryDelta changes = new MPTDictionaryDelta(mpt);
 		System.out.println("\nchanges:\n"+changes);
 		try {
 			// use the changes to calculate an update for the original path
@@ -640,7 +645,7 @@ public class MerklePrefixTrieFullTest {
 	
 	@Test
 	public void testDeltaGenerateUpdatesMultiplePaths() {
-		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
 
 		// insert the entries
 		mpt.insert("A".getBytes(), "1".getBytes());
@@ -658,7 +663,7 @@ public class MerklePrefixTrieFullTest {
 		List<byte[]> keys = new ArrayList<>();
 		keys.add(key1);
 		keys.add(key2);
-		MerklePrefixTriePartial partialmpt = new  MerklePrefixTriePartial(mpt, keys);
+		MPTDictionaryPartial partialmpt = new  MPTDictionaryPartial(mpt, keys);
 		System.out.println("\npartial:\n"+partialmpt);
 		
 		mpt.reset();
@@ -666,7 +671,7 @@ public class MerklePrefixTrieFullTest {
 		mpt.insert("A".getBytes(), "101".getBytes());
 		System.out.println("\nupdated:\n"+mpt);
 
-		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+		MPTDictionaryDelta changes = new MPTDictionaryDelta(mpt);
 		System.out.println("\nchanges :\n"+changes);
 
 		MerklePrefixTrie updates = changes.getUpdates(keys);
@@ -686,7 +691,7 @@ public class MerklePrefixTrieFullTest {
 	
 	@Test
 	public void testDeltaGenerateInsertsDeletesAndChanges() {
-		MerklePrefixTrieFull mpt = new MerklePrefixTrieFull();
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
 
 		// insert the entries
 		mpt.insert("A".getBytes(), "1".getBytes());
@@ -704,7 +709,7 @@ public class MerklePrefixTrieFullTest {
 		List<byte[]> keys = new ArrayList<>();
 		keys.add(key1);
 		keys.add(key2);
-		MerklePrefixTriePartial partialmpt = new  MerklePrefixTriePartial(mpt, keys);
+		MPTDictionaryPartial partialmpt = new  MPTDictionaryPartial(mpt, keys);
 		System.out.println("\npartial:\n"+partialmpt);
 		
 		mpt.reset();
@@ -713,9 +718,9 @@ public class MerklePrefixTrieFullTest {
 		mpt.delete("B".getBytes());
 		System.out.println("\nupdated:\n"+mpt);
 		
-		MerklePrefixTriePartial partialmptNew = new  MerklePrefixTriePartial(mpt, keys);
+		MPTDictionaryPartial partialmptNew = new  MPTDictionaryPartial(mpt, keys);
 
-		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+		MPTDictionaryDelta changes = new MPTDictionaryDelta(mpt);
 		System.out.println("\nchanges :\n"+changes);
 
 		MerklePrefixTrie updates = changes.getUpdates(keys);
@@ -732,7 +737,7 @@ public class MerklePrefixTrieFullTest {
 	
 	@Test
 	public void testDeltaGenerateInsertsDeletesAndChangesLargeMpt() {
-		MerklePrefixTrieFull mpt = Utils.makeMerklePrefixTrie(1000, "");
+		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(1000, "");
 		byte[] key1 = ("key"+Integer.toString(112)).getBytes();
 		byte[] key2 = ("key"+Integer.toString(204)).getBytes();
 		byte[] key3 = ("key"+Integer.toString(681)).getBytes();
@@ -742,7 +747,7 @@ public class MerklePrefixTrieFullTest {
 		keys.add(key2);
 		keys.add(key3);
 		keys.add(key4);
-		MerklePrefixTriePartial paths = new MerklePrefixTriePartial(mpt, keys);
+		MPTDictionaryPartial paths = new MPTDictionaryPartial(mpt, keys);
 		
 		mpt.reset();
 		// now delete some keys 
@@ -764,9 +769,9 @@ public class MerklePrefixTrieFullTest {
 		}
 		
 		// update paths
-		MerklePrefixTriePartial newPaths = new MerklePrefixTriePartial(mpt, keys);
+		MPTDictionaryPartial newPaths = new MPTDictionaryPartial(mpt, keys);
 		
-		MerklePrefixTrieDelta changes = new MerklePrefixTrieDelta(mpt);
+		MPTDictionaryDelta changes = new MPTDictionaryDelta(mpt);
 		MerklePrefixTrie updates = changes.getUpdates(keys);
 		try {
 			paths.processUpdates(updates);

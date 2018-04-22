@@ -1,4 +1,4 @@
-package mpt;
+package mpt.dictionary;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,6 +6,12 @@ import java.util.List;
 import com.google.protobuf.ByteString;
 
 import crpyto.CryptographicDigest;
+import mpt.core.EmptyLeafNode;
+import mpt.core.InteriorNode;
+import mpt.core.DictionaryLeafNode;
+import mpt.core.Node;
+import mpt.core.Stub;
+import mpt.core.Utils;
 import serialization.MptSerialization;
 
 /**
@@ -19,7 +25,7 @@ import serialization.MptSerialization;
  * @author henryaspegren
  *
  */
-public class MerklePrefixTrieDelta implements AuthenticatedDictionaryChanges {
+public class MPTDictionaryDelta implements AuthenticatedDictionaryChanges {
 	
 	protected InteriorNode root;
 	
@@ -29,8 +35,8 @@ public class MerklePrefixTrieDelta implements AuthenticatedDictionaryChanges {
 	 * altered by inserts or deletes since the last call to mpt.reset())
 	 * @param mpt - The MPT to copy changes from
 	 */
-	public MerklePrefixTrieDelta(MerklePrefixTrieFull mpt) {
-		InteriorNode copiedRootOnlyChanges = (InteriorNode) MerklePrefixTrieDelta.copyChangesOnlyHelper(mpt.root);
+	public MPTDictionaryDelta(MPTDictionaryFull mpt) {
+		InteriorNode copiedRootOnlyChanges = (InteriorNode) MPTDictionaryDelta.copyChangesOnlyHelper(mpt.root);
 		this.root = copiedRootOnlyChanges;
 	}
 
@@ -43,27 +49,29 @@ public class MerklePrefixTrieDelta implements AuthenticatedDictionaryChanges {
 				return new EmptyLeafNode();
 			}
 			if (currentNode.changed()) {
-				return new LeafNode(currentNode.getKey(), currentNode.getValue());
+				return new DictionaryLeafNode(currentNode.getKey(), currentNode.getValue());
 			}
 			return new Stub(currentNode.getHash());
 		}
-		Node leftChild = MerklePrefixTrieDelta.copyChangesOnlyHelper(currentNode.getLeftChild());
-		Node rightChild = MerklePrefixTrieDelta.copyChangesOnlyHelper(currentNode.getRightChild());
+		Node leftChild = MPTDictionaryDelta.copyChangesOnlyHelper(currentNode.getLeftChild());
+		Node rightChild = MPTDictionaryDelta.copyChangesOnlyHelper(currentNode.getRightChild());
 		return new InteriorNode(leftChild, rightChild);
 	}
 
+	@Override
 	public MptSerialization.MerklePrefixTrie getUpdates(final byte[] key) {
 		List<byte[]> keys = new ArrayList<byte[]>();
 		keys.add(key);
 		return this.getUpdates(keys);
 	}
 	
+	@Override
 	public MptSerialization.MerklePrefixTrie getUpdates(final List<byte[]> keys) {
 		List<byte[]> keyHashes = new ArrayList<byte[]>();
 		for(byte[] key : keys) {
 			keyHashes.add(CryptographicDigest.digest(key));
 		}
-		MptSerialization.Node root = MerklePrefixTrieDelta.getUpdatesHelper(keyHashes, -1, this.root);
+		MptSerialization.Node root = MPTDictionaryDelta.getUpdatesHelper(keyHashes, -1, this.root);
 		MptSerialization.MerklePrefixTrie tree = MptSerialization.MerklePrefixTrie.newBuilder()
 				.setRoot(root)
 				.build();
@@ -120,9 +128,9 @@ public class MerklePrefixTrieDelta implements AuthenticatedDictionaryChanges {
 				matchLeft.add(keyHash);
 			}
 		}
-		MptSerialization.Node left = MerklePrefixTrieDelta.getUpdatesHelper(matchLeft, currentBitIndex+1, 
+		MptSerialization.Node left = MPTDictionaryDelta.getUpdatesHelper(matchLeft, currentBitIndex+1, 
 				currentNode.getLeftChild());
-		MptSerialization.Node right = MerklePrefixTrieDelta.getUpdatesHelper(matchRight, currentBitIndex+1, 
+		MptSerialization.Node right = MPTDictionaryDelta.getUpdatesHelper(matchRight, currentBitIndex+1, 
 				currentNode.getRightChild());
 		
 		// create an interior node to return
@@ -139,7 +147,7 @@ public class MerklePrefixTrieDelta implements AuthenticatedDictionaryChanges {
 		
 	@Override
 	public String toString() {
-		return "<MerklePrefixTrieDelta \n"+MerklePrefixTrieFull.toStringHelper("+", this.root)+"\n>";
+		return "<MPTDictionaryDelta \n"+MPTDictionaryFull.toStringHelper("+", this.root)+"\n>";
 	}
 
 }

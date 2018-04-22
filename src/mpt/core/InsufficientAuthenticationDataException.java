@@ -1,4 +1,4 @@
-package mpt;
+package mpt.core;
 
 /**
  * This exception indicates that an operation in an ADS

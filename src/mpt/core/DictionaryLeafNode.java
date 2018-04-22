@@ -1,4 +1,4 @@
-package mpt;
+package mpt.core;
 
 import java.util.Arrays;
 
@@ -10,14 +10,15 @@ import serialization.MptSerialization;
 /**
  * MUTABLE
  * 
- * Represents a leaf node in a Merkle Prefix Trie (MPT). Leaf nodes
- * store a key and a value, which can be arbitrary bytes. The value of
- * a leaf can be updated. The hash is calculated lazily.
+ * Represents a leaf node in a Merkle Prefix Trie (MPT) dictionary. 
+ * Dictionary leaf nodes store a key and a value, 
+ * both of which can be arbitrary bytes. The value of
+ * a leaf can be updated. The commitment hash is calculated lazily.
  *  
  * @author henryaspegren
  *
  */
-public class LeafNode implements Node {
+public class DictionaryLeafNode implements Node {
 		
 	// the key can be arbitrary bytes
 	// (e.g a pubkey, a set of pubkeys, a string)
@@ -36,7 +37,7 @@ public class LeafNode implements Node {
 	private byte[] commitmentHash;
 	private boolean recalculateHash;
 		
-	public LeafNode(byte[] key, byte[] value){
+	public DictionaryLeafNode(byte[] key, byte[] value){
 		this.key = key.clone();
 		this.keyHash = CryptographicDigest.digest(key);
 		this.value = value.clone();
@@ -92,7 +93,7 @@ public class LeafNode implements Node {
 		
 	@Override
 	public String toString() {
-		return new String("<Leaf K: "+ Utils.byteArrayAsHexString(this.key) +
+		return new String("<DictionaryLeaf K: "+ Utils.byteArrayAsHexString(this.key) +
 				" V: "+ Utils.byteArrayAsHexString(this.value) + 
 				" Hash: " + Utils.byteArrayAsHexString(this.getHash())
 				+">");
@@ -110,8 +111,8 @@ public class LeafNode implements Node {
 	
 	@Override
 	public boolean equals(Object arg0) {
-		if(arg0 instanceof LeafNode) {
-			LeafNode ln = (LeafNode) arg0;
+		if(arg0 instanceof DictionaryLeafNode) {
+			DictionaryLeafNode ln = (DictionaryLeafNode) arg0;
 			// practically speaking it would be sufficient to just check the hashes
 			// since we are using collision resistant hash functions 
 			return Arrays.equals(this.key, ln.key) && Arrays.equals(this.value, ln.value);

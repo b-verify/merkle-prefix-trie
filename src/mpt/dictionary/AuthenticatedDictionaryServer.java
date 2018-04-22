@@ -1,4 +1,4 @@
-package mpt;
+package mpt.dictionary;
 
 /**
  * This is the interface the server should use for managing
