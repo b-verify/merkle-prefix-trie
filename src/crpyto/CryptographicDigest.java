@@ -3,13 +3,18 @@ package crpyto;
 import java.security.MessageDigest;
 
 /**
+ * This is a wrapper that exposes the required
+ * cryptographic operations. This actual implementations 
+ * should be a dedicated, standard cryptographic library.
+ * The underlying cryptographic library can be swapped 
+ * out.
  * 
  * @author henryaspegren
  *
  */
 public class CryptographicDigest {
 
-	private static final String HASH_FUNCTION = "SHA-256";
+	static final String HASH_FUNCTION = "SHA-256";
 	private static final int SIZE_BITS = 256;
 	private static final int SIZE_BYTES = SIZE_BITS / 8;
 	
@@ -23,29 +28,6 @@ public class CryptographicDigest {
 			MessageDigest md = MessageDigest.getInstance(HASH_FUNCTION);
 			byte[] digest = md.digest(input);
 			return digest;
-		}catch(Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-	
-	/**
-	 * Commits to a key and a value using the following commitment 
-	 * 
-	 * 					H(H(key)||H(value))
-	 * 
-	 * @param key
-	 * @param value
-	 * @return
-	 */
-	public static byte[] witnessKeyAndValue(byte[] key, byte[] value) {
-		try {
-			MessageDigest md = MessageDigest.getInstance(HASH_FUNCTION);
-			byte[] digestKey = md.digest(key);
-			byte[] digestValue = md.digest(value);
-			byte[] witness = new byte[digestKey.length+digestValue.length];
-			System.arraycopy(digestKey, 0, witness, 0, digestKey.length);
-			System.arraycopy(digestValue, 0, witness, digestKey.length, digestValue.length);
-			return witness;
 		}catch(Exception e) {
 			throw new RuntimeException(e);
 		}
