@@ -56,7 +56,7 @@ public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 	 */
 	public MPTDictionaryPartial(MPTDictionaryFull fullMPT, byte[] key) {
 		List<byte[]> keyHashes = new ArrayList<>();
-		keyHashes.add(CryptographicDigest.digest(key));
+		keyHashes.add(CryptographicDigest.hash(key));
 		Node root = MPTDictionaryPartial.copyMultiplePaths(keyHashes, fullMPT.root, -1);
 		this.root = (InteriorNode) root;
 	}
@@ -73,7 +73,7 @@ public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 	public MPTDictionaryPartial(MPTDictionaryFull fullMPT, List<byte[]> keys) {
 		List<byte[]> keyHashes = new ArrayList<>();
 		for(byte[] key : keys) {
-			keyHashes.add(CryptographicDigest.digest(key));
+			keyHashes.add(CryptographicDigest.hash(key));
 		}
 		Node root = MPTDictionaryPartial.copyMultiplePaths(keyHashes, fullMPT.root, -1);
 		this.root = (InteriorNode) root;
@@ -120,7 +120,7 @@ public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 	
 	@Override
 	public byte[] get(final byte[] key) throws InsufficientAuthenticationDataException {
-		byte[] keyHash = CryptographicDigest.digest(key);
+		byte[] keyHash = CryptographicDigest.hash(key);
 		return MPTDictionaryPartial.getHelper(this.root, keyHash, -1);
 	}
 

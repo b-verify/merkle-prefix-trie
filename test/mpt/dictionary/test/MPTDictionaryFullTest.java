@@ -356,7 +356,7 @@ public class MPTDictionaryFullTest {
 		//insert 10
 		byte[] first = new byte[] { 2 };
 		System.out.println("SETTING FIRST");
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest(first)));
+		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash(first)));
 		mpt.insert(first, "1".getBytes());
 		System.out.println(mpt);
 		
@@ -364,14 +364,14 @@ public class MPTDictionaryFullTest {
 		//insert 11
 		byte[] second = new byte[] { 3 };
 		System.out.println("SETTING SECOND");
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest(second)));
+		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash(second)));
 		mpt.insert(second, "2".getBytes());
 		System.out.println(mpt);
 		
 		//insert 1001
 		byte[] third = new byte[] { 9 };
 		System.out.println("SETTING THIRD");
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest(third)));
+		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash(third)));
 		mpt.insert(third, "3".getBytes());
 		System.out.println(mpt);		
 	}
@@ -382,14 +382,14 @@ public class MPTDictionaryFullTest {
 		//insert 1000
 		byte[] first = new byte[] { 8 };
 		System.out.println("SETTING FIRST");
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest(first)));
+		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash(first)));
 		mpt.insert(first, "1".getBytes());
 		System.out.println(mpt);
 		
 		//insert 1010001
 		byte[] second = new byte[] { 81 };
 		System.out.println("SETTING SECOND");
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest(second)));
+		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash(second)));
 		mpt.insert(second, "10".getBytes());
 		System.out.println(mpt);
 	}
@@ -606,9 +606,9 @@ public class MPTDictionaryFullTest {
 		mpt.insert("F".getBytes(), "1".getBytes());		
 		// mark everything as unchanged
 		mpt.reset();
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest("F".getBytes())));
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest("C".getBytes())));
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.digest("G".getBytes())));
+		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash("F".getBytes())));
+		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash("C".getBytes())));
+		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash("G".getBytes())));
 
 		// copy a path to a key
 		byte[] key = "F".getBytes();

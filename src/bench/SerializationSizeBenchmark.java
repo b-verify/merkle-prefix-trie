@@ -41,7 +41,7 @@ public class SerializationSizeBenchmark {
 				MptSerialization.Node.newBuilder()
 				.setStub(
 					MptSerialization.Stub.newBuilder()
-						.setHash(ByteString.copyFrom(CryptographicDigest.digest("SOME STRING".getBytes())))
+						.setHash(ByteString.copyFrom(CryptographicDigest.hash("SOME STRING".getBytes())))
 						.build())
 				.build();
 		System.out.println("Size of a stub (A) (# bytes): "+stubA.toByteArray().length);
@@ -50,7 +50,7 @@ public class SerializationSizeBenchmark {
 				MptSerialization.Node.newBuilder()
 				.setStub(
 					MptSerialization.Stub.newBuilder()
-						.setHash(ByteString.copyFrom(CryptographicDigest.digest("OTHER STRING".getBytes())))
+						.setHash(ByteString.copyFrom(CryptographicDigest.hash("OTHER STRING".getBytes())))
 						.build())
 				.build();
 		System.out.println("Size of a stub (B) (# bytes): "+stubB.toByteArray().length);

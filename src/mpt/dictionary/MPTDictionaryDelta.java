@@ -69,7 +69,7 @@ public class MPTDictionaryDelta implements AuthenticatedDictionaryChanges {
 	public MptSerialization.MerklePrefixTrie getUpdates(final List<byte[]> keys) {
 		List<byte[]> keyHashes = new ArrayList<byte[]>();
 		for(byte[] key : keys) {
-			keyHashes.add(CryptographicDigest.digest(key));
+			keyHashes.add(CryptographicDigest.hash(key));
 		}
 		MptSerialization.Node root = MPTDictionaryDelta.getUpdatesHelper(keyHashes, -1, this.root);
 		MptSerialization.MerklePrefixTrie tree = MptSerialization.MerklePrefixTrie.newBuilder()

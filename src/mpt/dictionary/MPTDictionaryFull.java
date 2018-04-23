@@ -57,7 +57,7 @@ public class MPTDictionaryFull implements AuthenticatedDictionaryServer {
 	public void insert(final byte[] key, final byte[] value) {
 		LOGGER.log(Level.FINE,
 				"insert(" + Utils.byteArrayAsHexString(key) + ", " + Utils.byteArrayAsHexString(value) + ")");
-		byte[] keyHash = CryptographicDigest.digest(key);
+		byte[] keyHash = CryptographicDigest.hash(key);
 		MPTDictionaryFull.insertHelper(key, value, keyHash, -1, this.root);
 	}
 
@@ -130,7 +130,7 @@ public class MPTDictionaryFull implements AuthenticatedDictionaryServer {
 
 	@Override
 	public byte[] get(final byte[] key)  {
-		byte[] keyHash = CryptographicDigest.digest(key);
+		byte[] keyHash = CryptographicDigest.hash(key);
 		return MPTDictionaryFull.getHelper(this.root, keyHash, -1);
 	}
 
@@ -154,7 +154,7 @@ public class MPTDictionaryFull implements AuthenticatedDictionaryServer {
 
 	@Override
 	public void delete(final byte[] key) {
-		byte[] keyHash = CryptographicDigest.digest(key);
+		byte[] keyHash = CryptographicDigest.hash(key);
 		LOGGER.log(Level.FINE, "delete(" + Utils.byteArrayAsHexString(key) + ")");
 		MPTDictionaryFull.deleteHelper(keyHash, -1, this.root, true);
 		// force updating the hash

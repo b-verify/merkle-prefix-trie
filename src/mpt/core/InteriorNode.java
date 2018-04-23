@@ -62,7 +62,7 @@ public class InteriorNode implements Node {
 			byte[] commitment = new byte[leftChildHash.length+rightChildHash.length];
 			System.arraycopy(leftChildHash, 0, commitment, 0, leftChildHash.length);
 			System.arraycopy(rightChildHash, 0, commitment, leftChildHash.length, rightChildHash.length);
-			this.hash = CryptographicDigest.digest(commitment);
+			this.hash = CryptographicDigest.hash(commitment);
 			this.recalculateHash = false;
 		}
 		return this.hash.clone();

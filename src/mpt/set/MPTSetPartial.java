@@ -57,7 +57,7 @@ public class MPTSetPartial implements AuthenticatedSetClient {
 	 */
 	public MPTSetPartial(MPTSetFull fullMPTSet, byte[] value) {
 		List<byte[]> valueHashes = new ArrayList<>();
-		valueHashes.add(CryptographicDigest.digest(value));
+		valueHashes.add(CryptographicDigest.hash(value));
 		Node root = MPTSetPartial.copyMultiplePaths(valueHashes, fullMPTSet.root, -1);
 		this.root = (InteriorNode) root;
 	}
@@ -74,7 +74,7 @@ public class MPTSetPartial implements AuthenticatedSetClient {
 	public MPTSetPartial(MPTSetFull fullMPTSet, List<byte[]> values) {
 		List<byte[]> valueHashes = new ArrayList<>();
 		for(byte[] value : values) {
-			valueHashes.add(CryptographicDigest.digest(value));
+			valueHashes.add(CryptographicDigest.hash(value));
 		}
 		Node root = MPTSetPartial.copyMultiplePaths(valueHashes, fullMPTSet.root, -1);
 		this.root = (InteriorNode) root;
@@ -121,7 +121,7 @@ public class MPTSetPartial implements AuthenticatedSetClient {
 	
 	@Override
 	public boolean inSet(final byte[] value) throws InsufficientAuthenticationDataException {
-		byte[] valueHash = CryptographicDigest.digest(value);
+		byte[] valueHash = CryptographicDigest.hash(value);
 		return MPTSetPartial.getHelper(this.root, valueHash, -1);
 	}
 

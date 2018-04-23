@@ -28,7 +28,7 @@ public class SetLeafNode implements Node{
 	
 	public SetLeafNode(byte[] value) {
 		this.value = value.clone();
-		this.valueHash = CryptographicDigest.digest(value);
+		this.valueHash = CryptographicDigest.hash(value);
 		this.changed = true;
 	}
 

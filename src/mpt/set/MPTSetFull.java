@@ -55,7 +55,7 @@ public class MPTSetFull implements AuthenticatedSetServer {
 	public void insert(final byte[] value) {
 		LOGGER.log(Level.FINE,
 				"insert(" + Utils.byteArrayAsHexString(value) + ")");
-		byte[] valueHash = CryptographicDigest.digest(value);
+		byte[] valueHash = CryptographicDigest.hash(value);
 		MPTSetFull.insertHelper(value, valueHash, -1, this.root);
 	}
 
@@ -127,7 +127,7 @@ public class MPTSetFull implements AuthenticatedSetServer {
 
 	@Override
 	public boolean inSet(final byte[] value)  {
-		byte[] valueHash = CryptographicDigest.digest(value);
+		byte[] valueHash = CryptographicDigest.hash(value);
 		return MPTSetFull.getHelper(this.root, valueHash, -1);
 	}
 
@@ -152,7 +152,7 @@ public class MPTSetFull implements AuthenticatedSetServer {
 
 	@Override
 	public void delete(final byte[] value) {
-		byte[] valueHash = CryptographicDigest.digest(value);
+		byte[] valueHash = CryptographicDigest.hash(value);
 		LOGGER.log(Level.FINE, "delete(" + Utils.byteArrayAsHexString(value) + ")");
 		MPTSetFull.deleteHelper(valueHash, -1, this.root, true);
 		// force updating the hash

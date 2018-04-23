@@ -39,7 +39,7 @@ public class DictionaryLeafNode implements Node {
 		
 	public DictionaryLeafNode(byte[] key, byte[] value){
 		this.key = key.clone();
-		this.keyHash = CryptographicDigest.digest(key);
+		this.keyHash = CryptographicDigest.hash(key);
 		this.value = value.clone();
 		this.changed = true;
 		this.recalculateHash = true;
