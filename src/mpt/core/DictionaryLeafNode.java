@@ -4,7 +4,6 @@ import java.util.Arrays;
 
 import com.google.protobuf.ByteString;
 
-import crpyto.CryptographicDigest;
 import crpyto.CryptographicUtils;
 import serialization.MptSerialization;
 
@@ -13,34 +12,34 @@ import serialization.MptSerialization;
  * 
  * Represents a leaf node in a Merkle Prefix Trie (MPT) dictionary. 
  * Dictionary leaf nodes store a key and a value, 
- * both of which can be arbitrary bytes. The value of
- * a leaf can be updated. The commitment hash is calculated lazily.
+ * both of which are fixed length byte arrays (usually
+ * the outputs of a cryptographic hash). The value of
+ * a leaf can be updated. 
  *  
  * @author henryaspegren
  *
  */
 public class DictionaryLeafNode implements Node {
 		
-	// the key can be arbitrary bytes
-	// (e.g a pubkey, a set of pubkeys, a string)
+	// the key should be a fixed-length
+	// byte array
 	private final byte[] key;
-	// H(key)
-	private final byte[] keyHash;
-	
+
 	// the value stored in this leaf
-	// this can be arbitrary bytes 
-	// (e.g. a commitment, a string)
+	// should be a fixed-length byte array
 	private byte[] value;
+	
+	// we also track whether the value
+	// has been changed
 	private boolean changed;
 	
 	// the commitment is a witness to BOTH 
-	// the key and value: H(H(key)||H(value))
+	// the key and value: H(key||value)
 	private byte[] commitmentHash;
 	private boolean recalculateHash;
 		
 	public DictionaryLeafNode(byte[] key, byte[] value){
 		this.key = key.clone();
-		this.keyHash = CryptographicDigest.hash(key);
 		this.value = value.clone();
 		this.changed = true;
 		this.recalculateHash = true;
@@ -103,11 +102,6 @@ public class DictionaryLeafNode implements Node {
 	@Override
 	public byte[] getKey() {
 		return this.key.clone();
-	}
-
-	@Override
-	public byte[] getKeyHash() {
-		return this.keyHash.clone();
 	}
 	
 	@Override

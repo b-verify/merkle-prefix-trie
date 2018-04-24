@@ -49,11 +49,6 @@ public class Stub implements Node {
 	}
 
 	@Override
-	public byte[] getKeyHash() {
-		return null;
-	}
-
-	@Override
 	public byte[] getValue() {
 		return null;
 	}

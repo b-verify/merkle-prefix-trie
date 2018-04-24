@@ -55,18 +55,19 @@ public class MPTDictionaryFull implements AuthenticatedDictionaryServer {
 
 	@Override
 	public void insert(final byte[] key, final byte[] value) {
+		assert key.length == CryptographicDigest.getSizeBytes();
+		assert value.length == CryptographicDigest.getSizeBytes();
 		LOGGER.log(Level.FINE,
-				"insert(" + Utils.byteArrayAsHexString(key) + ", " + Utils.byteArrayAsHexString(value) + ")");
-		byte[] keyHash = CryptographicDigest.hash(key);
-		MPTDictionaryFull.insertHelper(key, value, keyHash, -1, this.root);
+				"insert(" + Utils.byteArrayAsHexString(key) +") = " + Utils.byteArrayAsHexString(value));
+		MPTDictionaryFull.insertHelper(key, value, -1, this.root);
 	}
 
-	private static Node insertHelper(final byte[] key, final byte[] value, final byte[] keyHash, 
+	private static Node insertHelper(final byte[] key, final byte[] value, 
 			final int currentBitIndex, final Node currentNode) {
 		// when we hit a leaf we know where we need to insert
 		if (currentNode.isLeaf()) {
 			// this key is already in the tree, update existing mapping
-			if (Arrays.equals(currentNode.getKeyHash(), keyHash)) {
+			if (Arrays.equals(currentNode.getKey(), key)) {
 				// update the value
 				currentNode.setValue(value);
 				return currentNode;
@@ -85,27 +86,27 @@ public class MPTDictionaryFull implements AuthenticatedDictionaryServer {
 			currentLeafNode.markChangedAll();
 			return MPTDictionaryFull.split(currentLeafNode, nodeToAdd, currentBitIndex);
 		}
-		boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
+		boolean bit = Utils.getBit(key, currentBitIndex + 1);
 		/*
 		 * Encoding: if bit is 1 -> go right if bit is 0 -> go left
 		 */
 		if (bit) {
-			Node newRightChild = MPTDictionaryFull.insertHelper(key, value, keyHash, currentBitIndex + 1,
+			Node newRightChild = MPTDictionaryFull.insertHelper(key, value, currentBitIndex + 1,
 					currentNode.getRightChild());
 			// update the right child
 			currentNode.setRightChild(newRightChild);
 			return currentNode;
 
 		}
-		Node newLeftChild = MPTDictionaryFull.insertHelper(key, value, keyHash, currentBitIndex + 1, currentNode.getLeftChild());
+		Node newLeftChild = MPTDictionaryFull.insertHelper(key, value, currentBitIndex + 1, currentNode.getLeftChild());
 		currentNode.setLeftChild(newLeftChild);
 		return currentNode;
 	}
 
 	private static Node split(final DictionaryLeafNode a, final DictionaryLeafNode b, final int currentBitIndex) {
-		assert !Arrays.equals(a.getKeyHash(), b.getKeyHash());
-		boolean bitA = Utils.getBit(a.getKeyHash(), currentBitIndex + 1);
-		boolean bitB = Utils.getBit(b.getKeyHash(), currentBitIndex + 1);
+		assert !Arrays.equals(a.getKey(), b.getKey());
+		boolean bitA = Utils.getBit(a.getKey(), currentBitIndex + 1);
+		boolean bitB = Utils.getBit(b.getKey(), currentBitIndex + 1);
 		// still collision, split again
 		if (bitA == bitB) {
 			// recursively split
@@ -130,42 +131,43 @@ public class MPTDictionaryFull implements AuthenticatedDictionaryServer {
 
 	@Override
 	public byte[] get(final byte[] key)  {
-		byte[] keyHash = CryptographicDigest.hash(key);
-		return MPTDictionaryFull.getHelper(this.root, keyHash, -1);
+		assert key.length == CryptographicDigest.getSizeBytes();
+		return MPTDictionaryFull.getHelper(this.root, key, -1);
 	}
 
-	private static byte[] getHelper(final Node currentNode, final byte[] keyHash, final int currentBitIndex) {
+	private static byte[] getHelper(final Node currentNode, final byte[] key, final int currentBitIndex) {
 		if (currentNode.isLeaf()) {
 			if (!currentNode.isEmpty()) {
 				// if the current node is NonEmpty and matches the Key
-				if (Arrays.equals(currentNode.getKeyHash(), keyHash)) {
+				if (Arrays.equals(currentNode.getKey(), key)) {
 					return currentNode.getValue();
 				}
 			}
 			// otherwise key not in the MPT - return null;
 			return null;
 		}
-		boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
+		boolean bit = Utils.getBit(key, currentBitIndex + 1);
 		if (bit) {
-			return MPTDictionaryFull.getHelper(currentNode.getRightChild(), keyHash, currentBitIndex + 1);
+			return MPTDictionaryFull.getHelper(currentNode.getRightChild(), key, currentBitIndex + 1);
 		}
-		return MPTDictionaryFull.getHelper(currentNode.getLeftChild(), keyHash, currentBitIndex + 1);
+		return MPTDictionaryFull.getHelper(currentNode.getLeftChild(), key, currentBitIndex + 1);
 	}
 
 	@Override
 	public void delete(final byte[] key) {
-		byte[] keyHash = CryptographicDigest.hash(key);
+		assert key.length == CryptographicDigest.getSizeBytes();
 		LOGGER.log(Level.FINE, "delete(" + Utils.byteArrayAsHexString(key) + ")");
-		MPTDictionaryFull.deleteHelper(keyHash, -1, this.root, true);
+		MPTDictionaryFull.deleteHelper(key, -1, this.root, true);
 		// force updating the hash
+		// TODO: later check if this is necessary and probably remove
 		this.root.getHash();
 	}
 
-	private static Node deleteHelper(final byte[] keyHash, final int currentBitIndex, final Node currentNode, 
+	private static Node deleteHelper(final byte[] key, final int currentBitIndex, final Node currentNode, 
 			final boolean isRoot) {
 		if (currentNode.isLeaf()) {
 			if (!currentNode.isEmpty()) {
-				if (Arrays.equals(currentNode.getKeyHash(), keyHash)) {
+				if (Arrays.equals(currentNode.getKey(), key)) {
 					return new EmptyLeafNode();
 				}
 			}
@@ -174,12 +176,12 @@ public class MPTDictionaryFull implements AuthenticatedDictionaryServer {
 		}
 		// we have to watch out to make sure that if this is the root node
 		// that we return an InteriorNode and don't propagate up an empty node
-		boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
+		boolean bit = Utils.getBit(key, currentBitIndex + 1);
 		Node leftChild = currentNode.getLeftChild();
 		Node rightChild = currentNode.getRightChild();
 		if (bit) {
 			// delete key from the right subtree
-			Node newRightChild = MPTDictionaryFull.deleteHelper(keyHash, currentBitIndex + 1, rightChild, false);
+			Node newRightChild = MPTDictionaryFull.deleteHelper(key, currentBitIndex + 1, rightChild, false);
 			// if left subtree is empty, and rightChild is leaf
 			// we push the newRightChild back up the MPT
 			if (leftChild.isEmpty() && newRightChild.isLeaf() && !isRoot) {
@@ -198,7 +200,7 @@ public class MPTDictionaryFull implements AuthenticatedDictionaryServer {
 			currentNode.setRightChild(newRightChild);
 			return currentNode;
 		}
-		Node newLeftChild = MPTDictionaryFull.deleteHelper(keyHash, currentBitIndex + 1, leftChild, false);
+		Node newLeftChild = MPTDictionaryFull.deleteHelper(key, currentBitIndex + 1, leftChild, false);
 		if (rightChild.isEmpty() && newLeftChild.isLeaf() && !isRoot) {
 			return newLeftChild;
 		}

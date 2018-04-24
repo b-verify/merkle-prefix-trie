@@ -53,18 +53,17 @@ public class MPTSetFull implements AuthenticatedSetServer {
 
 	@Override
 	public void insert(final byte[] value) {
+		assert value.length == CryptographicDigest.getSizeBytes();
 		LOGGER.log(Level.FINE,
 				"insert(" + Utils.byteArrayAsHexString(value) + ")");
-		byte[] valueHash = CryptographicDigest.hash(value);
-		MPTSetFull.insertHelper(value, valueHash, -1, this.root);
+		MPTSetFull.insertHelper(value, -1, this.root);
 	}
 
-	private static Node insertHelper(final byte[] value, final byte[] valueHash, 
-			final int currentBitIndex, final Node currentNode) {
+	private static Node insertHelper(final byte[] value, final int currentBitIndex, final Node currentNode) {
 		// when we hit a leaf we know where we need to insert
 		if (currentNode.isLeaf()) {
 			// this value is already in the set - no need to do anything
-			if (Arrays.equals(currentNode.getKeyHash(), valueHash)) {
+			if (Arrays.equals(currentNode.getValue(), value)) {
 				return currentNode;
 			}
 			// otherwise value is not in the set 
@@ -82,27 +81,27 @@ public class MPTSetFull implements AuthenticatedSetServer {
 			currentLeafNode.markChangedAll();
 			return MPTSetFull.split(currentLeafNode, nodeToAdd, currentBitIndex);
 		}
-		boolean bit = Utils.getBit(valueHash, currentBitIndex + 1);
+		boolean bit = Utils.getBit(value, currentBitIndex + 1);
 		/*
 		 * Encoding: if bit is 1 -> go right if bit is 0 -> go left
 		 */
 		if (bit) {
-			Node newRightChild = MPTSetFull.insertHelper(value, valueHash, currentBitIndex + 1,
+			Node newRightChild = MPTSetFull.insertHelper(value, currentBitIndex + 1,
 					currentNode.getRightChild());
 			// update the right child
 			currentNode.setRightChild(newRightChild);
 			return currentNode;
 
 		}
-		Node newLeftChild = MPTSetFull.insertHelper(value, valueHash, currentBitIndex + 1, currentNode.getLeftChild());
+		Node newLeftChild = MPTSetFull.insertHelper(value, currentBitIndex + 1, currentNode.getLeftChild());
 		currentNode.setLeftChild(newLeftChild);
 		return currentNode;
 	}
 
 	private static Node split(final SetLeafNode a, final SetLeafNode b, final int currentBitIndex) {
-		assert !Arrays.equals(a.getKeyHash(), b.getKeyHash());
-		boolean bitA = Utils.getBit(a.getKeyHash(), currentBitIndex + 1);
-		boolean bitB = Utils.getBit(b.getKeyHash(), currentBitIndex + 1);
+		assert !Arrays.equals(a.getValue(), b.getValue());
+		boolean bitA = Utils.getBit(a.getValue(), currentBitIndex + 1);
+		boolean bitB = Utils.getBit(b.getValue(), currentBitIndex + 1);
 		// still collision, split again
 		if (bitA == bitB) {
 			// recursively split
@@ -127,43 +126,43 @@ public class MPTSetFull implements AuthenticatedSetServer {
 
 	@Override
 	public boolean inSet(final byte[] value)  {
-		byte[] valueHash = CryptographicDigest.hash(value);
-		return MPTSetFull.getHelper(this.root, valueHash, -1);
+		assert value.length == CryptographicDigest.getSizeBytes();
+		return MPTSetFull.getHelper(this.root, value, -1);
 	}
 
-	private static boolean getHelper(final Node currentNode, final byte[] valueHash, final int currentBitIndex) {
+	private static boolean getHelper(final Node currentNode, final byte[] value, final int currentBitIndex) {
 		// search is over
 		if (currentNode.isLeaf()) {
 			if (!currentNode.isEmpty()) {
 				// if we found the value - return true
-				if (Arrays.equals(currentNode.getKeyHash(), valueHash)) {
+				if (Arrays.equals(currentNode.getValue(), value)) {
 					return true;
 				}
 			}
 			// otherwise return false
 			return false;
 		}
-		boolean bit = Utils.getBit(valueHash, currentBitIndex + 1);
+		boolean bit = Utils.getBit(value, currentBitIndex + 1);
 		if (bit) {
-			return MPTSetFull.getHelper(currentNode.getRightChild(), valueHash, currentBitIndex + 1);
+			return MPTSetFull.getHelper(currentNode.getRightChild(), value, currentBitIndex + 1);
 		}
-		return MPTSetFull.getHelper(currentNode.getLeftChild(), valueHash, currentBitIndex + 1);
+		return MPTSetFull.getHelper(currentNode.getLeftChild(), value, currentBitIndex + 1);
 	}
 
 	@Override
 	public void delete(final byte[] value) {
-		byte[] valueHash = CryptographicDigest.hash(value);
+		assert value.length == CryptographicDigest.getSizeBytes();
 		LOGGER.log(Level.FINE, "delete(" + Utils.byteArrayAsHexString(value) + ")");
-		MPTSetFull.deleteHelper(valueHash, -1, this.root, true);
+		MPTSetFull.deleteHelper(value, -1, this.root, true);
 		// force updating the hash
 		this.root.getHash();
 	}
 
-	private static Node deleteHelper(final byte[] valueHash, final int currentBitIndex, final Node currentNode, 
+	private static Node deleteHelper(final byte[] value, final int currentBitIndex, final Node currentNode, 
 			final boolean isRoot) {
 		if (currentNode.isLeaf()) {
 			if (!currentNode.isEmpty()) {
-				if (Arrays.equals(currentNode.getKeyHash(), valueHash)) {
+				if (Arrays.equals(currentNode.getValue(), value)) {
 					return new EmptyLeafNode();
 				}
 			}
@@ -172,12 +171,12 @@ public class MPTSetFull implements AuthenticatedSetServer {
 		}
 		// we have to watch out to make sure that if this is the root node
 		// that we return an InteriorNode and don't propagate up an empty node
-		boolean bit = Utils.getBit(valueHash, currentBitIndex + 1);
+		boolean bit = Utils.getBit(value, currentBitIndex + 1);
 		Node leftChild = currentNode.getLeftChild();
 		Node rightChild = currentNode.getRightChild();
 		if (bit) {
 			// delete key from the right subtree
-			Node newRightChild = MPTSetFull.deleteHelper(valueHash, currentBitIndex + 1, rightChild, false);
+			Node newRightChild = MPTSetFull.deleteHelper(value, currentBitIndex + 1, rightChild, false);
 			// if left subtree is empty, and rightChild is leaf
 			// we push the newRightChild back up the MPT
 			if (leftChild.isEmpty() && newRightChild.isLeaf() && !isRoot) {
@@ -196,7 +195,7 @@ public class MPTSetFull implements AuthenticatedSetServer {
 			currentNode.setRightChild(newRightChild);
 			return currentNode;
 		}
-		Node newLeftChild = MPTSetFull.deleteHelper(valueHash, currentBitIndex + 1, leftChild, false);
+		Node newLeftChild = MPTSetFull.deleteHelper(value, currentBitIndex + 1, leftChild, false);
 		if (rightChild.isEmpty() && newLeftChild.isLeaf() && !isRoot) {
 			return newLeftChild;
 		}

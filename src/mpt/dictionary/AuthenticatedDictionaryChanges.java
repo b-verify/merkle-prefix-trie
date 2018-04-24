@@ -32,7 +32,8 @@ public interface AuthenticatedDictionaryChanges {
 	 * her view of the authenticated dictionary will 
 	 * now reflect the update.
 	 * 
-	 * @param key - arbitrary bytes
+	 * @param key - a fixed length byte array representing the key
+	 * (e.g. the hash of some other string)
 	 * @return a protobuf encoded representation of the
 	 * updates which can be serialized and deserialized
 	 * by the client
@@ -53,7 +54,7 @@ public interface AuthenticatedDictionaryChanges {
 	 * The client can process this update 
 	 * and her view of the authenticated dictionary
 	 * will now reflect the update.
-	 * @param keys
+	 * @param keys - an array of keys
 	 * @return a protobuf encoded representation of the
 	 * updates which can be serialized and deserialized
 	 * by the client

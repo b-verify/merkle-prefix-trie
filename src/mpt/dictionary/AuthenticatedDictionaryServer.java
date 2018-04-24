@@ -4,6 +4,19 @@ package mpt.dictionary;
  * This is the interface the server should use for managing
  * the full Authenticated Dictionary.
  * 
+ * NOTE: the current implementation defines 
+ * keys and values to be fixed length byte-arrays and 
+ * relies on the user of this library to ensure that this 
+ * is the case. The easiest way to do this is to use
+ * a cryptographic hash function to commit to 
+ * the larger key and values. The larger keys and values
+ * can be provided and authenticated with just the 
+ * hash values. The reasoning for this choice is 
+ * that it keeps the size of the data structure and
+ * the messages exchanged as as small as possible.
+ * The larger keys and values can easily be stored elsewhere
+ * and exchanged through some other medium.
+ * 
  * The server stores the full Authenticated Dictionary
  * and is responsible for making changes to it. 
  * 
@@ -29,15 +42,18 @@ public interface AuthenticatedDictionaryServer {
 	 * as changes and tracks which nodes have been changed
 	 * for the purpose of calculating updates.
 	 * 
-	 * @param key - arbitrary bytes representing a key
-	 * @param value - arbitrary bytes representing a value
+	 * @param key - a fixed length byte array representing the key
+	 * (e.g. the hash of some other string)
+	 * @param value - a fixed length byte array representing the value
+	 * (e.g. the hash of some other string)
 	 */
 	public void insert(final byte[] key, final byte[] value);
 		
 	/**
 	 * Get the value mapped to by key or null if the 
 	 * key is not mapped to anything.
-	 * @param key - arbitrary bytes representing a key
+	 * @param key - a fixed length byte array representing the key
+	 * (e.g. the hash of some other string)
 	 * @return
 	 */
 	public byte[] get(final byte[] key);
@@ -49,7 +65,8 @@ public interface AuthenticatedDictionaryServer {
 	 * Additionally the dictionary records all deletions
 	 * as changes and tracks which nodes have been changed
 	 * for the purpose of calculating updates.
-	 * @param key
+	 * @param key - a fixed length byte array representing the key
+	 * (e.g. the hash of some other string)
 	 */
 	public void delete(final byte[] key);
 	

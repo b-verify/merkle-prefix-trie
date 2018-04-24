@@ -41,13 +41,6 @@ public interface Node {
 	byte[] getKey();
 		
 	/**
-	 * Get the hash of the key stored at this node, if it exists. 
-	 * This is only applicable for a non-empty leaf
-	 * @return
-	 */
-	byte[] getKeyHash();
-		
-	/**
 	 * Returns true if this node is a (possibly empty) leaf
 	 * @return
 	 */

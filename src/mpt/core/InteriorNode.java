@@ -12,7 +12,7 @@ import serialization.MptSerialization;
  * where left.getHash() (resp. right.getHash()) is the hash of the left (resp right) 
  * child.
  * 
- * The children of the interiornode may be changed. Whenever the children are changed
+ * The children of the interior node may be changed. Whenever the children are changed
  * the node is marked "changed" until reset() is called. Hashes are calculated
  * lazily, only when getHash() is called.
  * 
@@ -112,11 +112,6 @@ public class InteriorNode implements Node {
 		return null;
 	}
 
-	@Override
-	public byte[] getKeyHash() {
-		return null;
-	}
-	
 	@Override
 	public boolean equals(Object arg0) {
 		if (arg0 instanceof InteriorNode) {

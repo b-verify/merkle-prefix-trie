@@ -7,6 +7,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import crpyto.CryptographicDigest;
 import mpt.core.InsufficientAuthenticationDataException;
 import mpt.core.InvalidSerializationException;
 import mpt.core.Utils;
@@ -16,40 +17,33 @@ import mpt.dictionary.MPTDictionaryPartial;
 public class MPTDictionaryPartialTest {
 	
 	@Test
-	public void testCopySinglePathDepth1() {
-		MPTDictionaryFull mpt = new MPTDictionaryFull();
-		byte[] bytes = new byte[] {0};
-		try {
-			mpt.insert(bytes, "1".getBytes());
-			MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, bytes);
-			Assert.assertTrue("expect path contains correct entry", Arrays.equals("1".getBytes(), path.get(bytes)));
-			Assert.assertTrue("expect same commitment of trie and path", Arrays.equals(mpt.commitment(), path.commitment()));	
-		}catch(Exception e) {
-			Assert.fail(e.getMessage());
-		}
-	}
-	
-	@Test
 	public void testCreatePartialTrieBasic() {
-			MPTDictionaryFull mpt = new MPTDictionaryFull();
-
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
+		
+		byte[] keyA = CryptographicDigest.hash("A".getBytes());
+		byte[] keyB = CryptographicDigest.hash("B".getBytes());
+		byte[] keyC = CryptographicDigest.hash("C".getBytes());
+		byte[] keyD = CryptographicDigest.hash("D".getBytes());
+		byte[] keyE = CryptographicDigest.hash("E".getBytes());
+		byte[] keyF = CryptographicDigest.hash("F".getBytes());
+		
+		byte[] value1 = CryptographicDigest.hash("1".getBytes());
+		byte[] value2 = CryptographicDigest.hash("2".getBytes());
+		byte[] value3 = CryptographicDigest.hash("3".getBytes());
+		
 		// insert the entries
-		mpt.insert("A".getBytes(), "1".getBytes());
-		mpt.insert("B".getBytes(), "2".getBytes());
-		mpt.insert("C".getBytes(), "3".getBytes());
-		mpt.insert("D".getBytes(), "3".getBytes());		
-		mpt.insert("E".getBytes(), "2".getBytes());		
-		mpt.insert("F".getBytes(), "1".getBytes());		
-
-		System.out.println("\noriginal:\n"+mpt);
+		mpt.insert(keyA, value1);
+		mpt.insert(keyB, value2);
+		mpt.insert(keyC, value3);
+		mpt.insert(keyD, value3);
+		mpt.insert(keyE, value2);
+		mpt.insert(keyF, value1);
 
 		// create a partial tree
-		byte[] key = "F".getBytes();
-		MPTDictionaryPartial partialmpt = new  MPTDictionaryPartial(mpt,  key);
-		System.out.println("\npartial:\n"+partialmpt);
+		MPTDictionaryPartial partialmpt = new  MPTDictionaryPartial(mpt,  keyF);
 		
 		try {
-			Assert.assertTrue(Arrays.equals("1".getBytes(), partialmpt.get(key)));
+			Assert.assertTrue(Arrays.equals(value1, partialmpt.get(keyF)));
 			Assert.assertTrue(Arrays.equals(mpt.commitment(), partialmpt.commitment()));	
 		} catch (InsufficientAuthenticationDataException e) {
 			Assert.fail(e.getMessage());
@@ -61,17 +55,20 @@ public class MPTDictionaryPartialTest {
 	public void testCopyTwoPathsAdjacentKeysInMPT() {
 		try {
 			MPTDictionaryFull mpt = new MPTDictionaryFull();
-			byte[] first = new byte[] {0};
-			byte[] second = new byte[] {1};
+			byte[] first = CryptographicDigest.hash(new byte[] {0});
+			byte[] second = CryptographicDigest.hash(new byte[] {1});
+			byte[] value1 = CryptographicDigest.hash("1".getBytes());
+			byte[] value2 = CryptographicDigest.hash("2".getBytes());
+			
 			List<byte[]> keys = new ArrayList<>();
 			keys.add(first);
 			keys.add(second);
-			mpt.insert(first, "1".getBytes());
-			mpt.insert(second, "2".getBytes());	
+			mpt.insert(first, value1);
+			mpt.insert(second, value2);	
 			MPTDictionaryPartial path0 = new MPTDictionaryPartial(mpt, keys);
 			Assert.assertArrayEquals(path0.commitment(), mpt.commitment());
-			Assert.assertArrayEquals("1".getBytes(), path0.get(first));
-			Assert.assertArrayEquals("2".getBytes(), path0.get(second));
+			Assert.assertArrayEquals(value1, path0.get(first));
+			Assert.assertArrayEquals(value2, path0.get(second));
 		}catch(Exception e) {
 			Assert.fail(e.getMessage());
 		}
@@ -81,27 +78,33 @@ public class MPTDictionaryPartialTest {
 	public void testCreatePartialTrieMultiplePaths() {
 		MPTDictionaryFull mpt = new MPTDictionaryFull();
 
+		byte[] keyA = CryptographicDigest.hash("A".getBytes());
+		byte[] keyB = CryptographicDigest.hash("B".getBytes());
+		byte[] keyC = CryptographicDigest.hash("C".getBytes());
+		byte[] keyD = CryptographicDigest.hash("D".getBytes());
+		byte[] keyE = CryptographicDigest.hash("E".getBytes());
+		byte[] keyF = CryptographicDigest.hash("F".getBytes());
+		
+		byte[] value1 = CryptographicDigest.hash("1".getBytes());
+		byte[] value2 = CryptographicDigest.hash("2".getBytes());
+		byte[] value3 = CryptographicDigest.hash("3".getBytes());
+		
 		// insert the entries
-		mpt.insert("A".getBytes(), "1".getBytes());
-		mpt.insert("B".getBytes(), "2".getBytes());
-		mpt.insert("C".getBytes(), "3".getBytes());
-		mpt.insert("D".getBytes(), "3".getBytes());		
-		mpt.insert("E".getBytes(), "2".getBytes());		
-		mpt.insert("F".getBytes(), "1".getBytes());		
-
-		System.out.println("\noriginal:\n"+mpt);
+		mpt.insert(keyA, value1);
+		mpt.insert(keyB, value2);
+		mpt.insert(keyC, value3);
+		mpt.insert(keyD, value3);
+		mpt.insert(keyE, value2);
+		mpt.insert(keyF, value1);
 
 		// create a partial tree
-		byte[] key1 = "E".getBytes();
-		byte[] key2 = "F".getBytes();
 		List<byte[]> keys = new ArrayList<>();
-		keys.add(key1);
-		keys.add(key2);
+		keys.add(keyE);
+		keys.add(keyF);
 		MPTDictionaryPartial partialmpt = new  MPTDictionaryPartial(mpt, keys);
-		System.out.println("\npartial:\n"+partialmpt);
 		try {
-			Assert.assertTrue(Arrays.equals("2".getBytes(), partialmpt.get(key1)));
-			Assert.assertTrue(Arrays.equals("1".getBytes(), partialmpt.get(key2)));
+			Assert.assertTrue(Arrays.equals(value2, partialmpt.get(keyE)));
+			Assert.assertTrue(Arrays.equals(value1, partialmpt.get(keyF)));
 			Assert.assertTrue(Arrays.equals(mpt.commitment(), partialmpt.commitment()));
 		} catch (InsufficientAuthenticationDataException e) {
 			Assert.fail(e.getMessage());
@@ -114,12 +117,11 @@ public class MPTDictionaryPartialTest {
 		String salt = "path test";
 		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(1000, salt);
 		try {
-			for(int key = 0; key < n; key++) {
-				String keyString = "key"+Integer.toString(key);
-				String valueString = "value"+Integer.toString(key)+salt;
-				MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, keyString.getBytes());
-				byte[] value = path.get(keyString.getBytes());
-				Assert.assertTrue("path should contain correct (key,value)", Arrays.equals(valueString.getBytes(), value));
+			for(int i = 0; i < n; i++) {
+				byte[] key = Utils.getKey(i);
+				byte[] value = Utils.getValue(i, salt);
+				MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, key);
+				Assert.assertTrue(Arrays.equals(value, path.get(key)));
 			}
 		} catch (Exception e) {
 			Assert.fail(e.getMessage());
@@ -134,13 +136,13 @@ public class MPTDictionaryPartialTest {
 		try {
 			for(int offset = 1; offset < 1000; offset++) {
 				// not in tree
-				int key = n+offset;
-				String keyString = "key"+Integer.toString(key);
+				int keyIdx = n+offset;
+				byte[] key = Utils.getKey(keyIdx);
 				// copy path here should map a path to an empty leaf or a leaf
 				// with a different key - so when we call get on the path it 
 				// it returns nulls
-				MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, keyString.getBytes());
-				byte[] value = path.get(keyString.getBytes());
+				MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, key);
+				byte[] value = path.get(key);
 				Assert.assertTrue("not in tree - path should map to empty leaf", value == null);	
 			}
 		}catch(Exception e) {
@@ -150,17 +152,17 @@ public class MPTDictionaryPartialTest {
 	
 	@Test
 	public void testPathSerialization() {
-		int key = 100;
+		int i = 100;
 		String salt = "serialization";
 		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(1000, salt);
-		String keyString = "key"+Integer.toString(key);
-		String valueString = "value"+Integer.toString(key)+salt;
-		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, keyString.getBytes());
+		byte[] key = Utils.getKey(i);
+		byte[] value = Utils.getValue(i, salt);
+		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, key);
 		byte[] serialization = path.serialize().toByteArray();
 		try {
 			MPTDictionaryPartial fromBytes = MPTDictionaryPartial.deserialize(serialization);
 			Assert.assertTrue("deserialized path contains the specific entry", 
-					Arrays.equals(fromBytes.get(keyString.getBytes()), valueString.getBytes()));
+					Arrays.equals(fromBytes.get(key), value));
 			Assert.assertTrue("deserialized path commitment matches" ,
 					Arrays.equals(fromBytes.commitment(), mpt.commitment()));
 		} catch (InvalidSerializationException | InsufficientAuthenticationDataException e) {

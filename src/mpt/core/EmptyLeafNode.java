@@ -64,11 +64,6 @@ public class EmptyLeafNode implements Node {
 	}
 
 	@Override
-	public byte[] getKeyHash() {
-		return null;
-	}
-	
-	@Override
 	public boolean equals(Object arg0) {
 		if(arg0 instanceof EmptyLeafNode) {
 			return true;

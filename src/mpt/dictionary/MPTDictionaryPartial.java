@@ -55,9 +55,10 @@ public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 	 * @param key - the key to copy
 	 */
 	public MPTDictionaryPartial(MPTDictionaryFull fullMPT, byte[] key) {
-		List<byte[]> keyHashes = new ArrayList<>();
-		keyHashes.add(CryptographicDigest.hash(key));
-		Node root = MPTDictionaryPartial.copyMultiplePaths(keyHashes, fullMPT.root, -1);
+		assert key.length == CryptographicDigest.getSizeBytes();
+		List<byte[]> keys = new ArrayList<>();
+		keys.add(key);
+		Node root = MPTDictionaryPartial.copyMultiplePaths(keys, fullMPT.root, -1);
 		this.root = (InteriorNode) root;
 	}
 	
@@ -71,11 +72,10 @@ public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 	 * @param keys - the key mappings to copy
 	 */
 	public MPTDictionaryPartial(MPTDictionaryFull fullMPT, List<byte[]> keys) {
-		List<byte[]> keyHashes = new ArrayList<>();
 		for(byte[] key : keys) {
-			keyHashes.add(CryptographicDigest.hash(key));
+			assert key.length == CryptographicDigest.getSizeBytes();
 		}
-		Node root = MPTDictionaryPartial.copyMultiplePaths(keyHashes, fullMPT.root, -1);
+		Node root = MPTDictionaryPartial.copyMultiplePaths(keys, fullMPT.root, -1);
 		this.root = (InteriorNode) root;
 	}
 	
@@ -83,9 +83,9 @@ public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 		this.root = root;
 	}
 	
-	private static Node copyMultiplePaths(final List<byte[]> matchingKeyHashes, final Node copyNode, final int currentBitIndex) {
+	private static Node copyMultiplePaths(final List<byte[]> matchingKeys, final Node copyNode, final int currentBitIndex) {
 		// case: if this is not on the path to the key hash 
-		if(matchingKeyHashes.size() == 0) {
+		if(matchingKeys.size() == 0) {
 			if(copyNode.isEmpty()) {
 				return new EmptyLeafNode();
 			}
@@ -105,12 +105,12 @@ public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 		// and those that match the left prefix (...0)
 		List<byte[]> matchRight = new ArrayList<byte[]>();
 		List<byte[]> matchLeft = new ArrayList<byte[]>();
-		for(byte[] keyHash : matchingKeyHashes) {
-			final boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
+		for(byte[] key : matchingKeys) {
+			final boolean bit = Utils.getBit(key, currentBitIndex + 1);
 			if(bit) {
-				matchRight.add(keyHash);
+				matchRight.add(key);
 			}else {
-				matchLeft.add(keyHash);
+				matchLeft.add(key);
 			}
 		}
 		Node leftChild = MPTDictionaryPartial.copyMultiplePaths(matchLeft, copyNode.getLeftChild(), currentBitIndex+1);
@@ -120,31 +120,31 @@ public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 	
 	@Override
 	public byte[] get(final byte[] key) throws InsufficientAuthenticationDataException {
-		byte[] keyHash = CryptographicDigest.hash(key);
-		return MPTDictionaryPartial.getHelper(this.root, keyHash, -1);
+		assert key.length == CryptographicDigest.getSizeBytes();
+		return MPTDictionaryPartial.getHelper(this.root, key, -1);
 	}
 
-	private static byte[] getHelper(final Node currentNode, final byte[] keyHash, final int currentBitIndex) 
+	private static byte[] getHelper(final Node currentNode, final byte[] key, final int currentBitIndex) 
 			throws InsufficientAuthenticationDataException {
 		if (currentNode.isStub()) {
 			throw new InsufficientAuthenticationDataException(
-					"stub encountered at: " + Utils.byteArrayPrefixAsBitString(keyHash, currentBitIndex));
+					"stub encountered at: " + Utils.byteArrayPrefixAsBitString(key, currentBitIndex));
 		}
 		if (currentNode.isLeaf()) {
 			if (!currentNode.isEmpty()) {
 				// if the current node is NonEmpty and matches the Key
-				if (Arrays.equals(currentNode.getKeyHash(), keyHash)) {
+				if (Arrays.equals(currentNode.getKey(), key)) {
 					return currentNode.getValue();
 				}
 			}
 			// otherwise key not in the MPT - return null;
 			return null;
 		}
-		boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
+		boolean bit = Utils.getBit(key, currentBitIndex + 1);
 		if (bit) {
-			return MPTDictionaryPartial.getHelper(currentNode.getRightChild(), keyHash, currentBitIndex + 1);
+			return MPTDictionaryPartial.getHelper(currentNode.getRightChild(), key, currentBitIndex + 1);
 		}
-		return MPTDictionaryPartial.getHelper(currentNode.getLeftChild(), keyHash, currentBitIndex + 1);
+		return MPTDictionaryPartial.getHelper(currentNode.getLeftChild(), key, currentBitIndex + 1);
 	}
 	
 	public byte[] commitment() {

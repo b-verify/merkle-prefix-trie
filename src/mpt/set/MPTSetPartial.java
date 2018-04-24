@@ -11,7 +11,6 @@ import mpt.core.EmptyLeafNode;
 import mpt.core.InsufficientAuthenticationDataException;
 import mpt.core.InteriorNode;
 import mpt.core.InvalidSerializationException;
-import mpt.core.DictionaryLeafNode;
 import mpt.core.Node;
 import mpt.core.SetLeafNode;
 import mpt.core.Stub;
@@ -56,9 +55,9 @@ public class MPTSetPartial implements AuthenticatedSetClient {
 	 * @param value - the value to copy
 	 */
 	public MPTSetPartial(MPTSetFull fullMPTSet, byte[] value) {
-		List<byte[]> valueHashes = new ArrayList<>();
-		valueHashes.add(CryptographicDigest.hash(value));
-		Node root = MPTSetPartial.copyMultiplePaths(valueHashes, fullMPTSet.root, -1);
+		List<byte[]> values = new ArrayList<>();
+		values.add(value);
+		Node root = MPTSetPartial.copyMultiplePaths(values, fullMPTSet.root, -1);
 		this.root = (InteriorNode) root;
 	}
 	
@@ -72,17 +71,13 @@ public class MPTSetPartial implements AuthenticatedSetClient {
 	 * @param keys - the key mappings to copy
 	 */
 	public MPTSetPartial(MPTSetFull fullMPTSet, List<byte[]> values) {
-		List<byte[]> valueHashes = new ArrayList<>();
-		for(byte[] value : values) {
-			valueHashes.add(CryptographicDigest.hash(value));
-		}
-		Node root = MPTSetPartial.copyMultiplePaths(valueHashes, fullMPTSet.root, -1);
+		Node root = MPTSetPartial.copyMultiplePaths(values, fullMPTSet.root, -1);
 		this.root = (InteriorNode) root;
 	}
 	
-	private static Node copyMultiplePaths(final List<byte[]> matchingValueHashes, final Node copyNode, final int currentBitIndex) {
+	private static Node copyMultiplePaths(final List<byte[]> matchingValues, final Node copyNode, final int currentBitIndex) {
 		// case: if this is not on the path 
-		if(matchingValueHashes.size() == 0) {
+		if(matchingValues.size() == 0) {
 			if(copyNode.isEmpty()) {
 				return new EmptyLeafNode();
 			}
@@ -94,7 +89,7 @@ public class MPTSetPartial implements AuthenticatedSetClient {
 			if(copyNode.isEmpty()) {
 				return new EmptyLeafNode();
 			}
-			return new DictionaryLeafNode(copyNode.getKey(), copyNode.getValue());
+			return new SetLeafNode(copyNode.getValue());
 		}
 		// subcase: intermediate node
 		
@@ -102,12 +97,12 @@ public class MPTSetPartial implements AuthenticatedSetClient {
 		// and those that match the left prefix (...0)
 		List<byte[]> matchRight = new ArrayList<byte[]>();
 		List<byte[]> matchLeft = new ArrayList<byte[]>();
-		for(byte[] valueHash : matchingValueHashes) {
-			final boolean bit = Utils.getBit(valueHash, currentBitIndex + 1);
+		for(byte[] value : matchingValues) {
+			final boolean bit = Utils.getBit(value, currentBitIndex + 1);
 			if(bit) {
-				matchRight.add(valueHash);
+				matchRight.add(value);
 			}else {
-				matchLeft.add(valueHash);
+				matchLeft.add(value);
 			}
 		}
 		Node leftChild = MPTSetPartial.copyMultiplePaths(matchLeft, copyNode.getLeftChild(), currentBitIndex+1);
@@ -121,31 +116,31 @@ public class MPTSetPartial implements AuthenticatedSetClient {
 	
 	@Override
 	public boolean inSet(final byte[] value) throws InsufficientAuthenticationDataException {
-		byte[] valueHash = CryptographicDigest.hash(value);
-		return MPTSetPartial.getHelper(this.root, valueHash, -1);
+		assert value.length == CryptographicDigest.getSizeBytes();
+		return MPTSetPartial.getHelper(this.root, value, -1);
 	}
 
-	private static boolean getHelper(final Node currentNode, final byte[] valueHash, final int currentBitIndex) 
+	private static boolean getHelper(final Node currentNode, final byte[] value, final int currentBitIndex) 
 			throws InsufficientAuthenticationDataException {
 		if (currentNode.isStub()) {
 			throw new InsufficientAuthenticationDataException(
-					"stub encountered at: " + Utils.byteArrayPrefixAsBitString(valueHash, currentBitIndex));
+					"stub encountered at: " + Utils.byteArrayPrefixAsBitString(value, currentBitIndex));
 		}
 		if (currentNode.isLeaf()) {
 			if (!currentNode.isEmpty()) {
 				// if value in MPT
-				if (Arrays.equals(currentNode.getKeyHash(), valueHash)) {
+				if (Arrays.equals(currentNode.getValue(), value)) {
 					return true;
 				}
 			}
 			// otherwise value not in the MPT
 			return false;
 		}
-		boolean bit = Utils.getBit(valueHash, currentBitIndex + 1);
+		boolean bit = Utils.getBit(value, currentBitIndex + 1);
 		if (bit) {
-			return MPTSetPartial.getHelper(currentNode.getRightChild(), valueHash, currentBitIndex + 1);
+			return MPTSetPartial.getHelper(currentNode.getRightChild(), value, currentBitIndex + 1);
 		}
-		return MPTSetPartial.getHelper(currentNode.getLeftChild(), valueHash, currentBitIndex + 1);
+		return MPTSetPartial.getHelper(currentNode.getLeftChild(), value, currentBitIndex + 1);
 	}
 	
 	@Override

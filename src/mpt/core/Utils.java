@@ -4,50 +4,55 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import crpyto.CryptographicDigest;
 import mpt.dictionary.MPTDictionaryFull;
 import mpt.set.MPTSetFull;
 
 public class Utils {
+		
+	public static final boolean VERBOSE = false;
 	
-	public static String getKeyString(int i) {
-		return "key"+Integer.toString(i);
+	public static byte[] getKey(int i) {
+		String preimage = "key"+Integer.toString(i);
+		return CryptographicDigest.hash(preimage.getBytes());
 	}
 	
-	public static String getValueString(int i, String salt) {
-		return "value"+Integer.toString(i)+salt;
+	public static byte[] getValue(int i, String salt) {
+		String preimage = "value"+Integer.toString(i)+salt;
+		return CryptographicDigest.hash(preimage.getBytes());
 	}
 	
 	public static MPTDictionaryFull makeMPTDictionaryFull(int numberOfEntries, String salt) {
 		MPTDictionaryFull mpt = new MPTDictionaryFull();
 		for(int i = 0; i < numberOfEntries; i++) {
-			String keyString = Utils.getKeyString(i);
-			String valueString = Utils.getValueString(i, salt);
-			if(i % 1000 == 0) {
+			byte[] key = Utils.getKey(i);
+			byte[] value = Utils.getValue(i, salt);
+			if(VERBOSE && i % 1000 == 0) {
 				System.out.println("made "+(i+1)+" of "+numberOfEntries);
 			}
-			mpt.insert(keyString.getBytes(), valueString.getBytes());
+			mpt.insert(key, value);
 		}
 		return mpt;
 	}
 		
-	public static List<Map.Entry<String, String>> getKeyValuePairs(int numberOfEntries, String salt){
-		List<Map.Entry<String, String>> list = new ArrayList<Map.Entry<String, String>>();
-		for(int key = 0; key < numberOfEntries; key++) {
-			String keyString = Utils.getKeyString(key);
-			String valueString = Utils.getValueString(key, salt);
-			list.add(Map.entry(keyString, valueString));
+	public static List<Map.Entry<byte[], byte[]>> getKeyValuePairs(int numberOfEntries, String salt){
+		List<Map.Entry<byte[], byte[]>> list = new ArrayList<Map.Entry<byte[], byte[]>>();
+		for(int i = 0; i < numberOfEntries; i++) {
+			byte[] key = Utils.getKey(i);
+			byte[] value = Utils.getValue(i, salt);
+			list.add(Map.entry(key, value));
 		}
 		return list;
 	}
 	
-	public static MPTDictionaryFull makeMPTDictionaryFull(List<Map.Entry<String, String>> kvpairs) {
+	public static MPTDictionaryFull makeMPTDictionaryFull(List<Map.Entry<byte[], byte[]>> kvpairs) {
 		MPTDictionaryFull mpt = new MPTDictionaryFull();
 		int i = 1;
-		for(Map.Entry<String, String> kvpair : kvpairs) {
-			if(i % 1000 == 0) {
+		for(Map.Entry<byte[], byte[]> kvpair : kvpairs) {
+			if(VERBOSE && i % 1000 == 0) {
 				System.out.println("made "+i+" of "+kvpairs.size());
 			}
-			mpt.insert(kvpair.getKey().getBytes(), kvpair.getValue().getBytes());
+			mpt.insert(kvpair.getKey(), kvpair.getValue());
 			i++;
 		}
 		return mpt;
@@ -56,32 +61,32 @@ public class Utils {
 	public static MPTSetFull makeMPTSetFull(int numberOfEntries, String salt) {
 		MPTSetFull mpt = new MPTSetFull();
 		for(int i = 0; i < numberOfEntries; i++) {
-			String valueString = Utils.getValueString(i, salt);
-			if(i % 1000 == 0) {
+			byte[] value = Utils.getValue(i, salt);
+			if(VERBOSE && i % 1000 == 0) {
 				System.out.println("made "+(i+1)+" of "+numberOfEntries);
 			}
-			mpt.insert(valueString.getBytes());
+			mpt.insert(value);
 		}
 		return mpt;
 	}
 	
-	public static List<String> getValues(int numberOfEntries, String salt){
-		List<String> list = new ArrayList<>();
+	public static List<byte[]> getValues(int numberOfEntries, String salt){
+		List<byte[]> list = new ArrayList<>();
 		for(int i = 0; i < numberOfEntries; i++) {
-			String valueString = Utils.getValueString(i, salt);
-			list.add(valueString);
+			byte[] value = Utils.getValue(i, salt);
+			list.add(value);
 		}
 		return list;
 	}
 	
-	public static MPTSetFull makeMPTSetFull(List<String> values) {
+	public static MPTSetFull makeMPTSetFull(List<byte[]> values) {
 		MPTSetFull mpt = new MPTSetFull();
 		int i = 1;
-		for(String value: values) {
-			if(i % 1000 == 0) {
+		for(byte[] value: values) {
+			if(VERBOSE && i % 1000 == 0) {
 				System.out.println("made "+i+" of "+values.size());
 			}
-			mpt.insert(value.getBytes());
+			mpt.insert(value);
 			i++;
 		}
 		return mpt;

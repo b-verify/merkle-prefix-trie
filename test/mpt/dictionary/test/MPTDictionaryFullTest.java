@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,7 +29,7 @@ public class MPTDictionaryFullTest {
 		int numberOfKeys = 1000;
 		int numberOfShuffles = 10;
 		String salt = "test";
-		List<Map.Entry<String, String>> kvpairs = Utils.getKeyValuePairs(numberOfKeys, salt);
+		List<Map.Entry<byte[], byte[]>> kvpairs = Utils.getKeyValuePairs(numberOfKeys, salt);
 		MPTDictionaryFull mptBase = Utils.makeMPTDictionaryFull(kvpairs);
 		byte[] commitment = mptBase.commitment();
 		for(int iteration = 0; iteration <  numberOfShuffles; iteration++) {
@@ -42,99 +43,132 @@ public class MPTDictionaryFullTest {
 	@Test
 	public void testMPTInsertionBasic() {
 		MPTDictionaryFull mpt = new MPTDictionaryFull();
+		
+		byte[] keyA = CryptographicDigest.hash("A".getBytes());
+		byte[] keyB = CryptographicDigest.hash("B".getBytes());
+		byte[] keyC = CryptographicDigest.hash("C".getBytes());
+		byte[] keyD = CryptographicDigest.hash("D".getBytes());
+		byte[] keyE = CryptographicDigest.hash("E".getBytes());
+		byte[] keyF = CryptographicDigest.hash("F".getBytes());
+		
+		byte[] value1 = CryptographicDigest.hash("1".getBytes());
+		byte[] value2 = CryptographicDigest.hash("2".getBytes());
+		byte[] value3 = CryptographicDigest.hash("3".getBytes());
 
 		// insert the entries
-		mpt.insert("A".getBytes(), "1".getBytes());
-		mpt.insert("B".getBytes(), "2".getBytes());
-		mpt.insert("C".getBytes(), "3".getBytes());
-		mpt.insert("D".getBytes(), "3".getBytes());		
-		mpt.insert("E".getBytes(), "2".getBytes());		
-		mpt.insert("F".getBytes(), "1".getBytes());
+		mpt.insert(keyA, value1);
+		mpt.insert(keyB, value2);
+		mpt.insert(keyC, value3);
+		mpt.insert(keyD, value3);
+		mpt.insert(keyE, value2);
+		mpt.insert(keyF, value1);
 		
 		// check that they were added
-		Assert.assertTrue(Arrays.equals("1".getBytes(), mpt.get("A".getBytes())));
-		Assert.assertTrue(Arrays.equals("2".getBytes(), mpt.get("B".getBytes())));
-		Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("C".getBytes())));
-		Assert.assertTrue(Arrays.equals("3".getBytes(), mpt.get("D".getBytes())));
-		Assert.assertTrue(Arrays.equals("2".getBytes(), mpt.get("E".getBytes())));
-		Assert.assertTrue(Arrays.equals("1".getBytes(), mpt.get("F".getBytes())));
+		Assert.assertTrue(Arrays.equals(value1, mpt.get(keyA)));
+		Assert.assertTrue(Arrays.equals(value2, mpt.get(keyB)));
+		Assert.assertTrue(Arrays.equals(value3, mpt.get(keyC)));
+		Assert.assertTrue(Arrays.equals(value3, mpt.get(keyD)));
+		Assert.assertTrue(Arrays.equals(value2, mpt.get(keyE)));
+		Assert.assertTrue(Arrays.equals(value1, mpt.get(keyF)));
 		
 		// check that other keys are not 
-		Assert.assertEquals(null, mpt.get("G".getBytes()));		
-		Assert.assertEquals(null, mpt.get("H".getBytes()));		
-		Assert.assertEquals(null, mpt.get("I".getBytes()));		
-		Assert.assertEquals(null, mpt.get("J".getBytes()));		
-		Assert.assertEquals(null, mpt.get("K".getBytes()));		
-			
-
+		Assert.assertEquals(null, mpt.get(CryptographicDigest.hash("G".getBytes())));	
+		Assert.assertEquals(null, mpt.get(CryptographicDigest.hash("H".getBytes())));		
+		Assert.assertEquals(null, mpt.get(CryptographicDigest.hash("I".getBytes())));		
+		Assert.assertEquals(null, mpt.get(CryptographicDigest.hash("J".getBytes())));			
+		
 	}
 	
 	@Test
 	public void testMPTInsertionBasicMultipleUpdatesGetMostRecentValue() {
 		MPTDictionaryFull mpt = new MPTDictionaryFull();
+		
+		byte[] keyA = CryptographicDigest.hash("A".getBytes());
+		byte[] keyB = CryptographicDigest.hash("B".getBytes());
+		byte[] keyC = CryptographicDigest.hash("C".getBytes());
+		byte[] keyD = CryptographicDigest.hash("D".getBytes());
+		byte[] keyE = CryptographicDigest.hash("E".getBytes());
+		byte[] keyF = CryptographicDigest.hash("F".getBytes());
+		
+		byte[] value1 = CryptographicDigest.hash("1".getBytes());
+		byte[] value2 = CryptographicDigest.hash("2".getBytes());
+		byte[] value3 = CryptographicDigest.hash("3".getBytes());
+
 		// insert the entries
-		mpt.insert("A".getBytes(), "1".getBytes());
-		mpt.insert("B".getBytes(), "1".getBytes());
-		mpt.insert("C".getBytes(), "1".getBytes());
-		mpt.insert("D".getBytes(), "1".getBytes());		
-		mpt.insert("E".getBytes(), "1".getBytes());		
-		mpt.insert("F".getBytes(), "1".getBytes());
+		mpt.insert(keyA, value1);
+		mpt.insert(keyB, value1);
+		mpt.insert(keyC, value1);
+		mpt.insert(keyD, value1);
+		mpt.insert(keyE, value1);
+		mpt.insert(keyF, value1);
 		
 		// update the value
-		mpt.insert("A".getBytes(), "2".getBytes());
-		mpt.insert("B".getBytes(), "2".getBytes());
-		mpt.insert("C".getBytes(), "2".getBytes());
-		mpt.insert("D".getBytes(), "2".getBytes());		
-		mpt.insert("E".getBytes(), "2".getBytes());		
-		mpt.insert("F".getBytes(), "2".getBytes());
+		mpt.insert(keyA, value2);
+		mpt.insert(keyB, value2);
+		mpt.insert(keyC, value2);
+		mpt.insert(keyD, value2);
+		mpt.insert(keyE, value2);
+		mpt.insert(keyF, value2);
 		
 		// update the value
-		mpt.insert("A".getBytes(), "3".getBytes());
-		mpt.insert("B".getBytes(), "3".getBytes());
-		mpt.insert("C".getBytes(), "3".getBytes());
-		mpt.insert("D".getBytes(), "3".getBytes());		
-		mpt.insert("E".getBytes(), "3".getBytes());		
-		mpt.insert("F".getBytes(), "3".getBytes());
+		mpt.insert(keyA, value3);
+		mpt.insert(keyB, value3);
+		mpt.insert(keyC, value3);
+		mpt.insert(keyD, value3);
+		mpt.insert(keyE, value3);
+		mpt.insert(keyF, value3);
 		
 		// check that the entries are in the tree
-		Arrays.equals("3".getBytes(), mpt.get("A".getBytes()));
-		Arrays.equals("3".getBytes(), mpt.get("B".getBytes()));
-		Arrays.equals("3".getBytes(), mpt.get("C".getBytes()));
-		Arrays.equals("3".getBytes(), mpt.get("D".getBytes()));
-		Arrays.equals("3".getBytes(), mpt.get("E".getBytes()));
-		Arrays.equals("3".getBytes(), mpt.get("F".getBytes()));	
+		Assert.assertTrue(Arrays.equals(value3, mpt.get(keyA)));
+		Assert.assertTrue(Arrays.equals(value3, mpt.get(keyB)));
+		Assert.assertTrue(Arrays.equals(value3, mpt.get(keyC)));
+		Assert.assertTrue(Arrays.equals(value3, mpt.get(keyD)));
+		Assert.assertTrue(Arrays.equals(value3, mpt.get(keyE)));
+		Assert.assertTrue(Arrays.equals(value3, mpt.get(keyF)));
+
 	}
 	
 	@Test
 	public void testTrieDeleteBasic() {
 		MPTDictionaryFull mpt = new MPTDictionaryFull();
 		
+		byte[] keyA = CryptographicDigest.hash("A".getBytes());
+		byte[] keyB = CryptographicDigest.hash("B".getBytes());
+		byte[] keyC = CryptographicDigest.hash("C".getBytes());
+		byte[] keyD = CryptographicDigest.hash("D".getBytes());
+		byte[] keyE = CryptographicDigest.hash("E".getBytes());
+		byte[] keyF = CryptographicDigest.hash("F".getBytes());
+		
+		byte[] value1 = CryptographicDigest.hash("1".getBytes());
+		byte[] value2 = CryptographicDigest.hash("2".getBytes());
+		byte[] value3 = CryptographicDigest.hash("3".getBytes());
+
 		// insert the entries
-		mpt.insert("A".getBytes(), "1".getBytes());
-		mpt.insert("B".getBytes(), "2".getBytes());
-		mpt.insert("C".getBytes(), "3".getBytes());
-		mpt.insert("D".getBytes(), "3".getBytes());		
-		mpt.insert("E".getBytes(), "2".getBytes());		
-		mpt.insert("F".getBytes(), "1".getBytes());
+		mpt.insert(keyA, value1);
+		mpt.insert(keyB, value2);
+		mpt.insert(keyC, value3);
+		mpt.insert(keyD, value3);
+		mpt.insert(keyE, value2);
+		mpt.insert(keyF, value1);
 	
 		// delete entries that were never in trie
-		mpt.delete("G".getBytes());
-		mpt.delete("H".getBytes());
-		mpt.delete("I".getBytes());
+		mpt.delete(CryptographicDigest.hash("G".getBytes()));
+		mpt.delete(CryptographicDigest.hash("H".getBytes()));
+		mpt.delete(CryptographicDigest.hash("I".getBytes()));
 
 		// delete actual entries
-		mpt.delete("B".getBytes());
-		Assert.assertEquals(null, mpt.get("B".getBytes()));
-		mpt.delete("D".getBytes());
-		Assert.assertEquals(null, mpt.get("D".getBytes()));
-		mpt.delete("F".getBytes());
-		Assert.assertEquals(null, mpt.get("F".getBytes()));
+		mpt.delete(keyB);
+		Assert.assertEquals(null, mpt.get(keyB));
+		mpt.delete(keyD);
+		Assert.assertEquals(null, mpt.get(keyD));
+		mpt.delete(keyF);
+		Assert.assertEquals(null, mpt.get(keyF));
 		
 		// make a tree with the same entries, added in a different order
 		MPTDictionaryFull mpt2 = new MPTDictionaryFull();
-		mpt2.insert("E".getBytes(), "2".getBytes());	
-		mpt2.insert("A".getBytes(), "1".getBytes());
-		mpt2.insert("C".getBytes(), "3".getBytes());
+		mpt2.insert(keyE, value2);	
+		mpt2.insert(keyA, value1);
+		mpt2.insert(keyC, value3);
 		
 		// this tree should be the same 
 		Assert.assertTrue(Arrays.equals(mpt.commitment(), mpt2.commitment()));
@@ -143,18 +177,14 @@ public class MPTDictionaryFullTest {
 	
 	@Test
 	public void testTrieInsertionsGet() {
-		int numberOfEntries = 1000;
-		String salt = "";
-		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(numberOfEntries, salt);
+		int numberOfKeys = 1000;
+		String salt = "get test";
+		List<Map.Entry<byte[], byte[]>> kvpairs = Utils.getKeyValuePairs(numberOfKeys, salt);
+		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(kvpairs);
 		try {
-			for(int key = 0; key < numberOfEntries; key++) {
-				String keyString = "key"+Integer.toString(key);
-				String valueString = "value"+Integer.toString(key)+salt;
-				 System.out.println("checking key: " + keyString.getBytes()+" ("+keyString+")");
-				 System.out.println("should be value: "+valueString.getBytes()+" ("+valueString+")");
-				byte[] valueBytes = mpt.get(keyString.getBytes());
-				 System.out.println("value was: "+valueBytes);
-				Assert.assertTrue(Arrays.equals(valueString.getBytes(), valueBytes));
+			for(Map.Entry<byte[], byte[]> kvpair : kvpairs) {
+				byte[] value = mpt.get(kvpair.getKey());
+				Assert.assertTrue(Arrays.equals(kvpair.getValue(), value));
 			}
 		} catch (Exception e) {
 			Assert.fail(e.getMessage());
@@ -167,22 +197,18 @@ public class MPTDictionaryFullTest {
 		String salt = "";
 		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(numberOfEntries, salt);
 		salt = "modified";
-		for(int key = 0; key < numberOfEntries; key++) {
-			String keyString = "key"+Integer.toString(key);
-			String valueString = "value"+Integer.toString(key)+salt;
+		for(int i = 0; i < numberOfEntries; i++) {
+			byte[] key = Utils.getKey(i);
+			byte[] modifiedValue = Utils.getValue(i, salt);
 			// update values
-			mpt.insert(keyString.getBytes(), valueString.getBytes());
+			mpt.insert(key, modifiedValue);
 		}
 		
 		// now make sure the next get returns the updated values
-		for(int key = 0; key < numberOfEntries; key++) {
-			String keyString = "key"+Integer.toString(key);
-			String valueString = "value"+Integer.toString(key)+salt;
-			 System.out.println("checking key: " + keyString.getBytes()+" ("+keyString+")");
-			 System.out.println("should be value: "+valueString.getBytes()+" ("+valueString+")");
-			byte[] valueBytes = mpt.get(keyString.getBytes());
-			 System.out.println("value was: "+valueBytes);
-			Assert.assertTrue(Arrays.equals(valueString.getBytes(), valueBytes));
+		for(int i = 0; i < numberOfEntries; i++) {
+			byte[] key = Utils.getKey(i);
+			byte[] modifiedValue = Utils.getValue(i, salt);
+			Assert.assertTrue(Arrays.equals(modifiedValue, mpt.get(key)));
 		}
 	}
 	
@@ -191,21 +217,21 @@ public class MPTDictionaryFullTest {
 		int numberOfEntries = 1000;
 		String salt = "";
 		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(numberOfEntries, salt);
-		for(int key = 0; key < numberOfEntries; key++) {
-			String keyString = "key"+Integer.toString(key);
-			String valueString = "value"+Integer.toString(key)+salt;
-			Assert.assertTrue(Arrays.equals(mpt.get(keyString.getBytes()), valueString.getBytes()));
-			if(key > 499) {
-				mpt.delete(keyString.getBytes());				
+		for(int i = 0; i < numberOfEntries; i++) {
+			byte[] key = Utils.getKey(i);
+			byte[] value = Utils.getValue(i, salt);
+			Assert.assertTrue(Arrays.equals(mpt.get(key), value));
+			if(i > 499) {
+				mpt.delete(key);				
 			}
 		}
-		for(int key = 0; key < numberOfEntries; key++) {
-			String keyString = "key"+Integer.toString(key);
-			String valueString = "value"+Integer.toString(key)+salt;
-			if (key > 499) {
-				Assert.assertEquals(null, mpt.get(keyString.getBytes()));			
+		for(int i = 0; i < numberOfEntries; i++) {
+			byte[] key = Utils.getKey(i);
+			byte[] value = Utils.getValue(i, salt);
+			if(i > 499) {
+				Assert.assertEquals(null, mpt.get(key));			
 			}else {
-				Assert.assertTrue(Arrays.equals(mpt.get(keyString.getBytes()), valueString.getBytes()));
+				Assert.assertTrue(Arrays.equals(mpt.get(key), value));
 			}
 		}
 		MPTDictionaryFull mpt2 = Utils.makeMPTDictionaryFull(500, salt);
@@ -214,7 +240,7 @@ public class MPTDictionaryFullTest {
 	
 	@Test
 	public void testTrieSerializationFullTrie() {
-		List<Map.Entry<String, String>> kvpairs = Utils.getKeyValuePairs(1000, "test");
+		List<Entry<byte[], byte[]>> kvpairs = Utils.getKeyValuePairs(1000, "test");
 		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(kvpairs);
 		byte[] asbytes = mpt.serialize();
 		try {
@@ -227,7 +253,7 @@ public class MPTDictionaryFullTest {
 		
 	@Test
 	public void testEqualityBasic() {
-		List<Map.Entry<String, String>> kvpairs = Utils.getKeyValuePairs(1000, "test");
+		List<Entry<byte[], byte[]>> kvpairs = Utils.getKeyValuePairs(1000, "test");
 		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(kvpairs);
 		// shuffle the kvpairs so that they are inserted in a different order
 		Collections.shuffle(kvpairs);
@@ -291,7 +317,6 @@ public class MPTDictionaryFullTest {
 			expected[i] = Character.getNumericValue(binaryStr.charAt(i));
 		}
 		for (int i = 0; i < 16; i++) {
-			//System.out.println(MerklePrefixTrie.getBit(ONE_TWO, i));
 			if (expected[i] == 1) {
 				assertTrue(Utils.getBit(ONE_TWO, i));
 			} else if (expected[i] == 0) {
@@ -311,7 +336,6 @@ public class MPTDictionaryFullTest {
 			expected[i] = Character.getNumericValue(binaryStr.charAt(i));
 		}
 		for (int i = 0; i < 16; i++) {
-			System.out.println(Utils.getBit(MANY_BYTES, i));
 			if (expected[i] == 1) {
 				assertTrue(Utils.getBit(MANY_BYTES, i));
 				
@@ -323,122 +347,58 @@ public class MPTDictionaryFullTest {
 			}
 		}
 	}
-	
-	@Test
-	public void testSetSplitLeaf() {
-		MPTDictionaryFull mpt = new MPTDictionaryFull();
-		
-		byte[] first = new byte[] {2}; //path = 10
-		
-		mpt.insert(first, "1".getBytes());
-		System.out.println("input 1: " + Utils.byteArrayAsBitString(first));
-		//System.out.println(mpt);
-		
-		//splitting leaves
-		byte[] second = new byte[] {3}; //path = 11
-		mpt.insert(second,  "2".getBytes());
-		System.out.println("input 2: " + Utils.byteArrayAsBitString(second));
-		//System.out.println(mpt);
-		
-		byte[] third = new byte[] {9}; //path = 1001
-		System.out.println("input: " + Utils.byteArrayAsBitString(third));
-		mpt.insert(third, "3".getBytes());
-		System.out.println(mpt);
-		
-		Assert.assertArrayEquals("3".getBytes(), mpt.get(third));
-		Assert.assertArrayEquals("1".getBytes(), mpt.get(first));
-	}
-	
-	@Test
-	public void testSetNewPrefixSingleLength() {
-		MPTDictionaryFull mpt = new MPTDictionaryFull();
-		
-		//insert 10
-		byte[] first = new byte[] { 2 };
-		System.out.println("SETTING FIRST");
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash(first)));
-		mpt.insert(first, "1".getBytes());
-		System.out.println(mpt);
-		
-		
-		//insert 11
-		byte[] second = new byte[] { 3 };
-		System.out.println("SETTING SECOND");
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash(second)));
-		mpt.insert(second, "2".getBytes());
-		System.out.println(mpt);
-		
-		//insert 1001
-		byte[] third = new byte[] { 9 };
-		System.out.println("SETTING THIRD");
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash(third)));
-		mpt.insert(third, "3".getBytes());
-		System.out.println(mpt);		
-	}
-	
-	@Test
-	public void testSetBranchFromExistingPrefix() {
-		MPTDictionaryFull mpt = new MPTDictionaryFull();
-		//insert 1000
-		byte[] first = new byte[] { 8 };
-		System.out.println("SETTING FIRST");
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash(first)));
-		mpt.insert(first, "1".getBytes());
-		System.out.println(mpt);
-		
-		//insert 1010001
-		byte[] second = new byte[] { 81 };
-		System.out.println("SETTING SECOND");
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash(second)));
-		mpt.insert(second, "10".getBytes());
-		System.out.println(mpt);
-	}
-	
 
 	@Test
 	public void testMPTBasicUpdateSequenceChangeValues() {
 		MPTDictionaryFull mpt = new MPTDictionaryFull();
+		
+		byte[] keyA = CryptographicDigest.hash("A".getBytes());
+		byte[] keyB = CryptographicDigest.hash("B".getBytes());
+		byte[] keyC = CryptographicDigest.hash("C".getBytes());
+		byte[] keyD = CryptographicDigest.hash("D".getBytes());
+		byte[] keyE = CryptographicDigest.hash("E".getBytes());
+		byte[] keyF = CryptographicDigest.hash("F".getBytes());
+		
+		byte[] value1 = CryptographicDigest.hash("1".getBytes());
+		byte[] value2 = CryptographicDigest.hash("2".getBytes());
+		byte[] value3 = CryptographicDigest.hash("3".getBytes());
+
+		byte[] value100 = CryptographicDigest.hash("100".getBytes());
+		byte[] value101 = CryptographicDigest.hash("101".getBytes());
+		byte[] value102 = CryptographicDigest.hash("102".getBytes());
+		
 		// insert the entries
-		mpt.insert("A".getBytes(), "1".getBytes());
-		mpt.insert("B".getBytes(), "2".getBytes());
-		mpt.insert("C".getBytes(), "3".getBytes());
-		mpt.insert("D".getBytes(), "3".getBytes());		
-		mpt.insert("E".getBytes(), "2".getBytes());		
-		mpt.insert("F".getBytes(), "1".getBytes());		
-		// mark everything as unchanged
+		mpt.insert(keyA, value1);
+		mpt.insert(keyB, value2);
+		mpt.insert(keyC, value3);
+		mpt.insert(keyD, value3);
+		mpt.insert(keyE, value2);
+		mpt.insert(keyF, value1);
+		
+		// mark everything as changed
 		mpt.reset();
 
 		// copy a path to a key
-		byte[] key = "F".getBytes();
-		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, key);
+		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, keyF);
 		
-		System.out.println("\noriginal:\n"+mpt);
-		System.out.println("\npath original:\n"+path);
 		
 		// change value
-		mpt.insert("C".getBytes(), "100".getBytes());
-		mpt.insert("D".getBytes(), "101".getBytes());		
-		mpt.insert("E".getBytes(), "102".getBytes());		
+		mpt.insert(keyC, value100);
+		mpt.insert(keyD, value101);
+		mpt.insert(keyE, value102);		
 		
 		// calculate a new path to a key
-		MPTDictionaryPartial newPath = new MPTDictionaryPartial(mpt, key);		
-		System.out.println("\nnew:\n"+mpt);
-		System.out.println("\npath new:\n"+newPath);
+		MPTDictionaryPartial newPath = new MPTDictionaryPartial(mpt, keyF);		
 		
 		// save the changes 
 		MPTDictionaryDelta changes = new MPTDictionaryDelta(mpt);
-	
-		System.out.println("\nchanges:\n"+changes);
 
 		// use the changes to calculate an update for the original path
-		MerklePrefixTrie updates = changes.getUpdates(key);
+		MerklePrefixTrie updates = changes.getUpdates(keyF);
 			
 		try {
 			// update the original path
-			path.processUpdates(updates);
-			
-			System.out.println("\nafter updates:\n"+path);
-			
+			path.processUpdates(updates);			
 			// should produce the new path
 			Assert.assertTrue(newPath.equals(path));
 		} catch (InvalidSerializationException e) {
@@ -450,34 +410,56 @@ public class MPTDictionaryFullTest {
 	@Test
 	public void testMPTBasicUpdateSequenceInsertValues() {
 		MPTDictionaryFull mpt = new MPTDictionaryFull();
+		
+		byte[] keyA = CryptographicDigest.hash("A".getBytes());
+		byte[] keyB = CryptographicDigest.hash("B".getBytes());
+		byte[] keyC = CryptographicDigest.hash("C".getBytes());
+		byte[] keyD = CryptographicDigest.hash("D".getBytes());
+		byte[] keyE = CryptographicDigest.hash("E".getBytes());
+		byte[] keyF = CryptographicDigest.hash("F".getBytes());
+		byte[] keyG = CryptographicDigest.hash("G".getBytes());
+		byte[] keyH = CryptographicDigest.hash("H".getBytes());
+		byte[] keyI = CryptographicDigest.hash("I".getBytes());
+		byte[] keyJ = CryptographicDigest.hash("J".getBytes());
+
+		byte[] value1 = CryptographicDigest.hash("1".getBytes());
+		byte[] value2 = CryptographicDigest.hash("2".getBytes());
+		byte[] value3 = CryptographicDigest.hash("3".getBytes());
+
+		byte[] value100 = CryptographicDigest.hash("100".getBytes());
+		byte[] value101 = CryptographicDigest.hash("101".getBytes());
+		byte[] value102 = CryptographicDigest.hash("102".getBytes());
+		byte[] value103 = CryptographicDigest.hash("103".getBytes());
+		
 		// insert the entries
-		mpt.insert("A".getBytes(), "1".getBytes());
-		mpt.insert("B".getBytes(), "2".getBytes());
-		mpt.insert("C".getBytes(), "3".getBytes());
-		mpt.insert("D".getBytes(), "3".getBytes());		
-		mpt.insert("E".getBytes(), "2".getBytes());		
-		mpt.insert("F".getBytes(), "1".getBytes());		
-		// mark everything as unchanged
+		mpt.insert(keyA, value1);
+		mpt.insert(keyB, value2);
+		mpt.insert(keyC, value3);
+		mpt.insert(keyD, value3);
+		mpt.insert(keyE, value2);
+		mpt.insert(keyF, value1);
+		
+		// mark everything as changed
 		mpt.reset();
 
 		// copy a path to a key
-		byte[] key = "F".getBytes();
-		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, key);		
+		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, keyF);		
+		
 		// change values
-		mpt.insert("G".getBytes(), "100".getBytes());
-		mpt.insert("H".getBytes(), "101".getBytes());
-		mpt.insert("I".getBytes(), "102".getBytes());
-		mpt.insert("J".getBytes(), "103".getBytes());
+		mpt.insert(keyG, value100);
+		mpt.insert(keyH, value101);
+		mpt.insert(keyI, value102);
+		mpt.insert(keyJ, value103);
 		
 		// calculate a new path to a key
-		MPTDictionaryPartial newPath = new MPTDictionaryPartial(mpt, key);
+		MPTDictionaryPartial newPath = new MPTDictionaryPartial(mpt, keyF);
 		
 		// save the changes 
 		MPTDictionaryDelta changes = new MPTDictionaryDelta(mpt);
 
 		try {
 			// use the changes to calculate an update for the original path
-			MerklePrefixTrie updates = changes.getUpdates(key);
+			MerklePrefixTrie updates = changes.getUpdates(keyF);
 			// update the original path
 			path.processUpdates(updates);
 			
@@ -492,45 +474,49 @@ public class MPTDictionaryFullTest {
 	@Test
 	public void testMPTBasicUpdateSequenceDeleteValues() {
 		MPTDictionaryFull mpt = new MPTDictionaryFull();
+		
+		byte[] keyA = CryptographicDigest.hash("A".getBytes());
+		byte[] keyB = CryptographicDigest.hash("B".getBytes());
+		byte[] keyC = CryptographicDigest.hash("C".getBytes());
+		byte[] keyD = CryptographicDigest.hash("D".getBytes());
+		byte[] keyE = CryptographicDigest.hash("E".getBytes());
+		byte[] keyF = CryptographicDigest.hash("F".getBytes());
+		
+		byte[] value1 = CryptographicDigest.hash("1".getBytes());
+		byte[] value2 = CryptographicDigest.hash("2".getBytes());
+		byte[] value3 = CryptographicDigest.hash("3".getBytes());
+		
 		// insert the entries
-		mpt.insert("A".getBytes(), "1".getBytes());
-		mpt.insert("B".getBytes(), "2".getBytes());
-		mpt.insert("C".getBytes(), "3".getBytes());
-		mpt.insert("D".getBytes(), "3".getBytes());		
-		mpt.insert("E".getBytes(), "2".getBytes());		
-		mpt.insert("F".getBytes(), "1".getBytes());		
-		// mark everything as unchanged
+		mpt.insert(keyA, value1);
+		mpt.insert(keyB, value2);
+		mpt.insert(keyC, value3);
+		mpt.insert(keyD, value3);
+		mpt.insert(keyE, value2);
+		mpt.insert(keyF, value1);
+		
+		// mark everything as changed
 		mpt.reset();
 
 		// copy a path to a key
-		byte[] key = "F".getBytes();
-		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, key);		
-		System.out.println("\noriginal:\n"+mpt);
-		System.out.println("\npath original:\n"+path);
-		
+		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, keyF);		
+
 		// delete values
-		mpt.delete("A".getBytes());
-		mpt.delete("B".getBytes());
-		mpt.delete("C".getBytes());
-		mpt.delete("D".getBytes());
+		mpt.delete(keyA);
+		mpt.delete(keyB);
+		mpt.delete(keyC);
+		mpt.delete(keyD);
 
 		// calculate a new path to a key
-		MPTDictionaryPartial newPath = new MPTDictionaryPartial(mpt, key);
-		
-		System.out.println("\nnew:\n"+mpt);
-		System.out.println("\npath new:\n"+newPath);
+		MPTDictionaryPartial newPath = new MPTDictionaryPartial(mpt, keyF);
 		
 		// save the changes 
 		MPTDictionaryDelta changes = new MPTDictionaryDelta(mpt);
-		
-		System.out.println("\nchanges:\n"+changes);
-		try {
+
+	try {
 			// use the changes to calculate an update for the original path
-			MerklePrefixTrie updates = changes.getUpdates(key);
+			MerklePrefixTrie updates = changes.getUpdates(keyF);
 			// update the original path
 			path.processUpdates(updates);
-			
-			System.out.println("\nafter updates:\n"+path);
 
 			// should produce the new path
 			Assert.assertTrue(newPath.equals(path));
@@ -543,49 +529,53 @@ public class MPTDictionaryFullTest {
 	@Test
 	public void testMPTBasicUpdateSequenceDeleteValuesEntireSubtreeMovedUp() {
 		MPTDictionaryFull mpt = new MPTDictionaryFull();
+		
+		byte[] keyA = CryptographicDigest.hash("A".getBytes());
+		byte[] keyB = CryptographicDigest.hash("B".getBytes());
+		byte[] keyC = CryptographicDigest.hash("C".getBytes());
+		byte[] keyD = CryptographicDigest.hash("D".getBytes());
+		byte[] keyE = CryptographicDigest.hash("E".getBytes());
+		byte[] keyF = CryptographicDigest.hash("F".getBytes());
+		byte[] keyG = CryptographicDigest.hash("G".getBytes());
+		byte[] keyH = CryptographicDigest.hash("H".getBytes());
+		
+		byte[] value1 = CryptographicDigest.hash("1".getBytes());
+		byte[] value2 = CryptographicDigest.hash("2".getBytes());
+		byte[] value3 = CryptographicDigest.hash("3".getBytes());
+		
 		// insert the entries
-		mpt.insert("A".getBytes(), "1".getBytes());
-		mpt.insert("B".getBytes(), "2".getBytes());
-		mpt.insert("C".getBytes(), "3".getBytes());
-		mpt.insert("D".getBytes(), "3".getBytes());		
-		mpt.insert("E".getBytes(), "2".getBytes());		
-		mpt.insert("F".getBytes(), "1".getBytes());		
-		mpt.insert("G".getBytes(), "1".getBytes());		
-		mpt.insert("H".getBytes(), "1".getBytes());		
-		// mark everything as unchanged
+		mpt.insert(keyA, value1);
+		mpt.insert(keyB, value2);
+		mpt.insert(keyC, value3);
+		mpt.insert(keyD, value3);
+		mpt.insert(keyE, value2);
+		mpt.insert(keyF, value1);
+		
+		// mark everything as changed
 		mpt.reset();
 
 		// copy a path to a key
-		byte[] key = "B".getBytes();
-		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, key);		
-		System.out.println("\noriginal:\n"+mpt);
-		System.out.println("\npath original:\n"+path);
+		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, keyB);		
 		
 		// delete values
-		mpt.delete("A".getBytes());
-		mpt.delete("C".getBytes());
-		mpt.delete("D".getBytes());
-		mpt.delete("G".getBytes());
-		mpt.delete("H".getBytes());
-
+		mpt.delete(keyA);
+		mpt.delete(keyC);
+		mpt.delete(keyD);
+		mpt.delete(keyG);
+		mpt.delete(keyH);
+		
 		// calculate a new path to a key
-		MPTDictionaryPartial newPath = new MPTDictionaryPartial(mpt, key);
-		
-		System.out.println("\nnew:\n"+mpt);
-		System.out.println("\npath new:\n"+newPath);
-		
+		MPTDictionaryPartial newPath = new MPTDictionaryPartial(mpt, keyB);
+			
 		// save the changes 
 		MPTDictionaryDelta changes = new MPTDictionaryDelta(mpt);
 		
-		System.out.println("\nchanges:\n"+changes);
 		try {
 			// use the changes to calculate an update for the original path
-			MerklePrefixTrie updates = changes.getUpdates(key);
+			MerklePrefixTrie updates = changes.getUpdates(keyB);
 			// update the original path
 			path.processUpdates(updates);
 			
-			System.out.println("\nafter updates:\n"+path);
-
 			// should produce the new path
 			Assert.assertTrue(newPath.equals(path));
 		} catch (InvalidSerializationException e) {
@@ -597,43 +587,48 @@ public class MPTDictionaryFullTest {
 	@Test
 	public void testMPTBasicUpdateSequence() {
 		MPTDictionaryFull mpt = new MPTDictionaryFull();
-		// insert the entries
-		mpt.insert("A".getBytes(), "1".getBytes());
-		mpt.insert("B".getBytes(), "2".getBytes());
-		mpt.insert("C".getBytes(), "3".getBytes());
-		mpt.insert("D".getBytes(), "3".getBytes());		
-		mpt.insert("E".getBytes(), "2".getBytes());		
-		mpt.insert("F".getBytes(), "1".getBytes());		
-		// mark everything as unchanged
-		mpt.reset();
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash("F".getBytes())));
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash("C".getBytes())));
-		System.out.println(Utils.byteArrayAsBitString(CryptographicDigest.hash("G".getBytes())));
+		byte[] keyA = CryptographicDigest.hash("A".getBytes());
+		byte[] keyB = CryptographicDigest.hash("B".getBytes());
+		byte[] keyC = CryptographicDigest.hash("C".getBytes());
+		byte[] keyD = CryptographicDigest.hash("D".getBytes());
+		byte[] keyE = CryptographicDigest.hash("E".getBytes());
+		byte[] keyF = CryptographicDigest.hash("F".getBytes());
+		byte[] keyG = CryptographicDigest.hash("G".getBytes());
 
+		byte[] value1 = CryptographicDigest.hash("1".getBytes());
+		byte[] value2 = CryptographicDigest.hash("2".getBytes());
+		byte[] value3 = CryptographicDigest.hash("3".getBytes());
+
+		byte[] value101 = CryptographicDigest.hash("101".getBytes());
+		
+		// insert the entries
+		mpt.insert(keyA, value1);
+		mpt.insert(keyB, value2);
+		mpt.insert(keyC, value3);
+		mpt.insert(keyD, value3);
+		mpt.insert(keyE, value2);
+		mpt.insert(keyF, value1);
+		
+		// mark everything as changed
+		mpt.reset();
+		
 		// copy a path to a key
-		byte[] key = "F".getBytes();
-		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, key);
-		System.out.println("\noriginal:\n"+mpt);
-		System.out.println("\npath original:\n"+path);
+		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, keyF);
 		
 		// make some changes
-		mpt.insert("C".getBytes(), "100".getBytes());
-		mpt.insert("G".getBytes(), "1".getBytes());
+		mpt.insert(keyC, value101);
+		mpt.insert(keyG, value1);
 		
 		// calculate a new path to a key
-		MPTDictionaryPartial newPath = new MPTDictionaryPartial(mpt, key);
-		System.out.println("\nnew:\n"+mpt);
-		System.out.println("\npath new:\n"+newPath);
+		MPTDictionaryPartial newPath = new MPTDictionaryPartial(mpt, keyF);
 		
 		// save the changes 
 		MPTDictionaryDelta changes = new MPTDictionaryDelta(mpt);
-		System.out.println("\nchanges:\n"+changes);
 		try {
 			// use the changes to calculate an update for the original path
-			MerklePrefixTrie updates = changes.getUpdates(key);
+			MerklePrefixTrie updates = changes.getUpdates(keyF);
 			// update the original path
 			path.processUpdates(updates);
-			System.out.println("\nafter updates:\n"+path);
 			
 			// should produce the new path
 			Assert.assertTrue(newPath.equals(path));
@@ -647,39 +642,46 @@ public class MPTDictionaryFullTest {
 	public void testDeltaGenerateUpdatesMultiplePaths() {
 		MPTDictionaryFull mpt = new MPTDictionaryFull();
 
-		// insert the entries
-		mpt.insert("A".getBytes(), "1".getBytes());
-		mpt.insert("B".getBytes(), "2".getBytes());
-		mpt.insert("C".getBytes(), "3".getBytes());
-		mpt.insert("D".getBytes(), "3".getBytes());		
-		mpt.insert("E".getBytes(), "2".getBytes());		
-		mpt.insert("F".getBytes(), "1".getBytes());	
+		byte[] keyA = CryptographicDigest.hash("A".getBytes());
+		byte[] keyB = CryptographicDigest.hash("B".getBytes());
+		byte[] keyC = CryptographicDigest.hash("C".getBytes());
+		byte[] keyD = CryptographicDigest.hash("D".getBytes());
+		byte[] keyE = CryptographicDigest.hash("E".getBytes());
+		byte[] keyF = CryptographicDigest.hash("F".getBytes());
+		byte[] keyG = CryptographicDigest.hash("G".getBytes());
 
-		System.out.println("\noriginal:\n"+mpt);
+		byte[] value1 = CryptographicDigest.hash("1".getBytes());
+		byte[] value2 = CryptographicDigest.hash("2".getBytes());
+		byte[] value3 = CryptographicDigest.hash("3".getBytes());
+
+		byte[] value100 = CryptographicDigest.hash("100".getBytes());
+		byte[] value101 = CryptographicDigest.hash("101".getBytes());
+		
+		// insert the entries
+		mpt.insert(keyA, value1);
+		mpt.insert(keyB, value2);
+		mpt.insert(keyC, value3);
+		mpt.insert(keyD, value3);
+		mpt.insert(keyE, value2);
+		mpt.insert(keyF, value1);
 
 		// create a partial tree
-		byte[] key1 = "E".getBytes();
-		byte[] key2 = "F".getBytes();
 		List<byte[]> keys = new ArrayList<>();
-		keys.add(key1);
-		keys.add(key2);
+		keys.add(keyE);
+		keys.add(keyF);
 		MPTDictionaryPartial partialmpt = new  MPTDictionaryPartial(mpt, keys);
-		System.out.println("\npartial:\n"+partialmpt);
 		
 		mpt.reset();
-		mpt.insert("G".getBytes(), "100".getBytes());
-		mpt.insert("A".getBytes(), "101".getBytes());
-		System.out.println("\nupdated:\n"+mpt);
+		mpt.insert(keyG, value100);
+		mpt.insert(keyA, value101);
 
 		MPTDictionaryDelta changes = new MPTDictionaryDelta(mpt);
-		System.out.println("\nchanges :\n"+changes);
 
 		MerklePrefixTrie updates = changes.getUpdates(keys);
 		try {
 			partialmpt.processUpdates(updates);
-			System.out.println("\npartial with updates :\n"+partialmpt);
-			Assert.assertTrue(Arrays.equals(mpt.get(key1), partialmpt.get(key1)));
-			Assert.assertTrue(Arrays.equals(mpt.get(key2), partialmpt.get(key2)));
+			Assert.assertTrue(Arrays.equals(mpt.get(keyE), partialmpt.get(keyE)));
+			Assert.assertTrue(Arrays.equals(mpt.get(keyF), partialmpt.get(keyF)));
 			Assert.assertTrue(Arrays.equals(mpt.commitment(), partialmpt.commitment()));
 			Assert.assertTrue(Arrays.equals(mpt.commitment(), partialmpt.commitment()));
 			
@@ -693,40 +695,47 @@ public class MPTDictionaryFullTest {
 	public void testDeltaGenerateInsertsDeletesAndChanges() {
 		MPTDictionaryFull mpt = new MPTDictionaryFull();
 
-		// insert the entries
-		mpt.insert("A".getBytes(), "1".getBytes());
-		mpt.insert("B".getBytes(), "2".getBytes());
-		mpt.insert("C".getBytes(), "3".getBytes());
-		mpt.insert("D".getBytes(), "3".getBytes());		
-		mpt.insert("E".getBytes(), "2".getBytes());		
-		mpt.insert("F".getBytes(), "1".getBytes());	
+		byte[] keyA = CryptographicDigest.hash("A".getBytes());
+		byte[] keyB = CryptographicDigest.hash("B".getBytes());
+		byte[] keyC = CryptographicDigest.hash("C".getBytes());
+		byte[] keyD = CryptographicDigest.hash("D".getBytes());
+		byte[] keyE = CryptographicDigest.hash("E".getBytes());
+		byte[] keyF = CryptographicDigest.hash("F".getBytes());
+		byte[] keyG = CryptographicDigest.hash("G".getBytes());
 
-		System.out.println("\noriginal:\n"+mpt);
+		byte[] value1 = CryptographicDigest.hash("1".getBytes());
+		byte[] value2 = CryptographicDigest.hash("2".getBytes());
+		byte[] value3 = CryptographicDigest.hash("3".getBytes());
+
+		byte[] value100 = CryptographicDigest.hash("100".getBytes());
+		byte[] value101 = CryptographicDigest.hash("101".getBytes());
+
+		// insert the entries
+		mpt.insert(keyA, value1);
+		mpt.insert(keyB, value2);
+		mpt.insert(keyC, value3);
+		mpt.insert(keyD, value3);
+		mpt.insert(keyE, value2);
+		mpt.insert(keyF, value1);
 
 		// create a partial tree
-		byte[] key1 = "E".getBytes();
-		byte[] key2 = "F".getBytes();
 		List<byte[]> keys = new ArrayList<>();
-		keys.add(key1);
-		keys.add(key2);
+		keys.add(keyE);
+		keys.add(keyF);
 		MPTDictionaryPartial partialmpt = new  MPTDictionaryPartial(mpt, keys);
-		System.out.println("\npartial:\n"+partialmpt);
 		
 		mpt.reset();
-		mpt.insert("G".getBytes(), "100".getBytes());
-		mpt.insert("A".getBytes(), "101".getBytes());
-		mpt.delete("B".getBytes());
-		System.out.println("\nupdated:\n"+mpt);
+		mpt.insert(keyG, value100);
+		mpt.insert(keyA, value101);
+		mpt.delete(keyB);
 		
 		MPTDictionaryPartial partialmptNew = new  MPTDictionaryPartial(mpt, keys);
 
 		MPTDictionaryDelta changes = new MPTDictionaryDelta(mpt);
-		System.out.println("\nchanges :\n"+changes);
 
 		MerklePrefixTrie updates = changes.getUpdates(keys);
 		try {
 			partialmpt.processUpdates(updates);
-			System.out.println("\npartial with updates :\n"+partialmpt);
 			Assert.assertEquals(partialmptNew, partialmpt);
 			
 		} catch (Exception e) {
@@ -738,10 +747,10 @@ public class MPTDictionaryFullTest {
 	@Test
 	public void testDeltaGenerateInsertsDeletesAndChangesLargeMpt() {
 		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(1000, "");
-		byte[] key1 = ("key"+Integer.toString(112)).getBytes();
-		byte[] key2 = ("key"+Integer.toString(204)).getBytes();
-		byte[] key3 = ("key"+Integer.toString(681)).getBytes();
-		byte[] key4 = ("key"+Integer.toString(939)).getBytes();
+		byte[] key1 = Utils.getKey(112);
+		byte[] key2 = Utils.getKey(204);
+		byte[] key3 = Utils.getKey(681);
+		byte[] key4 = Utils.getKey(939);
 		List<byte[]> keys = new ArrayList<>();
 		keys.add(key1);
 		keys.add(key2);
@@ -752,19 +761,19 @@ public class MPTDictionaryFullTest {
 		mpt.reset();
 		// now delete some keys 
 		for(int key = 300; key < 400; key++) {
-			final byte[] keyByte = ("key"+Integer.toString(key)).getBytes();
+			final byte[] keyByte = Utils.getKey(key);
 			mpt.delete(keyByte);
 		}
 		// insert some new keys
 		for(int key = 1000; key < 2000; key++) {
-			final byte[] keyByte = ("key"+Integer.toString(key)).getBytes();
-			final byte[] valueByte = ("value"+Integer.toString(key)).getBytes();
+			final byte[] keyByte = Utils.getKey(key);
+			final byte[] valueByte = Utils.getValue(key, "");
 			mpt.insert(keyByte, valueByte);
 		}
 		// modify some key-value mappings
 		for(int key = 0; key < 200; key++) {
-			final byte[] keyByte = ("key"+Integer.toString(key)).getBytes();
-			final byte[] valueByte = ("value"+Integer.toString(key)+"new").getBytes();
+			final byte[] keyByte = Utils.getKey(key);
+			final byte[] valueByte = Utils.getValue(key, "NEW");
 			mpt.insert(keyByte, valueByte);
 		}
 		
@@ -775,12 +784,8 @@ public class MPTDictionaryFullTest {
 		MerklePrefixTrie updates = changes.getUpdates(keys);
 		try {
 			paths.processUpdates(updates);
-			System.out.println(paths);
-			System.out.println("\n"+newPaths);
 			Assert.assertEquals(newPaths, paths);
 		}catch(Exception e) {
-			System.out.println(e.toString());
-			System.out.println(e.getMessage());
 			e.printStackTrace();
 			Assert.fail(e.getMessage());
 		}

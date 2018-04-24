@@ -5,10 +5,9 @@ import java.util.List;
 
 import com.google.protobuf.ByteString;
 
-import crpyto.CryptographicDigest;
+import mpt.core.DictionaryLeafNode;
 import mpt.core.EmptyLeafNode;
 import mpt.core.InteriorNode;
-import mpt.core.DictionaryLeafNode;
 import mpt.core.Node;
 import mpt.core.Stub;
 import mpt.core.Utils;
@@ -67,18 +66,14 @@ public class MPTDictionaryDelta implements AuthenticatedDictionaryChanges {
 	
 	@Override
 	public MptSerialization.MerklePrefixTrie getUpdates(final List<byte[]> keys) {
-		List<byte[]> keyHashes = new ArrayList<byte[]>();
-		for(byte[] key : keys) {
-			keyHashes.add(CryptographicDigest.hash(key));
-		}
-		MptSerialization.Node root = MPTDictionaryDelta.getUpdatesHelper(keyHashes, -1, this.root);
+		MptSerialization.Node root = MPTDictionaryDelta.getUpdatesHelper(keys, -1, this.root);
 		MptSerialization.MerklePrefixTrie tree = MptSerialization.MerklePrefixTrie.newBuilder()
 				.setRoot(root)
 				.build();
 		return tree;
 	}
 	
-	private static MptSerialization.Node getUpdatesHelper(final List<byte[]> matchingKeyHashes, 
+	private static MptSerialization.Node getUpdatesHelper(final List<byte[]> matchingKeys, 
 			final int currentBitIndex, final Node currentNode){
 		// case: stub - this location has not changed 
 		// 				--> avoid re-transmitting it by caching it on the client 
@@ -87,7 +82,7 @@ public class MPTDictionaryDelta implements AuthenticatedDictionaryChanges {
 		}
 		// case: non-stub - this location has changed 
 		// subcase: no matching keys - value is not needed
-		if(matchingKeyHashes.size() == 0) {
+		if(matchingKeys.size() == 0) {
 			// if empty, just send empty node
 			if(currentNode.isEmpty()) {
 				return MptSerialization.Node.newBuilder()
@@ -120,12 +115,12 @@ public class MPTDictionaryDelta implements AuthenticatedDictionaryChanges {
 		// and those that match the left prefix (...0)
 		List<byte[]> matchRight = new ArrayList<byte[]>();
 		List<byte[]> matchLeft = new ArrayList<byte[]>();
-		for(byte[] keyHash : matchingKeyHashes) {
-			final boolean bit = Utils.getBit(keyHash, currentBitIndex + 1);
+		for(byte[] key : matchingKeys) {
+			final boolean bit = Utils.getBit(key, currentBitIndex + 1);
 			if(bit) {
-				matchRight.add(keyHash);
+				matchRight.add(key);
 			}else {
-				matchLeft.add(keyHash);
+				matchLeft.add(key);
 			}
 		}
 		MptSerialization.Node left = MPTDictionaryDelta.getUpdatesHelper(matchLeft, currentBitIndex+1, 

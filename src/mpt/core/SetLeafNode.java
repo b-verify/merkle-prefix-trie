@@ -4,37 +4,33 @@ import java.util.Arrays;
 
 import com.google.protobuf.ByteString;
 
-import crpyto.CryptographicDigest;
 import serialization.MptSerialization;
 
 /**
  * MUTABLE
  * 
  * Represents a leaf node in a Merkle Prefix Trie (MPT) set.
- * Set leaf nodes store only a value (unlike in a dictionary
- * where the leaf nodes store key and values). Unlike in 
- * dictionary leaf nodes, the value of a set leaf node 
- * cannot be updated.
+ * Set leaf nodes store only a value (in the
+ * leaf node the value also functions as the key). Unlike 
+ * in the dictionary leaf node, the value in a set leaf
+ * node cannot be changed.  
  * 
  * @author henryaspegren
  *
  */
 public class SetLeafNode implements Node{
 	
-	private byte[] value;
-	private byte[] valueHash;
-	
+	private byte[] value;	
 	private boolean changed;
 	
 	public SetLeafNode(byte[] value) {
 		this.value = value.clone();
-		this.valueHash = CryptographicDigest.hash(value);
 		this.changed = true;
 	}
 
 	@Override
 	public byte[] getValue() {
-		return this.value;
+		return this.value.clone();
 	}
 
 	@Override
@@ -44,17 +40,12 @@ public class SetLeafNode implements Node{
 
 	@Override
 	public byte[] getHash() {
-		return this.valueHash.clone();
+		return this.value.clone();
 	}
 
 	@Override
 	public byte[] getKey() {
 		return this.value.clone();
-	}
-
-	@Override
-	public byte[] getKeyHash() {
-		return this.valueHash.clone();
 	}
 
 	@Override
