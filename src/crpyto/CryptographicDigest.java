@@ -1,6 +1,7 @@
 package crpyto;
 
 import java.security.MessageDigest;
+import java.util.List;
 
 /**
  * This is a wrapper that exposes the required
@@ -27,6 +28,19 @@ public class CryptographicDigest {
 		try {
 			MessageDigest md = MessageDigest.getInstance(HASH_FUNCTION);
 			byte[] digest = md.digest(input);
+			return digest;
+		}catch(Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public static byte[] hash(List<byte[]> inputs) {
+		try {
+			MessageDigest md = MessageDigest.getInstance(HASH_FUNCTION);
+			for(byte[] input : inputs) {
+				md.update(input);
+			}
+			byte[] digest = md.digest();
 			return digest;
 		}catch(Exception e) {
 			throw new RuntimeException(e);

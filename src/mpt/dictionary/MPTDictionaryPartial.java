@@ -253,11 +253,11 @@ public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 	}
 	
 	@Override
-	public byte[] serialize() {
+	public MptSerialization.MerklePrefixTrie serialize() {
 		MptSerialization.Node rootSerialization = this.root.serialize();
 		MptSerialization.MerklePrefixTrie.Builder builder = MptSerialization.MerklePrefixTrie.newBuilder();
 		builder.setRoot(rootSerialization);
-		return builder.build().toByteArray();
+		return builder.build();
 	}
 	
 	@Override

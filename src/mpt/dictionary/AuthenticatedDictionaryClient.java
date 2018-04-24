@@ -54,10 +54,13 @@ public interface AuthenticatedDictionaryClient {
 	 */
 	public void processUpdates(MptSerialization.MerklePrefixTrie updates) throws InvalidSerializationException;
 	
+
 	/**
-	 * Serialize the authenticated dictionary as a concise byte representation
+	 * Serialize the client authenticated dictionary as a 
+	 * protobuf object which can easily be converted to bytes
+	 * and read by a client.
 	 * @return
 	 */
-	public byte[] serialize();
+	public MptSerialization.MerklePrefixTrie serialize();
 	
 }

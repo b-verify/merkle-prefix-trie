@@ -33,7 +33,7 @@ public interface AuthenticatedDictionaryServer {
 	 * @param value - arbitrary bytes representing a value
 	 */
 	public void insert(final byte[] key, final byte[] value);
-	
+		
 	/**
 	 * Get the value mapped to by key or null if the 
 	 * key is not mapped to anything.

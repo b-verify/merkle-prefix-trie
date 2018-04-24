@@ -156,7 +156,7 @@ public class MPTDictionaryPartialTest {
 		String keyString = "key"+Integer.toString(key);
 		String valueString = "value"+Integer.toString(key)+salt;
 		MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, keyString.getBytes());
-		byte[] serialization = path.serialize();
+		byte[] serialization = path.serialize().toByteArray();
 		try {
 			MPTDictionaryPartial fromBytes = MPTDictionaryPartial.deserialize(serialization);
 			Assert.assertTrue("deserialized path contains the specific entry", 

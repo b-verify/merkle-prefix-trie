@@ -11,18 +11,16 @@ public class CryptographicUtils {
 	/**
 	 * Commits to a key and a value using the following commitment 
 	 * 
-	 * 					H(H(key)||H(value))
+	 * 					H(key||value)
 	 * 
 	 * @param key
 	 * @param value
 	 * @return
 	 */
 	public static byte[] witnessKeyAndValue(byte[] key, byte[] value) {
-		byte[] digestKey = CryptographicDigest.hash(key);
-		byte[] digestValue = CryptographicDigest.hash(value);
-		byte[] witnessPreImage = new byte[digestKey.length+digestValue.length];
-		System.arraycopy(digestKey, 0, witnessPreImage, 0, digestKey.length);
-		System.arraycopy(digestValue, 0, witnessPreImage, digestKey.length, digestValue.length);
+		byte[] witnessPreImage = new byte[key.length+value.length];
+		System.arraycopy(key, 0, witnessPreImage, 0, key.length);
+		System.arraycopy(value, 0, witnessPreImage, key.length, value.length);
 		byte[] witness = CryptographicDigest.hash(witnessPreImage);
 		return witness;
 	}
