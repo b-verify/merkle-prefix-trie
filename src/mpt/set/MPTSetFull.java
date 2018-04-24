@@ -14,6 +14,7 @@ import mpt.core.Node;
 import mpt.core.SetLeafNode;
 import mpt.core.Utils;
 import serialization.MptSerialization;
+import serialization.MptSerialization.MerklePrefixTrie;
 
 /**
  * An implementation of a FULL authenticated set using a Merkle Prefix Trie (MPT).
@@ -265,11 +266,11 @@ public class MPTSetFull implements AuthenticatedSetServer {
 	}
 
 	@Override
-	public byte[] serialize() {
+	public MerklePrefixTrie serialize() {
 		MptSerialization.Node rootSerialization = this.root.serialize();
 		MptSerialization.MerklePrefixTrie.Builder builder = MptSerialization.MerklePrefixTrie.newBuilder();
 		builder.setRoot(rootSerialization);
-		return builder.build().toByteArray();
+		return builder.build();
 	}
 
 	/**
