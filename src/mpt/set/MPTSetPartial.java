@@ -16,6 +16,7 @@ import mpt.core.SetLeafNode;
 import mpt.core.Stub;
 import mpt.core.Utils;
 import serialization.MptSerialization;
+import serialization.MptSerialization.MerklePrefixTrie;
 
 /**
  * Partial Merkle Prefix Tries contain a subset of the information 
@@ -204,11 +205,12 @@ public class MPTSetPartial implements AuthenticatedSetClient {
 		}
 	}
 	
-	public byte[] serialize() {
+	@Override
+	public MerklePrefixTrie serialize() {
 		MptSerialization.Node rootSerialization = this.root.serialize();
 		MptSerialization.MerklePrefixTrie.Builder builder = MptSerialization.MerklePrefixTrie.newBuilder();
 		builder.setRoot(rootSerialization);
-		return builder.build().toByteArray();
+		return builder.build();
 	}
 	
 	@Override
