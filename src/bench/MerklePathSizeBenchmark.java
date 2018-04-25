@@ -25,8 +25,8 @@ public class MerklePathSizeBenchmark {
 		BigInteger total_size = BigInteger.ZERO;
 		int max_size = 0;
 		for(int i = 0; i < n; i++) {
-			String keyString = "key"+Integer.toString(i);
-			MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, keyString.getBytes());
+			byte[] key = Utils.getKey(i);
+			MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, key);
 			byte[] serialized = path.serialize().toByteArray();
 			int size = serialized.length;
 			total_size = total_size.add(BigInteger.valueOf(size));

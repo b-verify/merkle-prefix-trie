@@ -4,15 +4,15 @@
 This is a full implementation of <b>Authenticated Dictionaries</b> (<i>a set of key-value mappings</i>) and <b>Authenticated Sets</b> (<i>a set of values</i>) using Merkle Prefix Tries. This datastructure allows very small lograthmic proofs of membership and non-membership. These data structures also support updates for use in a dynamic setting. These updates are very small because the implementation exploits client caching to avoid retransmitting unchanged internal values.
 
 # Benchmarks
-For a dictionary with 
-`10^6  entries`
-which we can generate in less than a minute, here are the stats:
+We benchmark using a dictionary with 
+`10^7 key, pairs`
+with 32-byte keys and 32-byte values which we can generate in a few minutes - most of the generation time is due to garbage collection pauses
+`Total key, value data 		(bytes): 640000000 (0.64 GB)`
+`Entire mpt proof size  	(bytes): 824397218 (0.82 GB)`
+`Average path proof size 	(bytes): 1116 (1.1 KB)`
+`Max path proof size     	(bytes): 1433 (1.4 KB)'
 
-`Entire tree proof size 		(bytes): 50789842`
-
-`Average path proof size 	(bytes): 1021`
-
-`Max path proof size     	(bytes): 1908`
+The bottleneck is the amount of heap space available to the JVM. Also as the heap is filled up the garbage collection pauses become more noticable
 
 To reproduce these benchmarks run
 `$sh benchmark.sh`
@@ -32,4 +32,3 @@ InteriorNode  - 2 byte overhead
 
 ### Test
 `$mvn test`
-(I've made the test cases smaller to reduce time to run the tests - on my Macbook they run in ~17 seconds)
