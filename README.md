@@ -6,7 +6,7 @@ This is a full implementation of <b>Authenticated Dictionaries</b> (<i>a set of 
 # Benchmarks
 We benchmark using a dictionary with 
 
-`10^7 key, pairs`
+`10^7 key, value pairs`
 
 with 32-byte keys and 32-byte values which we can generate in a few minutes - most of the generation time is due to garbage collection pauses
 
