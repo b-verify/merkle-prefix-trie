@@ -16,7 +16,7 @@ with 32-byte keys and 32-byte values which we can generate in a few minutes - mo
 
 `Average path proof size 	(bytes): 1116 (1.1 KB)`
 
-`Max path proof size     	(bytes): 1433 (1.4 KB)'
+`Max path proof size     	(bytes): 1433 (1.4 KB)`
 
 The bottleneck is the amount of heap space available to the JVM. Also as the heap is filled up the garbage collection pauses become more noticable
 
