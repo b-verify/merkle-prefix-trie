@@ -1,4 +1,4 @@
-package crpyto;
+package crypto;
 
 import java.security.MessageDigest;
 import java.util.List;

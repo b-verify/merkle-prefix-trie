@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import crpyto.CryptographicDigest;
+import crypto.CryptographicDigest;
 import mpt.dictionary.MPTDictionaryFull;
 import mpt.set.MPTSetFull;
 

@@ -14,7 +14,7 @@ import java.util.Map.Entry;
 import org.junit.Assert;
 import org.junit.Test;
 
-import crpyto.CryptographicDigest;
+import crypto.CryptographicDigest;
 import mpt.core.InvalidSerializationException;
 import mpt.core.Utils;
 import mpt.dictionary.MPTDictionaryDelta;
@@ -23,6 +23,7 @@ import mpt.dictionary.MPTDictionaryPartial;
 import serialization.MptSerialization.MerklePrefixTrie;
 
 public class MPTDictionaryFullTest {
+	
 	
 	@Test 
 	public void testTrieInsertionsManyOrdersProduceTheSameTrie() {

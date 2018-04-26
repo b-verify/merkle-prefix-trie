@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
-import crpyto.CryptographicDigest;
+import crypto.CryptographicDigest;
 import mpt.core.EmptyLeafNode;
 import mpt.core.InsufficientAuthenticationDataException;
 import mpt.core.InteriorNode;
@@ -30,7 +30,7 @@ import serialization.MptSerialization;
  */
 public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 	
-	private InteriorNode root;
+	protected InteriorNode root;
 
 	/**
 	 * Create a partial MPT from the full MPT. Since no keys are provided 

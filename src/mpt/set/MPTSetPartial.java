@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
-import crpyto.CryptographicDigest;
+import crypto.CryptographicDigest;
 import mpt.core.EmptyLeafNode;
 import mpt.core.InsufficientAuthenticationDataException;
 import mpt.core.InteriorNode;

@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import com.google.protobuf.ByteString;
 
-import crpyto.CryptographicUtils;
+import crypto.CryptographicUtils;
 import serialization.MptSerialization;
 
 /**

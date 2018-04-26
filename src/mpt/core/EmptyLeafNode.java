@@ -1,6 +1,6 @@
 package mpt.core;
 
-import crpyto.CryptographicDigest;
+import crypto.CryptographicDigest;
 
 /**
  * This class represents an empty leaf in the tree. Empty leaves 

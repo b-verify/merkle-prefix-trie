@@ -1,6 +1,6 @@
 package mpt.core;
 
-import crpyto.CryptographicDigest;
+import crypto.CryptographicDigest;
 import serialization.MptSerialization;
 
 /**

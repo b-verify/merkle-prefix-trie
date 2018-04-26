@@ -2,7 +2,7 @@ package bench;
 
 import com.google.protobuf.ByteString;
 
-import crpyto.CryptographicDigest;
+import crypto.CryptographicDigest;
 import serialization.MptSerialization;
 
 public class SerializationSizeBenchmark {

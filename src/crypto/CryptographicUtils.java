@@ -1,4 +1,4 @@
-package crpyto;
+package crypto;
 
 /**
  * This class contains the various cryptographic 

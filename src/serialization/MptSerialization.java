@@ -2626,6 +2626,8 @@ public final class MptSerialization {
    * <pre>
    **
    *	Leaf in the tree
+   * 	NOTE a dictionary leaf must have key and value
+   *   but set leafs only have a value 
    * </pre>
    *
    * Protobuf type {@code serialization.Leaf}
@@ -2893,6 +2895,8 @@ public final class MptSerialization {
      * <pre>
      **
      *	Leaf in the tree
+     * 	NOTE a dictionary leaf must have key and value
+     *   but set leafs only have a value 
      * </pre>
      *
      * Protobuf type {@code serialization.Leaf}

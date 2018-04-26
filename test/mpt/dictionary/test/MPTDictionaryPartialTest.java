@@ -7,7 +7,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import crpyto.CryptographicDigest;
+import crypto.CryptographicDigest;
 import mpt.core.InsufficientAuthenticationDataException;
 import mpt.core.InvalidSerializationException;
 import mpt.core.Utils;
