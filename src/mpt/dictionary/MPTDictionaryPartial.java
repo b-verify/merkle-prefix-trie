@@ -161,14 +161,25 @@ public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 		MptSerialization.MerklePrefixTrie mpt;
 		try {
 			mpt = MptSerialization.MerklePrefixTrie.parseFrom(asbytes);
+			return MPTDictionaryPartial.deserialize(mpt);
 		} catch (InvalidProtocolBufferException e) {
 			throw new InvalidSerializationException(e.getMessage());
 		}
-		if (!mpt.hasRoot()) {
+	}
+	
+	/**
+	 * Deserialize a partial MPT from the protobuf representation
+	 * @param partialMPT - partial MPT protobuf
+	 * @return
+	 * @throws InvalidSerializationException - if it cannot properly be decoded
+	 */
+	public static MPTDictionaryPartial deserialize(MptSerialization.MerklePrefixTrie partialMPT) throws 
+		InvalidSerializationException {
+		if(!partialMPT.hasRoot()) {
 			throw new InvalidSerializationException("no root included");
 		}
 		// when we deserialize a full MPT we do not use any cached values
-		Node root = MPTDictionaryPartial.parseNode(mpt.getRoot());
+		Node root = MPTDictionaryPartial.parseNode(partialMPT.getRoot());
 		if (!(root instanceof InteriorNode)) {
 			throw new InvalidSerializationException("root is not an interior node!");
 		}
