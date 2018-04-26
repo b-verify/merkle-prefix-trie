@@ -241,7 +241,7 @@ public class MPTSetFull implements AuthenticatedSetServer {
 	}
 	
 	/**
-	 * Deserialize a full MPT from bytes
+	 * Deserialize a full MPT set from bytes
 	 * @param asbytes
 	 * @return
 	 * @throws InvalidSerializationException - if the serialization cannot be decoded
@@ -250,9 +250,19 @@ public class MPTSetFull implements AuthenticatedSetServer {
 		MptSerialization.MerklePrefixTrie mpt;
 		try {
 			mpt = MptSerialization.MerklePrefixTrie.parseFrom(asbytes);
+			return MPTSetFull.deserialize(mpt);
 		} catch (InvalidProtocolBufferException e) {
 			throw new InvalidSerializationException(e.getMessage());
 		}
+	}
+	
+	/**
+	 * Deserialize a full MPT set from a protobuf encoding 
+	 * @param mpt - a protobuf encoded full set
+	 * @return 
+	 * @throws InvalidSerializationException - if it cannot be decoded
+	 */
+	public static MPTSetFull deserialize(MptSerialization.MerklePrefixTrie mpt) throws InvalidSerializationException {
 		if (!mpt.hasRoot()) {
 			throw new InvalidSerializationException("no root included");
 		}

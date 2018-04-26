@@ -259,13 +259,23 @@ public class MPTDictionaryFull implements AuthenticatedDictionaryServer {
 		MptSerialization.MerklePrefixTrie mpt;
 		try {
 			mpt = MptSerialization.MerklePrefixTrie.parseFrom(asbytes);
+			return MPTDictionaryFull.deserialize(mpt);
 		} catch (InvalidProtocolBufferException e) {
 			throw new InvalidSerializationException(e.getMessage());
 		}
+	
+	}
+	
+	/**
+	 * Deserialzie a full MPT from a protobuf encoding
+	 * @param mpt - a protobuf mpt encoding
+	 * @return
+	 * @throws InvalidSerializationException - if it cannot be parsed
+	 */
+	public static MPTDictionaryFull deserialize(MptSerialization.MerklePrefixTrie mpt) throws InvalidSerializationException {
 		if (!mpt.hasRoot()) {
 			throw new InvalidSerializationException("no root included");
 		}
-		// when we deserialize a full MPT we do not use any cached values
 		Node root = MPTDictionaryFull.parseNode(mpt.getRoot());
 		if (!(root instanceof InteriorNode)) {
 			throw new InvalidSerializationException("root is not an interior node!");
