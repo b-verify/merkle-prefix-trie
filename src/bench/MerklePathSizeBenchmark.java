@@ -17,7 +17,7 @@ public class MerklePathSizeBenchmark {
 		System.out.println("done- calculating commitment");
 		byte[] commitment = mpt.commitment();
 		System.out.println("commitment: "+Utils.byteArrayAsHexString(commitment));
-		byte[] serialization = mpt.serialize();
+		byte[] serialization = mpt.serialize().toByteArray();
 		int sizeEntireTrieSerialization = serialization.length;
 		System.out.println("size of entire mpt	(bytes): "+sizeEntireTrieSerialization);
 		

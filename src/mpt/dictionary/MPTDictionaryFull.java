@@ -299,11 +299,11 @@ public class MPTDictionaryFull implements AuthenticatedDictionaryServer {
 		return new MPTDictionaryFull(rootInt);
 	}
 
-	public byte[] serialize() {
+	public MptSerialization.MerklePrefixTrie serialize() {
 		MptSerialization.Node rootSerialization = this.root.serialize();
 		MptSerialization.MerklePrefixTrie.Builder builder = MptSerialization.MerklePrefixTrie.newBuilder();
 		builder.setRoot(rootSerialization);
-		return builder.build().toByteArray();
+		return builder.build();
 	}
 
 	/**
