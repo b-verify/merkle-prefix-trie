@@ -33,7 +33,10 @@ public interface AuthenticatedDictionaryServer {
 	/**
 	 * Insert a (key,value) mapping into the dictionary. 
 	 * If the key is currently mapped to some other value, 
-	 * the value is updated. Authentication information
+	 * the value is updated. Reinserting a (key, value) mapping
+	 * that already is in the dictionary still counts as a change
+	 * made to the dictionary. 
+	 * Authentication information
 	 * is updated *lazily* - meaning that calculation
 	 * of hashes is delayed until this.commitment()
 	 * is called!

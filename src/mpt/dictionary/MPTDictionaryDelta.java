@@ -35,12 +35,24 @@ public class MPTDictionaryDelta implements AuthenticatedDictionaryChanges {
 	 * @param mpt - The MPT to copy changes from
 	 */
 	public MPTDictionaryDelta(MPTDictionaryFull mpt) {
-		InteriorNode copiedRootOnlyChanges = (InteriorNode) MPTDictionaryDelta.copyChangesOnlyHelper(mpt.root);
+		//InteriorNode copiedRootOnlyChanges = (InteriorNode) MPTDictionaryDelta.copyChangesOnlyHelper(mpt.root);
+		InteriorNode copiedRootOnlyChanges = (InteriorNode) MPTDictionaryDelta.copyChangesOnlyHelperRoot(mpt.root);
 		this.root = copiedRootOnlyChanges;
+	}
+	
+	//here we assume that this is a root node, i.e. an InteriorNode!
+	private static Node copyChangesOnlyHelperRoot(final Node currentNode) {
+		
+		Node leftChild = MPTDictionaryDelta.copyChangesOnlyHelper(currentNode.getLeftChild());
+		Node rightChild = MPTDictionaryDelta.copyChangesOnlyHelper(currentNode.getRightChild());
+		return new InteriorNode(leftChild, rightChild);
+		
 	}
 
 	private static Node copyChangesOnlyHelper(final Node currentNode) {
+		System.out.println("In MPTDictionaryDelta: copy changes for node " + currentNode);
 		if(!currentNode.changed()) {
+			System.out.println("creating stub in copyChangesOnlyHelper");
 			return new Stub(currentNode.getHash());
 		}
 		if (currentNode.isLeaf()) {

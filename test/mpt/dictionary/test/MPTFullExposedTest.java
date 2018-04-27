@@ -15,7 +15,8 @@ import mpt.core.Node;
 import mpt.dictionary.MPTDictionaryFull;
 
 /**
- * Class to test the internal structure of the trie. 
+ * Class to test the internal structure of MPTDictionaryFull
+ *  
  * @author christinalee
  *
  */

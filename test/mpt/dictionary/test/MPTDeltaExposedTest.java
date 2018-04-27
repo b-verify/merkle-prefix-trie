@@ -13,8 +13,19 @@ import mpt.core.Node;
 import mpt.dictionary.MPTDictionaryDelta;
 import mpt.dictionary.MPTDictionaryFull;
 
+/**
+ * Test class for testing internal structure of MPTDictionaryDelta
+ * 
+ * @author christinalee
+ *
+ */
 public class MPTDeltaExposedTest {
 	
+	/**
+	 * Class to 
+	 * @author christinalee
+	 *
+	 */
 	private class MPTDeltaExposed extends MPTDictionaryDelta {
 
 		private MPTDeltaExposed(MPTDictionaryFull mpt) {
@@ -60,6 +71,11 @@ public class MPTDeltaExposedTest {
 	 * Testing strategy
 	 * 
 	 * 
+	 */
+	
+	
+	/**
+	 * Testing <= 1 changes since reset
 	 */
 	
 	@Test
@@ -220,6 +236,11 @@ public class MPTDeltaExposedTest {
 		Node index_1_0 = root.getLeftChild();
 		assertTrue(index_1_0.isStub());
 		
+		Node index_2_4 = (root.getRightChild()).getRightChild(); //prefix 11
+		assertTrue(index_2_4.isLeaf());
+		assertFalse(index_2_4.isEmpty());
+		assertArrayEquals(key3, index_2_4.getKey());
+		
 		Node index_2_3 = (root.getRightChild()).getLeftChild();
 		assertTrue(index_2_3.isStub());
 		
@@ -336,17 +357,17 @@ public class MPTDeltaExposedTest {
 		//delete 00000001
 		
 		Set<Byte> first = new HashSet<>();
-		byte[] key0 = getByteArray(first);
+		byte[] key0 = getByteArray(first); //00000000
 		first.add(SIX);
-		byte[] key1 = getByteArray(first); //010
+		byte[] key1 = getByteArray(first); //01000000
 		first.remove(SIX);
 		first.add(ONE);
-		byte[] key2 = getByteArray(first); //001
+		byte[] key2 = getByteArray(first); //00000001
 		
 		MPTDictionaryFull trie = new MPTDictionaryFull();
-		trie.insert(key0, key0);
-		trie.insert(key1, key1);
-		trie.insert(key2, key2);
+		trie.insert(key0, key0); //insert 00000000
+		trie.insert(key1, key1); // insert 01000000
+		trie.insert(key2, key2); // insert 00000010
 		trie.reset();
 		trie.delete(key2);
 		
@@ -355,11 +376,20 @@ public class MPTDeltaExposedTest {
 		//expect right child of root to be stub
 		assertTrue(root.getRightChild().isStub());
 		
+		//expect left child of root to be interior
+		Node left = root.getLeftChild();
+		assertFalse(left.isStub());
+		assertFalse(left.isLeaf());
 		
-		//expect left child of root to be leaf
-		assertFalse(root.getLeftChild().isStub());
-		assertTrue(root.getLeftChild().isLeaf());
-		assertFalse(root.getLeftChild().isEmpty());
+		//assert
+		Node prefix_00 = left.getLeftChild();
+		assertTrue(prefix_00.isLeaf());
+		assertFalse(prefix_00.isEmpty());
+		assertArrayEquals(key0, prefix_00.getKey());
+		Node prefix_01 = left.getRightChild();
+		//01 should be stub
+		assertTrue(prefix_01.isStub());
+		
 		
 		
 	}
@@ -369,10 +399,45 @@ public class MPTDeltaExposedTest {
 		
 		//001
 		//000011
-		//000010
+		//000010		
 		
 		//reset
 		//delete 001
+		
+		Set<Byte> first = new HashSet<>();
+		first.add(SIX);
+		byte[] key0 = getByteArray(first); //01000000
+		first.remove(SIX);
+		first.add(THREE);
+		byte[] key1 = getByteArray(first); //00001000
+		first.add(TWO);
+		byte[] key2 = getByteArray(first); //00001100
+		
+		MPTDictionaryFull trie = new MPTDictionaryFull();
+		trie.insert(key0, key1); //insert 01000000
+		trie.insert(key1, key1); //insert 00001000
+		trie.insert(key2, key0); //insert 00001100
+		trie.reset();
+		trie.delete(key0); //insert 01000000
+		
+		System.out.println("TRIE\n"+ trie);
+		
+		MPTDeltaExposed delta = new MPTDeltaExposed(trie);
+		System.out.println("DELTA\n" + delta);
+		Node root = delta.getRoot();
+		
+		//00 should be stubby
+		Node prefix_00 = (root.getLeftChild()).getLeftChild();
+		assertTrue(prefix_00.isStub());
+		//001 should be changed, empty leaf
+		
+		Node prefix_01 = (root.getLeftChild()).getRightChild();
+		assertTrue(prefix_01.isLeaf());
+		assertTrue(prefix_01.isEmpty());
+		
+		//TODO resolve this
+		//confirm spec for this: interior node cannot be stub?
+		//b/c currently it seems to replace only leaf nodes as stubs
 		
 	}
 	
@@ -380,12 +445,58 @@ public class MPTDeltaExposedTest {
 	@Test
 	public void testDeltaAfterDeletingNonexistentKey() {
 		
-		//generate some tree, maybe full?
+		//generate some trie, maybe full?
 		//reset
 		//try deleting key that doesn't exist
 		//check that delta trie is completely stub
 		
+		Set<Byte> first = new HashSet<>();
+		byte[] key0 = getByteArray(first); //00000000
+		first.add(SEVEN);
+		byte[] key1 = getByteArray(first); //10000000
+		first.add(SIX);
+		byte[] key2 = getByteArray(first); //11000000
+		first.remove(SEVEN);
+		byte[] key3 = getByteArray(first); // 01000000
+		first.add(FIVE);
+		byte[] rogueKey = getByteArray(first);
+		
+		
+		//initialize depth 2 full trie
+		MPTDictionaryFull trie = new MPTDictionaryFull();
+		
+		trie.insert(key0, rogueKey);
+		trie.insert(key1, key0);
+		trie.insert(key2, key3);
+		trie.insert(key3, rogueKey);
+		trie.reset();
+		//trie.delete(rogueKey); //nothing should happen
+		
+		//expect delta to be completely stubby at root level
+		MPTDeltaExposed delta = new MPTDeltaExposed(trie);
+		
+		System.out.println("DELETING NONEXISTENT KEY");
+		System.out.println(delta);
+		
+		
+		Node root = delta.getRoot();
+		Node left = root.getLeftChild();
+		Node right = root.getRightChild();
+		
+		assertTrue(left.isStub());
+		assertTrue(right.isStub());
+		
+		
 	}
 	
+	
+	/**
+	 * Testing multiple changes since reset
+	 */
+	
+	@Test
+	public void testDeltaMultipleChanges() {
+		
+	}
 	
 }
