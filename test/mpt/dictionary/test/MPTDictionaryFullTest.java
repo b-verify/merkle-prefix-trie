@@ -243,7 +243,7 @@ public class MPTDictionaryFullTest {
 	public void testTrieSerializationFullTrie() {
 		List<Entry<byte[], byte[]>> kvpairs = Utils.getKeyValuePairs(1000, "test");
 		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(kvpairs);
-		byte[] asbytes = mpt.serialize();
+		byte[] asbytes = mpt.serialize().toByteArray();
 		try {
 			MPTDictionaryFull mptFromBytes = MPTDictionaryFull.deserialize(asbytes);
 			Assert.assertTrue(mptFromBytes.equals(mpt));

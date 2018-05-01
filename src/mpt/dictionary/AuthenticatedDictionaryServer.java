@@ -1,5 +1,7 @@
 package mpt.dictionary;
 
+import serialization.MptSerialization;
+
 /**
  * This is the interface the server should use for managing
  * the full Authenticated Dictionary.
@@ -96,6 +98,6 @@ public interface AuthenticatedDictionaryServer {
 	 * full authenticated dictionary
 	 * @return
 	 */
-	public byte[] serialize();
+	public MptSerialization.MerklePrefixTrie serialize();
 	
 }
