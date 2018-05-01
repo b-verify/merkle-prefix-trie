@@ -94,18 +94,6 @@ public class MPTDeltaExposedTest {
 		System.out.println(delta);
 		
 		
-		
-	}
-	
-	@Test
-	public void testDeltaEmptyAfterReset() {
-		
-		
-	}
-	
-	@Test
-	public void testDeltaInsertThenReset() {
-		
 	}
 
 	@Test
@@ -306,7 +294,7 @@ public class MPTDeltaExposedTest {
 		
 		//entire tree should be stubby b/c no change to structure or value
 		assertTrue(root.getRightChild().isStub());
-		assertTrue(root.getLeftChild().isStub()); //TODO clarify specs
+		//TODO check rest of trie
 		
 	}
 	
@@ -435,9 +423,6 @@ public class MPTDeltaExposedTest {
 		assertTrue(prefix_01.isLeaf());
 		assertTrue(prefix_01.isEmpty());
 		
-		//TODO resolve this
-		//confirm spec for this: interior node cannot be stub?
-		//b/c currently it seems to replace only leaf nodes as stubs
 		
 	}
 	
@@ -494,8 +479,241 @@ public class MPTDeltaExposedTest {
 	 * Testing multiple changes since reset
 	 */
 	
+	/*
+	 * Testing strategies
+	 * 
+	 * Types of changes
+	 * Insert:
+	 * - change value of existing key (no structural changes)
+	 * - split leaves
+	 * 	- depth of split: 1, >1
+	 * 
+	 * - 
+	 * 
+	 * Delete:
+	 * 
+	 * 
+	 * different subtree
+	 * - insert into different
+	 * - 
+	 * 
+	 * same subtree
+	 * - 
+	 * - 
+	 */
+	
 	@Test
-	public void testDeltaMultipleChanges() {
+	public void testDeltaMultipleValueUpdatesDifferentSubtrees() {
+		//in trie with:
+		//  00
+		//  11
+		//  01
+		//  10
+				
+		Set<Byte> first = new HashSet<>();
+		byte[] key0 = getByteArray(first); //00000000
+		first.add(SEVEN);
+		byte[] key1 = getByteArray(first); //10000000
+		first.add(SIX);
+		byte[] key2 = getByteArray(first); //11000000
+		first.remove(SEVEN);
+		byte[] key3 = getByteArray(first); // 01000000
+		first.add(FIVE);
+		
+		
+		//initialize depth 2 full trie
+		MPTDictionaryFull trie = new MPTDictionaryFull();
+		trie.insert(key0, key1);
+		trie.insert(key1, key0);
+		trie.insert(key2, key3);
+		trie.insert(key3, key2);
+		
+		trie.reset();
+		
+		trie.insert(key0, key0);
+		trie.insert(key2, key2);
+		
+		MPTDeltaExposed delta = new MPTDeltaExposed(trie);
+		Node root = delta.getRoot();
+		
+		//expect key0 and key2 to be leaves, and key1 and key3 to be stubs
+		
+		Node path_00 = root.getLeftChild().getLeftChild();
+		assertTrue(path_00.isLeaf());
+		assertArrayEquals(path_00.getValue(), key0);
+		
+		Node path_01 = root.getLeftChild().getRightChild();
+		assertTrue(path_01.isStub());
+		
+
+		Node path_10 = root.getRightChild().getLeftChild();
+		assertTrue(path_10.isStub());
+		
+		Node path_11 = root.getRightChild().getRightChild();
+		assertTrue(path_11.isLeaf());
+		assertArrayEquals(path_11.getValue(), key2);
+		
+	}
+	
+	@Test
+	public void testDeltaMultipleValueUpdatesSameSubtree() {
+		//in trie with:
+		//  00
+		//  11
+		//  01
+		//  10
+						
+		Set<Byte> first = new HashSet<>();
+		byte[] key0 = getByteArray(first); //00000000
+		first.add(SEVEN);
+		byte[] key1 = getByteArray(first); //10000000
+		first.add(SIX);
+		byte[] key2 = getByteArray(first); //11000000
+		first.remove(SEVEN);
+		byte[] key3 = getByteArray(first); // 01000000
+		first.add(FIVE);
+		
+		//initialize depth 2 full trie
+		MPTDictionaryFull trie = new MPTDictionaryFull();
+		
+		trie.insert(key2, key0);
+		trie.insert(key1, key1);
+		trie.insert(key3, key3);
+		trie.insert(key0, key2);
+		trie.reset();
+		
+		trie.insert(key2, key3);
+		trie.insert(key0, key1);
+		
+		MPTDeltaExposed delta = new MPTDeltaExposed(trie);
+		Node root = delta.getRoot();
+		Node path_00 = root.getLeftChild().getLeftChild();
+		Node path_01 = root.getLeftChild().getRightChild();
+		Node path_10 = root.getRightChild().getLeftChild();
+		Node path_11 = root.getRightChild().getRightChild();
+		
+		assertFalse(root.getLeftChild().isStub());
+		
+		assertTrue(path_00.isLeaf());
+		assertArrayEquals(key1, path_00.getValue());
+		assertTrue(path_01.isStub());
+		assertTrue((path_10).isStub());
+		assertTrue((path_11).isLeaf());
+		assertArrayEquals(key3, path_11.getValue());
+	}
+	
+	@Test
+	public void testMultipleSplitsDifferentBranch() {
+		
+		//0
+		//1000
+		//1010
+		//110
+		//reset
+		//1001
+		//1011
+		
+		Set<Byte> first = new HashSet<>();
+		byte[] key0 = getByteArray(first); //00000000
+		first.add(SEVEN);
+		byte[] key1 = getByteArray(first); //10000000
+		first.add(SIX);
+		byte[] key2 = getByteArray(first); //11000000
+		first.remove(SIX);
+		first.add(FIVE);
+		byte[] key3 = getByteArray(first); // 10100000
+		first.add(FOUR);
+		byte[] key4 = getByteArray(first); //10110000
+		first.remove(FIVE);
+		byte[] key5 = getByteArray(first);
+		
+		//initialize depth 2 full trie
+		MPTDictionaryFull trie = new MPTDictionaryFull();
+		trie.insert(key0, key0);
+		trie.insert(key1, key2);
+		trie.insert(key2, key0);
+		trie.insert(key3, key1);
+		trie.reset();
+		
+		trie.insert(key4, key4);
+		trie.insert(key5, key4);
+		
+		MPTDeltaExposed delta = new MPTDeltaExposed(trie);
+		Node root = delta.getRoot();
+		
+		Node path_0 = root.getLeftChild();
+		assertTrue(path_0.isStub());
+		Node path_1 = root.getRightChild();
+		assertFalse(path_1.isStub());
+		
+		Node path_11 = path_1.getRightChild();
+		assertTrue(path_11.isStub());
+		
+		Node path_10 = path_1.getLeftChild();
+		assertFalse(path_10.isStub());
+		
+		Node path_100 = path_10.getLeftChild();
+		Node path_101 = path_10.getRightChild();
+		Node path_1000 = path_100.getLeftChild();
+		Node path_1001 = path_100.getRightChild();
+		Node path_1010 = path_101.getLeftChild();
+		Node path_1011 = path_101.getRightChild();
+		assertTrue(path_1000.isLeaf());
+		assertTrue(path_1001.isLeaf());
+		assertTrue(path_1010.isLeaf());
+		assertTrue(path_1011.isLeaf());
+		
+	}
+	
+	@Test
+	public void testMultipleSplitsSameBranch() {
+		//00
+		//01000
+		//reset
+		//0101
+		//01001
+		Set<Byte> first = new HashSet<>();
+		byte[] key0 = getByteArray(first); //0
+		first.add(SIX);
+		byte[] key2 = getByteArray(first); //01000
+		first.add(FOUR);
+		byte[] key1 = getByteArray(first); //0101
+		first.remove(FOUR);
+		first.add(THREE);
+		byte[] key3 = getByteArray(first); //01001
+		
+		MPTDictionaryFull trie = new MPTDictionaryFull();
+		trie.insert(key0, key1); //0
+		trie.insert(key1, key2); //0101
+		trie.reset();
+		trie.insert(key2, key0); //01000
+		trie.insert(key3, key1); //01001
+		MPTDeltaExposed delta = new MPTDeltaExposed(trie);
+		Node root = delta.getRoot();
+		
+		Node path_00 = root.getLeftChild().getLeftChild();
+		assertTrue(path_00.isStub());
+		
+		Node path_01 = root.getLeftChild().getRightChild();
+		//check subtree rooted at path_01 has no stubs
+		assertFalse(path_01.isStub());
+		
+		Node path_01001 = root.getLeftChild().getRightChild().getLeftChild().getLeftChild().getRightChild();
+		Node path_01000 = root.getLeftChild().getRightChild().getLeftChild().getLeftChild().getLeftChild();
+		Node path_0101 = root.getLeftChild().getRightChild().getLeftChild().getRightChild();
+		
+		assertTrue(path_01001.isLeaf());
+		assertTrue(path_01000.isLeaf());
+		assertTrue(path_0101.isLeaf());
+		
+		Node path_0100 = root.getLeftChild().getRightChild().getLeftChild().getLeftChild();
+		Node path_010 = root.getLeftChild().getRightChild().getLeftChild();
+		
+		assertFalse(path_0100.isLeaf());
+		assertFalse(path_0100.isStub());
+		assertFalse(path_010.isLeaf());
+		assertFalse(path_010.isStub());
+		
 		
 	}
 	
