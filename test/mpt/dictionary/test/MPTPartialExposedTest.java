@@ -1,5 +1,6 @@
 package mpt.dictionary.test;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -93,8 +94,8 @@ public class MPTPartialExposedTest {
 		
 		
 		MPTPartialExposed partial = new MPTPartialExposed(trie, keys);
-		//System.out.println("PARTIAL");
-		//System.out.println(partial);
+		////System.out.println("PARTIAL");
+		////System.out.println(partial);
 		
 		Node root = partial.getRoot();
 		
@@ -155,8 +156,8 @@ public class MPTPartialExposedTest {
 		
 		MPTPartialExposed partial = new MPTPartialExposed(trie, keys); 
 		
-		System.out.println("PARTIAL");
-		System.out.println(partial);
+		//System.out.println("PARTIAL");
+		//System.out.println(partial);
 		
 		Node root = partial.getRoot();
 		assertTrue(root.getLeftChild().isStub());
@@ -203,8 +204,8 @@ public class MPTPartialExposedTest {
 		
 		MPTPartialExposed partial = new MPTPartialExposed(trie, keys);
 		
-		System.out.println("PARTIAL");
-		System.out.println(partial);
+		//System.out.println("PARTIAL");
+		//System.out.println(partial);
 		
 		Node root = partial.getRoot();
 		assertTrue(root.getLeftChild().isStub());
@@ -277,15 +278,15 @@ public class MPTPartialExposedTest {
 	public void testProcessUpdatesNoChange() throws InvalidSerializationException {
 		MPTDictionaryFull trie = new MPTDictionaryFull();
 		
-		//System.out.println("FRESH");
+		////System.out.println("FRESH");
 		
 		MPTDictionaryDelta delta = new MPTDictionaryDelta(trie);
-		System.out.println(delta);
+		//System.out.println(delta);
 		//TODO check specs for this - what do with empty delta with no reset?
 		trie.reset();
 		
 		delta = new MPTDictionaryDelta(trie);
-		System.out.println(delta);
+		//System.out.println(delta);
 		
 		List<byte[]> keys = new ArrayList<>();
 		
@@ -295,7 +296,7 @@ public class MPTPartialExposedTest {
 		
 		partial.processUpdates(deltaSerialized);
 		
-		System.out.println(partial);
+		//System.out.println(partial);
 		
 		assertTrue(partial.getRoot().isStub());
 		
@@ -338,7 +339,7 @@ public class MPTPartialExposedTest {
 		
 		//inspect structure of partial
 		
-		System.out.println(partial);
+		//System.out.println(partial);
 		
 		//11 stub
 		assertTrue(root.getRightChild().getRightChild().isLeaf());
@@ -382,8 +383,8 @@ public class MPTPartialExposedTest {
 		
 		//inspect structure of partial
 		
-		System.out.println("PARTIAL");
-		System.out.println(partial);
+		//System.out.println("PARTIAL");
+		//System.out.println(partial);
 		
 		assertTrue(root.getRightChild().getRightChild().isLeaf());
 		assertTrue(root.getRightChild().getLeftChild().isStub());
@@ -450,28 +451,35 @@ public class MPTPartialExposedTest {
 		trie.insert(key1, key1);
 		trie.insert(key2, key2);
 		List<byte[]> keys = new ArrayList<>();
+		keys.add(key2);
 		MPTPartialExposed partial = new MPTPartialExposed(trie, keys);
 		trie.reset();
 		trie.insert(key2, key1);
 		////
 		
+		//System.out.println("FULL TRIE\n" + trie);
+		
 		MPTDictionaryDelta delta = new MPTDictionaryDelta(trie);
 		
+		//System.out.println("DELTA\n" + delta);
+		
 		MptSerialization.MerklePrefixTrie deltaSerialized = delta.getUpdates(keys);
+		
+		//System.out.println("DELTA_SERIALIZED\n" + deltaSerialized);
 		
 		partial.processUpdates(deltaSerialized);
 		
 		Node root = partial.getRoot();
 		
 		//inspect structure of partial
-		System.out.println("PARTIAL\n" + partial);
+		//System.out.println("PARTIAL\n" + partial);
 		
-		//Node path_010 = root.getLeftChild().getRightChild().getLeftChild();
-		//Node path_011 = root.getLeftChild().getRightChild().getRightChild();
-		//
-		//assertTrue(path_010.isStub());
-		//assertTrue(path_011.isLeaf());
-		//TODO make sure changes to values lead to correct partial when updated
+		Node path_010 = root.getLeftChild().getRightChild().getLeftChild();
+		Node path_011 = root.getLeftChild().getRightChild().getRightChild();
+		
+		assertTrue(path_010.isStub());
+		assertTrue(path_011.isLeaf());
+		assertArrayEquals(key1, path_011.getValue());
 		
 	}
 	
@@ -515,9 +523,9 @@ public class MPTPartialExposedTest {
 		
 		partial.processUpdates(deltaSerialized);
 		
-		System.out.println("PRINT");
+		//System.out.println("PRINT");
 		
-		System.out.println(partial);
+		//System.out.println(partial);
 		
 		Node root = partial.getRoot();
 		
@@ -657,8 +665,4 @@ public class MPTPartialExposedTest {
 		assertTrue(root.getLeftChild().isLeaf());
 		
 	}
-	
-	//random question: should we order the deltas (by giving them ID #'s, etc)?
-	
-	
 }

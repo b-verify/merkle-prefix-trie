@@ -83,15 +83,15 @@ public class MPTDeltaExposedTest {
 		
 		MPTDictionaryFull trie = new MPTDictionaryFull();
 		
-		//System.out.println("FRESH");
+		////System.out.println("FRESH");
 		
 		MPTDeltaExposed delta = new MPTDeltaExposed(trie);
-		System.out.println(delta);
+		//System.out.println(delta);
 		//TODO check specs for this - what do with empty delta with no reset?
 		trie.reset();
 		
 		delta = new MPTDeltaExposed(trie);
-		System.out.println(delta);
+		//System.out.println(delta);
 		
 		
 	}
@@ -108,20 +108,20 @@ public class MPTDeltaExposedTest {
 		trie.insert(key1, key1);
 		
 		MPTDeltaExposed delta = new MPTDeltaExposed(trie);
-		System.out.println("ONE");
-		System.out.println(delta);
+		//System.out.println("ONE");
+		//System.out.println(delta);
 		
 		trie.reset();
 		
 		delta = new MPTDeltaExposed(trie);
-		System.out.println("TWO");
-		System.out.println(delta);
+		//System.out.println("TWO");
+		//System.out.println(delta);
 		
 		trie.insert(key1, key2);
 		
 		delta = new MPTDeltaExposed(trie);
-		System.out.println("THREE");
-		System.out.println(delta);
+		//System.out.println("THREE");
+		//System.out.println(delta);
 		
 		Node root = delta.getRoot();
 		
@@ -144,24 +144,24 @@ public class MPTDeltaExposedTest {
 		byte[] key3 = getByteArray(second);
 		
 		trie.insert(key1, key1);
-		System.out.println("LALA");
-		System.out.println(trie);
+		//System.out.println("LALA");
+		//System.out.println(trie);
 		trie.reset();
 		
 		trie.insert(key2, key2);
 		
 		MPTDeltaExposed delta = new MPTDeltaExposed(trie);
-		System.out.println("APPLE");
-		System.out.println(delta);
-		System.out.println("ORIGINAL");
-		System.out.println(trie);
+		//System.out.println("APPLE");
+		//System.out.println(delta);
+		//System.out.println("ORIGINAL");
+		//System.out.println(trie);
 		
 		
 		trie.reset();
 		trie.insert(key3, key3);
 		delta = new MPTDeltaExposed(trie);
-		System.out.println("LAST ONE");
-		System.out.println(delta);
+		//System.out.println("LAST ONE");
+		//System.out.println(delta);
 		
 	}
 	
@@ -218,7 +218,7 @@ public class MPTDeltaExposedTest {
 		
 		MPTDeltaExposed delta = new MPTDeltaExposed(trie);
 		
-		System.out.println(delta);
+		//System.out.println(delta);
 		
 		Node root = delta.getRoot();
 		Node index_1_0 = root.getLeftChild();
@@ -408,10 +408,10 @@ public class MPTDeltaExposedTest {
 		trie.reset();
 		trie.delete(key0); //insert 01000000
 		
-		System.out.println("TRIE\n"+ trie);
+		//System.out.println("TRIE\n"+ trie);
 		
 		MPTDeltaExposed delta = new MPTDeltaExposed(trie);
-		System.out.println("DELTA\n" + delta);
+		//System.out.println("DELTA\n" + delta);
 		Node root = delta.getRoot();
 		
 		//00 should be stubby
@@ -460,8 +460,8 @@ public class MPTDeltaExposedTest {
 		//expect delta to be completely stubby at root level
 		MPTDeltaExposed delta = new MPTDeltaExposed(trie);
 		
-		System.out.println("DELETING NONEXISTENT KEY");
-		System.out.println(delta);
+		//System.out.println("DELETING NONEXISTENT KEY");
+		//System.out.println(delta);
 		
 		
 		Node root = delta.getRoot();

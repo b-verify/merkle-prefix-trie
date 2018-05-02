@@ -50,9 +50,9 @@ public class MPTDictionaryDelta implements AuthenticatedDictionaryChanges {
 	}
 
 	private static Node copyChangesOnlyHelper(final Node currentNode) {
-		System.out.println("In MPTDictionaryDelta: copy changes for node " + currentNode);
+		//System.out.println("In MPTDictionaryDelta: copy changes for node " + currentNode);
 		if(!currentNode.changed()) {
-			System.out.println("creating stub in copyChangesOnlyHelper");
+			//System.out.println("creating stub in copyChangesOnlyHelper");
 			return new Stub(currentNode.getHash());
 		}
 		if (currentNode.isLeaf()) {

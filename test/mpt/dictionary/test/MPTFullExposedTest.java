@@ -137,7 +137,7 @@ public class MPTFullExposedTest {
 		
 		trie.insert(key1, val1);
 		
-		//System.out.println(trie);
+		////System.out.println(trie);
 		
 		//check trie structure
 		Node root = trie.getRoot();
@@ -235,8 +235,8 @@ public class MPTFullExposedTest {
 		assertFalse(left.isEmpty());
 		assertArrayEquals(key1, left.getKey());
 		
-		System.out.println("LOOK HERE");
-		System.out.println(trie);
+		//System.out.println("LOOK HERE");
+		//System.out.println(trie);
 	}
 	
 	@Test
@@ -272,8 +272,8 @@ public class MPTFullExposedTest {
 		trie.insert(key1	, key1);
 		trie.insert(key2, key2);
 		
-		System.out.println("LOOK HERE NOW");
-		System.out.println(trie);
+		//System.out.println("LOOK HERE NOW");
+		//System.out.println(trie);
 		
 		//check whether long split for shared prefix is correct
 		Node root = trie.getRoot();

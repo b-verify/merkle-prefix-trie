@@ -204,7 +204,7 @@ public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 			throw new InvalidSerializationException("update has no root");
 		}
 		Node newRoot = MPTDictionaryPartial.parseNodeUsingCachedValues(this.root, updates.getRoot());
-		System.out.println(updates.getRoot());
+		//System.out.println(updates.getRoot());
 		//this.root = (InteriorNode) newRoot;
 		this.root = newRoot;
 	}
@@ -244,12 +244,12 @@ public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 			throws InvalidSerializationException {
 		switch(updatedNode.getNodeCase()) {
 		case EMPTYLEAF:
-			System.out.println(updatedNode);
-			System.out.println("is empty leaf");
+			//System.out.println(updatedNode);
+			//System.out.println("is empty leaf");
 			return new EmptyLeafNode();
 		case INTERIOR_NODE:
-			System.out.println(updatedNode);
-			System.out.println("is interior node");
+			//System.out.println(updatedNode);
+			//System.out.println("is interior node");
 			// the case here requires more care, since a child might be omitted, 
 			// in which case the client should use the current value (this 
 			// is a caching scheme for efficiency)
@@ -268,13 +268,13 @@ public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 			}
 			return new InteriorNode(left, right);
 		case LEAF:
-			System.out.println(updatedNode);
-			System.out.println("is leaf");
+			//System.out.println(updatedNode);
+			//System.out.println("is leaf");
 			MptSerialization.Leaf leaf = updatedNode.getLeaf();
 			return new DictionaryLeafNode(leaf.getKey().toByteArray(), leaf.getValue().toByteArray());
 		case STUB:
-			System.out.println(updatedNode);
-			System.out.println("is STUB");
+			//System.out.println(updatedNode);
+			//System.out.println("is STUB");
 			MptSerialization.Stub stub = updatedNode.getStub();
 			return new Stub(stub.getHash().toByteArray());
 		case NODE_NOT_SET:
