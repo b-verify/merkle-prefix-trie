@@ -13,8 +13,8 @@ import mpt.core.InvalidSerializationException;
 import mpt.core.Node;
 import mpt.core.SetLeafNode;
 import mpt.core.Utils;
-import serialization.MptSerialization;
-import serialization.MptSerialization.MerklePrefixTrie;
+import serialization.generated.MptSerialization;
+import serialization.generated.MptSerialization.MerklePrefixTrie;
 
 /**
  * An implementation of a FULL authenticated set using a Merkle Prefix Trie (MPT).

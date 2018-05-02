@@ -1,6 +1,6 @@
 package mpt.core;
 
-import serialization.MptSerialization;
+import serialization.generated.MptSerialization;
 
 /**
  * Nodes are the building blocks of the MPT data structure. 

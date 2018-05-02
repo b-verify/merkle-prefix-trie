@@ -5,7 +5,7 @@ import java.util.Arrays;
 import com.google.protobuf.ByteString;
 
 import crypto.CryptographicUtils;
-import serialization.MptSerialization;
+import serialization.generated.MptSerialization;
 
 /**
  * MUTABLE

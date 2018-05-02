@@ -20,7 +20,7 @@ import mpt.core.Utils;
 import mpt.dictionary.MPTDictionaryDelta;
 import mpt.dictionary.MPTDictionaryFull;
 import mpt.dictionary.MPTDictionaryPartial;
-import serialization.MptSerialization.MerklePrefixTrie;
+import serialization.generated.MptSerialization.MerklePrefixTrie;
 
 public class MPTDictionaryFullTest {
 	

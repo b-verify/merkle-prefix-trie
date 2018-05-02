@@ -1,6 +1,6 @@
 package mpt.set;
 
-import serialization.MptSerialization.MerklePrefixTrie;
+import serialization.generated.MptSerialization.MerklePrefixTrie;
 
 /**
  * This in the interface for the  "server" version 

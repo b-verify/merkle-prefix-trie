@@ -31,12 +31,12 @@ public class Stub implements Node {
 	}
 	
 	@Override 
-	public serialization.MptSerialization.Node serialize(){
-		serialization.MptSerialization.Node node =
-				serialization.MptSerialization.Node
+	public serialization.generated.MptSerialization.Node serialize(){
+		serialization.generated.MptSerialization.Node node =
+				serialization.generated.MptSerialization.Node
 						.newBuilder()
 						.setStub(
-								serialization.MptSerialization.Stub.newBuilder()
+								serialization.generated.MptSerialization.Stub.newBuilder()
 								.setHash(ByteString.copyFrom(this.hash))
 								.build())
 						.build();

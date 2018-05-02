@@ -77,9 +77,9 @@ public class EmptyLeafNode implements Node {
 	}
 
 	@Override
-	public serialization.MptSerialization.Node serialize() {
-		return serialization.MptSerialization.Node.newBuilder()
-				.setEmptyleaf(serialization.MptSerialization.EmptyLeaf.newBuilder())
+	public serialization.generated.MptSerialization.Node serialize() {
+		return serialization.generated.MptSerialization.Node.newBuilder()
+				.setEmptyleaf(serialization.generated.MptSerialization.EmptyLeaf.newBuilder())
 				.build();
 	}
 

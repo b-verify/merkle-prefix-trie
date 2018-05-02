@@ -1,7 +1,7 @@
 package mpt.core;
 
 import crypto.CryptographicDigest;
-import serialization.MptSerialization;
+import serialization.generated.MptSerialization;
 
 /**
  * (MUTABLE) 
@@ -36,8 +36,8 @@ public class InteriorNode implements Node {
 	
 	public MptSerialization.Node serialize() {
 		MptSerialization.InteriorNode.Builder builder = MptSerialization.InteriorNode.newBuilder();
-		serialization.MptSerialization.Node leftChildSerialized = this.leftChild.serialize();
-		serialization.MptSerialization.Node rightChildSerialized = this.rightChild.serialize();
+		serialization.generated.MptSerialization.Node leftChildSerialized = this.leftChild.serialize();
+		serialization.generated.MptSerialization.Node rightChildSerialized = this.rightChild.serialize();
 		builder.setLeft(leftChildSerialized);
 		builder.setRight(rightChildSerialized);
 		MptSerialization.Node node = MptSerialization.Node

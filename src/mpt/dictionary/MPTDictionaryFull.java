@@ -13,7 +13,7 @@ import mpt.core.InteriorNode;
 import mpt.core.InvalidSerializationException;
 import mpt.core.Node;
 import mpt.core.Utils;
-import serialization.MptSerialization;
+import serialization.generated.MptSerialization;
 
 /**
  * A Full Merkle Prefix Trie (MPT). This stores 
