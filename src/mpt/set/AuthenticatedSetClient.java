@@ -1,7 +1,7 @@
 package mpt.set;
 
 import mpt.core.InsufficientAuthenticationDataException;
-import serialization.MptSerialization.MerklePrefixTrie;
+import serialization.generated.MptSerialization.MerklePrefixTrie;
 
 /**
  * This "client" version of the authenticated set.

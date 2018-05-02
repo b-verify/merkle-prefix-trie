@@ -15,7 +15,7 @@ import mpt.core.DictionaryLeafNode;
 import mpt.core.Node;
 import mpt.core.Stub;
 import mpt.core.Utils;
-import serialization.MptSerialization;
+import serialization.generated.MptSerialization;
 
 /**
  * Partial Merkle Prefix Tries contain a subset of the information 

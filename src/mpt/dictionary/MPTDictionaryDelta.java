@@ -11,7 +11,7 @@ import mpt.core.InteriorNode;
 import mpt.core.Node;
 import mpt.core.Stub;
 import mpt.core.Utils;
-import serialization.MptSerialization;
+import serialization.generated.MptSerialization;
 
 /**
  * This class tracks the changes to a Merkle Prefix Trie (a delta).

@@ -2,7 +2,7 @@ package mpt.dictionary;
 
 import java.util.List;
 
-import serialization.MptSerialization;
+import serialization.generated.MptSerialization;
 
 /**
  * This is the interface the server should use for keeping 

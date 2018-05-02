@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import com.google.protobuf.ByteString;
 
-import serialization.MptSerialization;
+import serialization.generated.MptSerialization;
 
 /**
  * MUTABLE
@@ -99,7 +99,7 @@ public class SetLeafNode implements Node{
 	}
 
 	@Override
-	public serialization.MptSerialization.Node serialize() {
+	public serialization.generated.MptSerialization.Node serialize() {
 		MptSerialization.Node node = MptSerialization.Node
 				.newBuilder()
 				.setLeaf(MptSerialization.Leaf.newBuilder()

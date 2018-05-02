@@ -2,7 +2,7 @@ package mpt.dictionary;
 
 import mpt.core.InsufficientAuthenticationDataException;
 import mpt.core.InvalidSerializationException;
-import serialization.MptSerialization;
+import serialization.generated.MptSerialization;
 
 /**
  * This is the interface the client should rely on for using an

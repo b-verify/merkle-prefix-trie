@@ -16,7 +16,7 @@ import mpt.core.Node;
 import mpt.dictionary.MPTDictionaryDelta;
 import mpt.dictionary.MPTDictionaryFull;
 import mpt.dictionary.MPTDictionaryPartial;
-import serialization.MptSerialization;
+import serialization.generated.MptSerialization;
 
 public class MPTPartialExposedTest {
 	

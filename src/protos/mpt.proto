@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package serialization;
+package serialization.generated;
 
 option java_outer_classname = "MptSerialization";
 
