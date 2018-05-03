@@ -153,7 +153,6 @@ public class InteriorNode implements Node {
 
 	@Override
 	public void markUnchangedAll() {
-		System.out.println("marking interior node unchanged");
 		if(this.leftChild.changed()) {
 			this.leftChild.markUnchangedAll();
 		}
