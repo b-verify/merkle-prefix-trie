@@ -1,42 +1,64 @@
 package bench;
 
 import java.math.BigInteger;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import mpt.core.Utils;
+import mpt.dictionary.MPTDictionaryDelta;
 import mpt.dictionary.MPTDictionaryFull;
 import mpt.dictionary.MPTDictionaryPartial;
 
 public class MerklePathSizeBenchmark {
 	
-	public static void main(String[] args) {
-		int n = 10000000;
-		String salt = "size benchmark";
-		// make a MPT with 10^7 entries
-		System.out.println("adding kv pairs");
-		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(n, salt);
-		System.out.println("done- calculating commitment");
+	
+	public static void benchmarkProofSizes(int nEntries, int nUpdates) {
+		String startingSalt = "starting-entry";
+		List<Map.Entry<byte[], byte[]>> kvpairsStart = Utils.getKeyValuePairs(nEntries, startingSalt);
+		System.out.println("--------- building the MPT ---------");
+		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(kvpairsStart);
 		byte[] commitment = mpt.commitment();
-		System.out.println("commitment: "+Utils.byteArrayAsHexString(commitment));
-		byte[] serialization = mpt.serialize().toByteArray();
-		int sizeEntireTrieSerialization = serialization.length;
-		System.out.println("size of entire mpt	(bytes): "+sizeEntireTrieSerialization);
-		
-		// check size
-		BigInteger total_size = BigInteger.ZERO;
-		int max_size = 0;
-		for(int i = 0; i < n; i++) {
-			byte[] key = Utils.getKey(i);
-			MPTDictionaryPartial path = new MPTDictionaryPartial(mpt, key);
-			byte[] serialized = path.serialize().toByteArray();
-			int size = serialized.length;
-			total_size = total_size.add(BigInteger.valueOf(size));
-			if (size > max_size) {
-				max_size = size;
-			}
+		System.out.println("--------- calculating commitment ---------");
+		System.out.println(Utils.byteArrayAsHexString(commitment));
+		mpt.reset();
+		System.out.println("--------- making updates ---------");
+		List<byte[]> keys = kvpairsStart.stream().map(x -> x.getKey()).collect(Collectors.toList());
+		Collections.shuffle(keys);
+		// select some random keys to update
+		List<byte[]> keysToUpdate = keys.subList(0, nUpdates);
+		int i = 0;
+		String newSalt = "new salt";
+		for(byte[] key : keysToUpdate) {
+			byte[] newValue = Utils.getValue(i, newSalt);
+			mpt.insert(key, newValue);
 		}
-		BigInteger average_size = total_size.divide(BigInteger.valueOf(n));
-		System.out.println("Average proof size 	(bytes): "+average_size);
-		System.out.println("Max proof size     	(bytes): "+max_size);
+		System.out.println("--------- updates done, making delta and calculating new commitment ---------");
+		commitment = mpt.commitment();
+		MPTDictionaryDelta delta = new MPTDictionaryDelta(mpt);
+		System.out.println(Utils.byteArrayAsHexString(commitment));
+		System.out.println("--------- calculating proof sizes ---------");
+		System.out.println("checking "+keys.size()+" keys");
+		BigInteger totalFull = BigInteger.ZERO;
+		BigInteger totalUpdate = BigInteger.ZERO;
+		for(byte[] key : keys) {
+			MPTDictionaryPartial fullPath = new MPTDictionaryPartial(mpt, key);
+			int fullPathSerialziationSize = fullPath.serialize().toByteArray().length;
+			int onlyUpdateSerializationSize = delta.getUpdates(key).toByteArray().length;
+			totalFull = totalFull.add(BigInteger.valueOf(fullPathSerialziationSize));
+			totalUpdate = totalUpdate.add(BigInteger.valueOf(onlyUpdateSerializationSize));
+		}
+		BigInteger avgUpdate = totalUpdate.divide(BigInteger.valueOf(keys.size()));
+		BigInteger avgFull = totalFull.divide(BigInteger.valueOf(keys.size()));
+		System.out.println("average full : "+avgFull+" | average update : "+avgUpdate);
+	}
+	
+	
+	public static void main(String[] args) {
+		
+		benchmarkProofSizes(1000000, 100);
 	}		
 		
 }
