@@ -12,6 +12,7 @@ Here are the results:
 
 ![picture](efficient_update_proofs.png) 
 
+You can reproduce these benchmarks using
 `$./benchmark.sh`
 
 
