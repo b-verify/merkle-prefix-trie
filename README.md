@@ -17,7 +17,7 @@ This is a full implementation of <b>Authenticated Dictionaries</b> (<i>a set of 
 # Benchmarks
 We benchmark using a dictionary with 
 
-`10^6 key, value pairs`
+`10^5 key, value pairs`
 
 Here are the results:
 
