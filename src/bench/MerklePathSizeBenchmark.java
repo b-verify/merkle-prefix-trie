@@ -101,9 +101,8 @@ public class MerklePathSizeBenchmark {
 	}
 
 	public static void main(String[] args) {
-		int n = 100000;
-		List<Double> fractionsToTest = Arrays.asList(0.01, 0.025, 0.05, 0.075, 
-				0.1, 0.25, 0.5);
+		int n = 1000000;
+		List<Double> fractionsToTest = Arrays.asList(0.001, 0.005, 0.01, 0.02, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5);
 		List<List<String>> results = runExperiment(n, fractionsToTest);
 		writeResultsToCSV(results, "./benchmark-results.csv");
 	}
