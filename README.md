@@ -17,11 +17,13 @@ This is a full implementation of <b>Authenticated Dictionaries</b> (<i>a set of 
 # Benchmarks
 We benchmark using a dictionary with 
 
-`10^5 key, value pairs`
+`10^6 key, value pairs`
 
-Here are the results:
+Here are the proof sizes, for various numbers of updates.
 
 ![picture](efficient_update_proofs.png) 
+
+Note that if there are relatively few updates client caching can reduce the size of the proofs by over 50%
 
 You can reproduce these benchmarks using
 
