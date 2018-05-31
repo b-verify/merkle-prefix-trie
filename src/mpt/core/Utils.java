@@ -160,15 +160,23 @@ public class Utils {
 	
 	/**
 	 * Print a byte array as a human readable hex string
+	 * 
+	 * from:
+	 * https://stackoverflow.com/questions/9655181/how-to-convert-a-byte-array-to-a-hex-string-in-java
+	 * 
 	 * @param raw
 	 * @return
 	 */
-	public static String byteArrayAsHexString(final byte[] raw) {
-	    final StringBuilder hex = new StringBuilder(2 * raw.length);
-	    for (final byte b : raw) {
-	        hex.append(Integer.toHexString(b));
-	    }
-	    return hex.toString();
+	private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+	public static String byteArrayAsHexString(byte[] bytes) {
+		char[] hexChars = new char[bytes.length * 2];
+		for (int j = 0; j < bytes.length; j++) {
+			int v = bytes[j] & 0xFF;
+			hexChars[j * 2] = hexArray[v >>> 4];
+			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+		}
+		return new String(hexChars);
 	}
 	
 	/**
