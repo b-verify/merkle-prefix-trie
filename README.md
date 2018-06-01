@@ -1,7 +1,7 @@
 # A Java Implementation of Authenticated Dictionaries and Authenticated Sets Using Merkle Prefix Tries (MPT) 
-[![Build Status](https://travis-ci.org/henryaspegren/b_verify-merkle-prefix-trie.svg?branch=master)](https://travis-ci.org/henryaspegren/b_verify-merkle-prefix-trie)
+[![Build Status](https://travis-ci.org/b-verify/merkle-prefix-trie.svg?branch=master)](https://travis-ci.org/b-verify/merkle-prefix-trie)
 
-This is a full implementation of <b>Authenticated Dictionaries</b> (<i>a set of key-value mappings</i>) and <b>Authenticated Sets</b> (<i>a set of values</i>) using Merkle Prefix Tries. This data structure allows very small (lograthmic) proofs of membership and non-membership. These data structures also support updates for use in a dynamic setting. These updates are very small because the implementation exploits client caching to avoid retransmitting unchanged internal values. Recalculation of hashes can be done in parallel to speed up updates.
+This is a full implementation of <b>Authenticated Dictionaries</b> (<i>a set of key-value mappings</i>) and <b>Authenticated Sets</b> (<i>a set of values</i>) using Merkle Prefix Tries. This data structure allows very small (logarithmic) proofs of membership and non-membership. These data structures also support updates for use in a dynamic setting. These updates are very small because the implementation exploits client caching to avoid retransmitting unchanged internal values. Recalculation of hashes can be done in parallel to speed up updates.
 
 # Usage
 
