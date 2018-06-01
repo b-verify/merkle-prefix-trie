@@ -22,10 +22,15 @@ import mpt.dictionary.MPTDictionaryPartial;
 
 public class MerklePathSizeBenchmark {
 
-	public static List<String> getCSVRow(int n, int updates, BigInteger totalFull, BigInteger totalUpdate,
+	public static List<String> getCSVRow(int n, int nInterior, int nNonEmptyLeaf, 
+			int nEmptyLeaf, int updates, int nHashesRequiredToUpdate,
+			BigInteger totalFull, BigInteger totalUpdate,
 			BigInteger avgFull, BigInteger avgUpdate) {
-		return Arrays.asList(String.valueOf(n), String.valueOf(updates), String.valueOf(totalFull),
-				String.valueOf(totalUpdate), String.valueOf(avgFull), String.valueOf(avgUpdate));
+		return Arrays.asList(String.valueOf(n), String.valueOf(nInterior), 
+				String.valueOf(nNonEmptyLeaf),String.valueOf(nEmptyLeaf),
+				String.valueOf(updates), String.valueOf(nHashesRequiredToUpdate),
+				String.valueOf(totalFull),String.valueOf(totalUpdate), 
+				String.valueOf(avgFull), String.valueOf(avgUpdate));
 	}
 
 	public static List<String> benchmarkProofSizes(int n, int updates) {
@@ -35,10 +40,15 @@ public class MerklePathSizeBenchmark {
 		List<Map.Entry<byte[], byte[]>> kvpairsStart = Utils.getKeyValuePairs(n, startingSalt);
 		System.out.println("--------- building the MPT ---------");
 		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(kvpairsStart);
+		
+		int nInteriorNodes = mpt.countInteriorNodes();
+		int nNonEmptyLeafNodes = mpt.countNonEmptyLeafNodes();
+		int nEmptyLeafNodes = mpt.countEmptyLeafNodes();
+		
+		
 		byte[] commitment = mpt.commitment();
 		System.out.println("--------- calculating commitment ---------");
 		System.out.println("--------- new commitment: " + Utils.byteArrayAsHexString(commitment) + " ---------");
-		mpt.reset();
 		System.out.println("--------- making updates ---------");
 		List<byte[]> keys = kvpairsStart.stream().map(x -> x.getKey()).collect(Collectors.toList());
 		Collections.shuffle(keys);
@@ -52,6 +62,9 @@ public class MerklePathSizeBenchmark {
 			mpt.insert(key, newValue);
 		}
 		System.out.println("--------- updates done, making delta and calculating new commitment ---------");
+		
+		int hashesRequiredToUpdate = mpt.countHashesRequiredToCommit();
+		
 		commitment = mpt.commitment();
 		MPTDictionaryDelta delta = new MPTDictionaryDelta(mpt);
 		System.out.println(Utils.byteArrayAsHexString(commitment));
@@ -69,7 +82,8 @@ public class MerklePathSizeBenchmark {
 		BigInteger avgFull = totalFull.divide(BigInteger.valueOf(keys.size()));
 		System.out.println("total full : " + totalFull + " | total update : " + totalUpdate);
 		System.out.println("average full : " + avgFull + " | average update : " + avgUpdate);
-		return getCSVRow(n, updates, totalFull, totalUpdate, avgFull, avgUpdate);
+		return getCSVRow(n, nInteriorNodes, nNonEmptyLeafNodes, nEmptyLeafNodes, 
+				updates, hashesRequiredToUpdate, totalFull, totalUpdate, avgFull, avgUpdate);
 	}
 	
 	public static List<List<String>> runExperiment(int n, List<Double> fractionsToUpdate){
