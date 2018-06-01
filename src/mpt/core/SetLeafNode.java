@@ -124,5 +124,32 @@ public class SetLeafNode implements Node{
 				" Hash: " + Utils.byteArrayAsHexString(this.getHash())
 				+">");	
 	}
+
+	@Override
+	public int countHashesRequiredForGetHash() {
+		return 0;
+	}
+	
+	@Override
+	public int nodesInSubtree() {
+		return 1;
+	}
+
+	@Override
+	public int interiorNodesInSubtree() {
+		return 0;
+	}
+
+	@Override
+	public int emptyLeafNodesInSubtree() {
+		return 0;
+	}
+
+	@Override
+	public int nonEmptyLeafNodesInSubtree() {
+		return 1;
+	}
+
+
 	
 }

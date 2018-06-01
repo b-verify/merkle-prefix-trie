@@ -1,6 +1,7 @@
 package mpt.dictionary;
 
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -173,9 +174,6 @@ public class MPTDictionaryFull implements AuthenticatedDictionaryServer {
 		assert key.length == CryptographicDigest.getSizeBytes();
 		LOGGER.log(Level.FINE, "delete(" + Utils.byteArrayAsHexString(key) + ")");
 		MPTDictionaryFull.deleteHelper(key, -1, this.root, true);
-		// force updating the hash
-		// TODO: later check if this is necessary and probably remove
-		this.root.getHash();
 	}
 
 	private static Node deleteHelper(final byte[] key, final int currentBitIndex, final Node currentNode, 
@@ -231,6 +229,14 @@ public class MPTDictionaryFull implements AuthenticatedDictionaryServer {
 	public byte[] commitment() {
 		return this.root.getHash();
 	};
+	
+	public byte[] commitmentParallelized(ExecutorService workers) {
+		return this.root.getHashParallel(workers);
+	}
+	
+	public int countHashesRequiredToCommit() {
+		return this.root.countHashesRequiredForGetHash();
+	}
 
 	@Override
 	public void reset() {
@@ -327,7 +333,43 @@ public class MPTDictionaryFull implements AuthenticatedDictionaryServer {
 		return Math.max(this.getHeightRecursive(currentLocation.getLeftChild()),
 				this.getHeightRecursive(currentLocation.getRightChild())) + 1;
 	}
-
+	
+	/**
+	 * Returns the total number of 
+	 * nodes of any kind in the MPT
+	 * @return
+	 */
+	public int countNodes() {
+		return this.root.nodesInSubtree();
+	}
+	
+	/**
+	 * Returns the total number of interior nodes
+	 * in the MPT
+	 * @return
+	 */
+	public int countInteriorNodes() {
+		return this.root.interiorNodesInSubtree();
+	}
+	
+	/**
+	 * Returns the total number of 
+	 * empty nodes in the MPT
+	 * @return
+	 */
+	public int countEmptyLeafNodes() {
+		return this.root.emptyLeafNodesInSubtree();
+	}
+	
+	/**
+	 * Returns the total number of 
+	 * non-empty nodes in the MPT
+	 * @return
+	 */
+	public int countNonEmptyLeafNodes() {
+		return this.root.nonEmptyLeafNodesInSubtree();
+	}
+	
 	@Override
 	public String toString() {
 		return "<MPTDictionaryFull \n"+MPTDictionaryFull.toStringHelper("+", this.root)+"\n>";
@@ -354,5 +396,10 @@ public class MPTDictionaryFull implements AuthenticatedDictionaryServer {
 			return this.root.equals(othermpt.root);
 		}
 		return false;
+	}
+
+	@Override
+	public int size() {
+		return this.countNonEmptyLeafNodes();
 	}
 }

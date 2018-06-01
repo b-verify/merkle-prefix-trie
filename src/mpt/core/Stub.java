@@ -121,4 +121,29 @@ public class Stub implements Node {
 	public void markUnchangedAll() {
 		
 	}
+
+	@Override
+	public int countHashesRequiredForGetHash() {
+		throw new RuntimeException("cannot count hashes for stubs");
+	}
+
+	@Override
+	public int nodesInSubtree() {
+		throw new RuntimeException("cannot determine size of subtree rooted at a stub");
+	}
+	
+	@Override
+	public int interiorNodesInSubtree() {
+		throw new RuntimeException("cannot determine number of interior nodes in subtree rooted at a stub");
+	}
+
+	@Override
+	public int emptyLeafNodesInSubtree() {
+		throw new RuntimeException("cannot determine number of empty leaf nodes in subtree rooted at a stub");
+	}
+
+	@Override
+	public int nonEmptyLeafNodesInSubtree() {
+		throw new RuntimeException("cannot determine number of non-empty leaf nodes in subtree rooted at a stub");
+	}
 }

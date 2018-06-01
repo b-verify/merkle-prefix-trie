@@ -93,9 +93,14 @@ public class DictionaryLeafNode implements Node {
 		
 	@Override
 	public String toString() {
+		if(this.recalculateHash) {
+			return new String("<DictionaryLeaf K: "+ Utils.byteArrayAsHexString(this.key) +
+					" V: "+ Utils.byteArrayAsHexString(this.value) + 
+					" Hash: ? >");
+		}
 		return new String("<DictionaryLeaf K: "+ Utils.byteArrayAsHexString(this.key) +
 				" V: "+ Utils.byteArrayAsHexString(this.value) + 
-				" Hash: " + Utils.byteArrayAsHexString(this.getHash())
+				" Hash: " + Utils.byteArrayAsHexString(this.commitmentHash)
 				+">");
 	}
 
@@ -145,7 +150,6 @@ public class DictionaryLeafNode implements Node {
 		return this.changed;
 	}
 
-
 	@Override
 	public void markChangedAll() {
 		this.changed = true;
@@ -154,6 +158,34 @@ public class DictionaryLeafNode implements Node {
 	@Override
 	public void markUnchangedAll() {
 		this.changed = false;
+	}
+
+	@Override
+	public int countHashesRequiredForGetHash() {
+		if(this.recalculateHash) {
+			return 1;
+		}
+		return 0;
+	}
+
+	@Override
+	public int nodesInSubtree() {
+		return 1;
+	}
+	
+	@Override
+	public int interiorNodesInSubtree() {
+		return 0;
+	}
+
+	@Override
+	public int emptyLeafNodesInSubtree() {
+		return 0;
+	}
+	
+	@Override
+	public int nonEmptyLeafNodesInSubtree() {
+		return 1;
 	}
 	
 }

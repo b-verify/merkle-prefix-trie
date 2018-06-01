@@ -167,7 +167,7 @@ public class Utils {
 	 * @param raw
 	 * @return
 	 */
-	private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+	private final static char[] hexArray = "0123456789abcdef".toCharArray();
 
 	public static String byteArrayAsHexString(byte[] bytes) {
 		char[] hexChars = new char[bytes.length * 2];

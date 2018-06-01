@@ -1,5 +1,7 @@
 package mpt.dictionary;
 
+import java.util.concurrent.ExecutorService;
+
 import serialization.generated.MptSerialization;
 
 /**
@@ -87,6 +89,17 @@ public interface AuthenticatedDictionaryServer {
 	public byte[] commitment();
 	
 	/**
+	 * Calculates the commitment in parallel using the provided
+	 * worker threads. It only makes sense to parallelize calculation
+	 * for large dictionaries, otherwise the overhead of coordinating 
+	 * the threads will out-weight the benefits.
+	 * @param workers
+	 * @return
+	 */
+	public byte[] commitmentParallelized(ExecutorService workers);
+	
+	
+	/**
 	 * Resets the current state of the authenticated dictionary
 	 * to have no changes. Changes all nodes
 	 * currently marked as "changed" to "unchanged"
@@ -94,10 +107,18 @@ public interface AuthenticatedDictionaryServer {
 	public void reset();
 	
 	/**
+	 * Returns the number of distinct (key,value) entries 
+	 * in the dictionary.
+	 * @return
+	 */
+	public int size();
+	
+	/**
 	 * Return an efficient serialization of the 
 	 * full authenticated dictionary
 	 * @return
 	 */
 	public MptSerialization.MerklePrefixTrie serialize();
+
 	
 }

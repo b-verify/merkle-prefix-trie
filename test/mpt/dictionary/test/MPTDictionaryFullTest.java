@@ -10,6 +10,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,6 +27,40 @@ import serialization.generated.MptSerialization.MerklePrefixTrie;
 
 public class MPTDictionaryFullTest {
 	
+	@Test
+	public void testCommitmentCaluclationParallelized() {
+		int numberOfKeys = 100000;
+		String salt = "test";
+		List<Map.Entry<byte[], byte[]>> kvpairs = Utils.getKeyValuePairs(numberOfKeys, salt);
+		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(kvpairs);
+		MPTDictionaryFull mptCopy = Utils.makeMPTDictionaryFull(kvpairs);
+
+		long start;
+		long end;
+		
+		start = System.currentTimeMillis();
+		byte[] regularCommitment = mptCopy.commitment();
+		end = System.currentTimeMillis();
+		System.out.println("----------> regular commitment time elapsed: "+(end-start));
+		
+		ExecutorService executorService = Executors.newFixedThreadPool(4);
+		
+		start = System.currentTimeMillis();
+		byte[] parallelizedCommitmentResult = mpt.commitmentParallelized(executorService);
+		end = System.currentTimeMillis();
+		System.out.println("----------> parallelized commitment time elapsed: "+(end-start));
+		
+		Assert.assertTrue(Arrays.equals(regularCommitment, parallelizedCommitmentResult));
+		
+		executorService.shutdown();
+		try {
+		    if (!executorService.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+		        executorService.shutdownNow();
+		    } 
+		} catch (InterruptedException e) {
+		    executorService.shutdownNow();
+		}
+	}
 	
 	@Test 
 	public void testTrieInsertionsManyOrdersProduceTheSameTrie() {
@@ -36,6 +73,7 @@ public class MPTDictionaryFullTest {
 		for(int iteration = 0; iteration <  numberOfShuffles; iteration++) {
 			Collections.shuffle(kvpairs);
 			MPTDictionaryFull mpt2 = Utils.makeMPTDictionaryFull(kvpairs);
+			Assert.assertEquals(numberOfKeys, mpt2.size());
 			byte[] commitment2 = mpt2.commitment();
 			Assert.assertTrue(Arrays.equals(commitment, commitment2));
 		}
@@ -80,6 +118,79 @@ public class MPTDictionaryFullTest {
 		
 	}
 	
+	@Test
+	public void testMPTNodeCount() {
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
+		
+		byte[] keyA = CryptographicDigest.hash("A".getBytes());
+		byte[] keyB = CryptographicDigest.hash("B".getBytes());
+		byte[] keyC = CryptographicDigest.hash("C".getBytes());
+		byte[] keyD = CryptographicDigest.hash("D".getBytes());
+		byte[] keyE = CryptographicDigest.hash("E".getBytes());
+		byte[] keyF = CryptographicDigest.hash("F".getBytes());
+		
+		byte[] value1 = CryptographicDigest.hash("1".getBytes());
+		byte[] value2 = CryptographicDigest.hash("2".getBytes());
+		byte[] value3 = CryptographicDigest.hash("3".getBytes());
+
+		// insert the entries
+		mpt.insert(keyA, value1);
+		mpt.insert(keyB, value2);
+		mpt.insert(keyC, value3);
+		mpt.insert(keyD, value3);
+		mpt.insert(keyE, value2);
+		mpt.insert(keyF, value1);
+		
+		// should have 11 nodes total 
+		// 6 non-empty leaf nodes, 5 interior nodes, 0 empty leaf nodes
+		Assert.assertEquals(11, mpt.countNodes());
+		Assert.assertEquals(6, mpt.countNonEmptyLeafNodes());
+		Assert.assertEquals(0, mpt.countEmptyLeafNodes());
+		Assert.assertEquals(5, mpt.countInteriorNodes());
+	}
+	
+	@Test
+	public void testMPTHashToCommitCount() {
+		MPTDictionaryFull mpt = new MPTDictionaryFull();
+		
+		byte[] keyA = CryptographicDigest.hash("A".getBytes());
+		byte[] keyB = CryptographicDigest.hash("B".getBytes());
+		byte[] keyC = CryptographicDigest.hash("C".getBytes());
+		byte[] keyD = CryptographicDigest.hash("D".getBytes());
+		byte[] keyE = CryptographicDigest.hash("E".getBytes());
+		byte[] keyF = CryptographicDigest.hash("F".getBytes());
+		
+		byte[] value1 = CryptographicDigest.hash("1".getBytes());
+		byte[] value2 = CryptographicDigest.hash("2".getBytes());
+		byte[] value3 = CryptographicDigest.hash("3".getBytes());
+
+		// insert the entries
+		mpt.insert(keyA, value1);
+		mpt.insert(keyB, value2);
+		mpt.insert(keyC, value3);
+		mpt.insert(keyD, value3);
+		mpt.insert(keyE, value2);
+		mpt.insert(keyF, value1);
+		
+		// at start no hashes are calculated 
+		// so committing should require calculating a hash 
+		// for every node in the MPT
+		Assert.assertEquals(11, mpt.countHashesRequiredToCommit());
+		mpt.commitment();
+		
+		// update a single entry
+		mpt.insert(keyF, value2);
+		
+		// now only the hashes on the path 
+		// to keyF need to be recalculated
+		Assert.assertEquals(4, mpt.countHashesRequiredToCommit());
+		mpt.commitment();
+
+		// if make no changes, shouldn't require any
+		// recalculation of hashes
+		Assert.assertEquals(0, mpt.countHashesRequiredToCommit());
+	}
+		
 	@Test
 	public void testMPTInsertionBasicMultipleUpdatesGetMostRecentValue() {
 		MPTDictionaryFull mpt = new MPTDictionaryFull();
@@ -218,6 +329,7 @@ public class MPTDictionaryFullTest {
 		int numberOfEntries = 1000;
 		String salt = "";
 		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(numberOfEntries, salt);
+		Assert.assertEquals(numberOfEntries, mpt.size());
 		for(int i = 0; i < numberOfEntries; i++) {
 			byte[] key = Utils.getKey(i);
 			byte[] value = Utils.getValue(i, salt);
@@ -226,6 +338,7 @@ public class MPTDictionaryFullTest {
 				mpt.delete(key);				
 			}
 		}
+		Assert.assertEquals(500, mpt.size());
 		for(int i = 0; i < numberOfEntries; i++) {
 			byte[] key = Utils.getKey(i);
 			byte[] value = Utils.getValue(i, salt);
@@ -236,6 +349,7 @@ public class MPTDictionaryFullTest {
 			}
 		}
 		MPTDictionaryFull mpt2 = Utils.makeMPTDictionaryFull(500, salt);
+		Assert.assertEquals(500, mpt2.size());
 		Assert.assertTrue(Arrays.equals(mpt.commitment(), mpt2.commitment()));
 	}
 	

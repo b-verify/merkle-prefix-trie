@@ -1,5 +1,10 @@
 package mpt.core;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+
 import crypto.CryptographicDigest;
 import serialization.generated.MptSerialization;
 
@@ -26,6 +31,8 @@ public class InteriorNode implements Node {
 	private boolean changed;
 	private Node leftChild;
 	private Node rightChild;
+	
+	private static final String INTERIOR_NODE_MSG = new String("<InterirorNode>");
 	
 	public InteriorNode(Node leftChild, Node rightChild) {
 		this.leftChild = leftChild;
@@ -54,7 +61,7 @@ public class InteriorNode implements Node {
 
 	@Override
 	public byte[] getHash() {
-		// if  the hash must be recalculated.
+		// if the hash must be recalculated.
 		if(this.recalculateHash) {
 			byte[] leftChildHash = this.leftChild.getHash();
 			byte[] rightChildHash = this.rightChild.getHash();
@@ -66,6 +73,38 @@ public class InteriorNode implements Node {
 			this.recalculateHash = false;
 		}
 		return this.hash.clone();
+	}
+	
+	public byte[] getHashParallel(ExecutorService executor) {
+		// if  the hash must be recalculated.
+		if(this.recalculateHash) {
+			Callable<byte[]> leftTask = () -> {
+				return this.leftChild.getHash();
+			};			
+			Callable<byte[]> rightTask = () -> {
+				return this.rightChild.getHash();
+			};
+			Future<byte[]> leftTaskRes = executor.submit(leftTask);
+			Future<byte[]> rightTaskRes = executor.submit(rightTask);
+			
+			byte[] leftChildHash;
+			byte[] rightChildHash;
+			try {
+				rightChildHash = rightTaskRes.get();
+				leftChildHash = leftTaskRes.get();
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e.getMessage());
+			}
+			
+			// commitment: H(leftChildHash || rightChildHash)
+			byte[] commitment = new byte[leftChildHash.length+rightChildHash.length];
+			System.arraycopy(leftChildHash, 0, commitment, 0, leftChildHash.length);
+			System.arraycopy(rightChildHash, 0, commitment, leftChildHash.length, rightChildHash.length);
+			this.hash = CryptographicDigest.hash(commitment);
+			this.recalculateHash = false;
+		}
+		return this.hash.clone();	
 	}
 
 	@Override
@@ -104,7 +143,7 @@ public class InteriorNode implements Node {
 
 	@Override
 	public String toString() {
-		return new String("<InteriorNode>");
+		return InteriorNode.INTERIOR_NODE_MSG;
 	}
 
 	@Override
@@ -161,6 +200,35 @@ public class InteriorNode implements Node {
 		}	
 		
 		this.changed = false;
+	}
+	
+	@Override
+	public int countHashesRequiredForGetHash() {
+		if(this.recalculateHash) {
+			int total = 1+this.leftChild.countHashesRequiredForGetHash()+this.rightChild.countHashesRequiredForGetHash();
+			return total;
+		}
+		return 0;
+	}
+	
+	@Override
+	public int nodesInSubtree() {
+		return 1+this.rightChild.nodesInSubtree()+this.leftChild.nodesInSubtree();
+	}
+
+	@Override
+	public int interiorNodesInSubtree() {
+		return 1+this.rightChild.interiorNodesInSubtree()+this.leftChild.interiorNodesInSubtree();
+	}
+
+	@Override
+	public int emptyLeafNodesInSubtree() {
+		return this.rightChild.emptyLeafNodesInSubtree()+this.leftChild.emptyLeafNodesInSubtree();
+	}
+	
+	@Override
+	public int nonEmptyLeafNodesInSubtree() {
+		return this.rightChild.nonEmptyLeafNodesInSubtree()+this.leftChild.nonEmptyLeafNodesInSubtree();
 	}
 
 }

@@ -13,7 +13,8 @@ public class EmptyLeafNode implements Node {
 	
 	// hash is all zeros
 	public static final byte[] EMPTY_HASH = new byte[CryptographicDigest.getSizeBytes()];
-	public static final String EMPTY_MSG = "<EmptyLeafNode>";
+	
+	private static final String EMPTY_MSG = "<EmptyLeafNode>";
 	
 	// an empty leaf node can still be "changed" - if its location in the MPT changes
 	// even though the empty leaf has a pre-defined hash value
@@ -112,5 +113,29 @@ public class EmptyLeafNode implements Node {
 	public void markUnchangedAll() {
 		this.changed = false;		
 	}
+
+	@Override
+	public int countHashesRequiredForGetHash() {
+		return 0;
+	}
+
+	@Override
+	public int nodesInSubtree() {
+		return 1;
+	}
 	
+	@Override
+	public int interiorNodesInSubtree() {
+		return 0;
+	}
+
+	@Override
+	public int emptyLeafNodesInSubtree() {
+		return 1;
+	}
+	
+	@Override
+	public int nonEmptyLeafNodesInSubtree() {
+		return 0;
+	}
 }
