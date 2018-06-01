@@ -87,13 +87,6 @@ public class MPTDictionaryPartial implements AuthenticatedDictionaryClient {
 		this.root = root;
 	}
 	
-	private static Node copyMultiplePathsRoot(final List<byte[]> matchingKeys, final Node copyNode, final int currentBitIndex) {
-		Node leftChild = copyMultiplePaths(matchingKeys, copyNode.getLeftChild(), 0);
-		Node rightChild = copyMultiplePaths(matchingKeys, copyNode.getRightChild(), 0);
-		return new InteriorNode(leftChild, rightChild);
-	}
-		
-	
 	private static Node copyMultiplePaths(final List<byte[]> matchingKeys, final Node copyNode, final int currentBitIndex) {
 		// case: if this is not on the path to the key hash 
 		if(matchingKeys.size() == 0) {
