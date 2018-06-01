@@ -10,6 +10,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
@@ -33,7 +36,7 @@ public class MerklePathSizeBenchmark {
 				String.valueOf(avgFull), String.valueOf(avgUpdate));
 	}
 
-	public static List<String> benchmarkProofSizes(int n, int updates) {
+	public static List<String> benchmarkProofSizes(int n, int updates, ExecutorService workers) {
 		System.out.println(
 				"--------- starting benchmark for entries:" + n + " - updates: " + updates + " the MPT ---------");
 		String startingSalt = "starting-entry";
@@ -46,7 +49,7 @@ public class MerklePathSizeBenchmark {
 		int nEmptyLeafNodes = mpt.countEmptyLeafNodes();
 		
 		
-		byte[] commitment = mpt.commitment();
+		byte[] commitment = mpt.commitmentParallelized(workers);
 		System.out.println("--------- calculating commitment ---------");
 		System.out.println("--------- new commitment: " + Utils.byteArrayAsHexString(commitment) + " ---------");
 		System.out.println("--------- making updates ---------");
@@ -65,7 +68,7 @@ public class MerklePathSizeBenchmark {
 		
 		int hashesRequiredToUpdate = mpt.countHashesRequiredToCommit();
 		
-		commitment = mpt.commitment();
+		commitment = mpt.commitmentParallelized(workers);
 		MPTDictionaryDelta delta = new MPTDictionaryDelta(mpt);
 		System.out.println(Utils.byteArrayAsHexString(commitment));
 		System.out.println("--------- calculating proof sizes ---------");
@@ -88,12 +91,22 @@ public class MerklePathSizeBenchmark {
 	
 	public static List<List<String>> runExperiment(int n, List<Double> fractionsToUpdate){
 		List<List<String>> experimentResults = new ArrayList<>();
+		// use some workers
+		ExecutorService workers = Executors.newCachedThreadPool();
 		for(double fractionToUpdate : fractionsToUpdate) {
 			int updates = (int) (n*fractionToUpdate);
 			// run an experiment for each fraction of updates and 
 			// calculate the results
-			List<String> experimentResult = benchmarkProofSizes(n, updates);
+			List<String> experimentResult = benchmarkProofSizes(n, updates, workers);
 			experimentResults.add(experimentResult);
+		}
+		workers.shutdown();
+		try {
+		    if (!workers.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+		    	workers.shutdownNow();
+		    } 
+		} catch (InterruptedException e) {
+			workers.shutdownNow();
 		}
 		return experimentResults;
 	}

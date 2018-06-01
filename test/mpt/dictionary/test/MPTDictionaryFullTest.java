@@ -43,7 +43,7 @@ public class MPTDictionaryFullTest {
 		end = System.currentTimeMillis();
 		System.out.println("----------> regular commitment time elapsed: "+(end-start));
 		
-		ExecutorService executorService = Executors.newFixedThreadPool(4);
+		ExecutorService executorService = Executors.newCachedThreadPool();
 		
 		start = System.currentTimeMillis();
 		byte[] parallelizedCommitmentResult = mpt.commitmentParallelized(executorService);
