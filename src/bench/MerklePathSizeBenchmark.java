@@ -117,7 +117,8 @@ public class MerklePathSizeBenchmark {
 	public static void writeResultsToCSV(List<List<String>> results, String csvFile) {
 		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(csvFile));
 				CSVPrinter csvPrinter = new CSVPrinter(writer, 
-						CSVFormat.DEFAULT.withHeader("n", "updates",
+						CSVFormat.DEFAULT.withHeader("n", "nInteriorNode", 
+								"nNonEmptyLeaf", "nEmptyLeaf", "updates", "nHashesToCommit",
 								"total_full_path", "total_update_path", 
 								"full_path_avg", "update_path_avg"));) {
 			for(List<String> resultRow : results) {
