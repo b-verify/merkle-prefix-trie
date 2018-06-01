@@ -52,6 +52,9 @@ public class MerklePathSizeBenchmark {
 		byte[] commitment = mpt.commitmentParallelized(workers);
 		System.out.println("--------- calculating commitment ---------");
 		System.out.println("--------- new commitment: " + Utils.byteArrayAsHexString(commitment) + " ---------");
+		// reset to cache updates
+		mpt.reset();
+		
 		System.out.println("--------- making updates ---------");
 		List<byte[]> keys = kvpairsStart.stream().map(x -> x.getKey()).collect(Collectors.toList());
 		Collections.shuffle(keys);
