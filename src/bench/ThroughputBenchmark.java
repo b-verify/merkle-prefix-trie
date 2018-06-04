@@ -19,25 +19,23 @@ public class ThroughputBenchmark {
 	private static final NumberFormat formatter = new DecimalFormat("#0.000");
 	private static final Logger logger = Logger.getLogger(ThroughputBenchmark.class.getName());
 
-	public static void runExperimentSingleThreaded(int testSize) {
-		logger.log(Level.INFO, "running a throughput benchmark for "+testSize+" updates");
+	public static void runExperimentSingleThreaded(int testSize, int nUpdates, Scanner sc) {
+		logger.log(Level.INFO, "...single threaded benchmark");
 		List<Map.Entry<byte[], byte[]>> kvpairs = Utils.getKeyValuePairs(testSize, "throughput");
 		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(kvpairs);
 		byte[] initialCommit = mpt.commitment();
-		logger.log(Level.INFO, "initial commitment: "+Utils.byteArrayAsHexString(initialCommit));
+		logger.log(Level.INFO, "...initial commitment: "+Utils.byteArrayAsHexString(initialCommit));
 		int nEmptyLeafs = mpt.countEmptyLeafNodes();
 		int nNonEmptyLeafs = mpt.countNonEmptyLeafNodes();
 		int nInterior = mpt.countInteriorNodes();
 		logger.log(Level.INFO, "empty leafs: "+nEmptyLeafs
-				+"| nonempty leafs: "+nNonEmptyLeafs+"| interiro: "+nInterior);
-		Scanner sc = new Scanner(System.in);
+				+"| nonempty leafs: "+nNonEmptyLeafs+"| interior: "+nInterior);
 		logger.log(Level.INFO, "[Press enter to start updates (single threaded)]");
 		sc.nextLine();
 		logger.log(Level.INFO, "...starting benchmark");
 		byte[] updatedValue = CryptographicDigest.hash("some stuff".getBytes());
 		long startTime1 = System.currentTimeMillis();
-		// update 50% of the nodes
-		for(Map.Entry<byte[], byte[]> kvpair : kvpairs.subList(0, testSize/2)) {
+		for(Map.Entry<byte[], byte[]> kvpair : kvpairs.subList(0, nUpdates)) {
 			mpt.insert(kvpair.getKey(), updatedValue);
 		}
 		long endTime1 = System.currentTimeMillis();
@@ -57,11 +55,10 @@ public class ThroughputBenchmark {
 		logger.log(Level.INFO, "Time taken to PERFORM "+testSize+" updates "+timeTaken1);
 		logger.log(Level.INFO, "Time taken to COMMIT "+testSize+" updates "+timeTaken2);
 		logger.log(Level.INFO, "...done!");
-		sc.close();	
 	}
 	
-	public static void runExperimentParallel(int testSize) {
-		logger.log(Level.INFO, "running a throughput benchmark for "+testSize+" updates");
+	public static void runExperimentParallel(int testSize, int nUpdates, Scanner sc) {
+		logger.log(Level.INFO, "...multi threaded benchmark");
 		List<Map.Entry<byte[], byte[]>> kvpairs = Utils.getKeyValuePairs(testSize, "throughput");
 		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(kvpairs);
 		byte[] initialCommit = mpt.commitment();
@@ -71,16 +68,13 @@ public class ThroughputBenchmark {
 		int nInterior = mpt.countInteriorNodes();
 		logger.log(Level.INFO, "empty leafs: "+nEmptyLeafs
 				+"| nonempty leafs: "+nNonEmptyLeafs+"| interiro: "+nInterior);
-		Scanner sc = new Scanner(System.in);
-
 		
 		logger.log(Level.INFO, "[Press enter to start updates (single threaded)]");
 		sc.nextLine();
 		logger.log(Level.INFO, "...starting benchmark");
 		byte[] updatedValue = CryptographicDigest.hash("some stuff".getBytes());
 		long startTime1 = System.currentTimeMillis();
-		// update 50% of the nodes
-		for(Map.Entry<byte[], byte[]> kvpair : kvpairs.subList(0, testSize/2)) {
+		for(Map.Entry<byte[], byte[]> kvpair : kvpairs.subList(0, nUpdates)) {
 			mpt.insert(kvpair.getKey(), updatedValue);
 		}
 		long endTime1 = System.currentTimeMillis();
@@ -101,7 +95,6 @@ public class ThroughputBenchmark {
 		logger.log(Level.INFO, "Time taken to PERFORM "+testSize+" updates "+timeTaken1);
 		logger.log(Level.INFO, "Time taken to COMMIT "+testSize+" updates "+timeTaken2);
 		logger.log(Level.INFO, "...done!");
-		sc.close();	
 		executorService.shutdown();
 		try {
 		    if (!executorService.awaitTermination(800, TimeUnit.MILLISECONDS)) {
@@ -114,7 +107,10 @@ public class ThroughputBenchmark {
 
 	public static void main(String[] args) {
 		int n = 1000000;
-		runExperimentSingleThreaded(n);
-		runExperimentParallel(n);
+		int nUpdates = 1000000;
+		Scanner sc = new Scanner(System.in);
+		runExperimentSingleThreaded(n, nUpdates, sc);
+		runExperimentParallel(n, nUpdates, sc);
+		sc.close();
 	}
 }
