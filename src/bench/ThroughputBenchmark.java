@@ -52,8 +52,8 @@ public class ThroughputBenchmark {
 		long duration2 = endTime2 - startTime2;
 		String timeTaken1 = formatter.format(duration1 / 1000d)+ " seconds";
 		String timeTaken2 = formatter.format(duration2 / 1000d)+ " seconds";
-		logger.log(Level.INFO, "Time taken to PERFORM "+testSize+" updates "+timeTaken1);
-		logger.log(Level.INFO, "Time taken to COMMIT "+testSize+" updates "+timeTaken2);
+		logger.log(Level.INFO, "Time taken to PERFORM "+nUpdates+" updates "+timeTaken1);
+		logger.log(Level.INFO, "Time taken to COMMIT "+nUpdates+" updates "+timeTaken2);
 		logger.log(Level.INFO, "...done!");
 	}
 	
@@ -93,8 +93,8 @@ public class ThroughputBenchmark {
 		long duration2 = endTime2 - startTime2;
 		String timeTaken1 = formatter.format(duration1 / 1000d)+ " seconds";
 		String timeTaken2 = formatter.format(duration2 / 1000d)+ " seconds";
-		logger.log(Level.INFO, "Time taken to PERFORM "+testSize+" updates "+timeTaken1);
-		logger.log(Level.INFO, "Time taken to COMMIT "+testSize+" updates "+timeTaken2);
+		logger.log(Level.INFO, "Time taken to PERFORM "+nUpdates+" updates "+timeTaken1);
+		logger.log(Level.INFO, "Time taken to COMMIT "+nUpdates+" updates "+timeTaken2);
 		logger.log(Level.INFO, "...done!");
 		executorService.shutdown();
 		try {
@@ -108,7 +108,8 @@ public class ThroughputBenchmark {
 
 	public static void main(String[] args) {
 		int n = 1000000;
-		int nUpdates = 1000000;
+		int nUpdates = 100000;
+		logger.log(Level.INFO, "test size: "+n+" | number of updates: "+nUpdates);
 		Scanner sc = new Scanner(System.in);
 		runExperimentSingleThreaded(n, nUpdates, sc);
 		runExperimentParallel(n, nUpdates, sc);
