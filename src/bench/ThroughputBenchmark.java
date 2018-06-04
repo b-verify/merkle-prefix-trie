@@ -43,11 +43,11 @@ public class ThroughputBenchmark {
 		int nHashes = mpt.countHashesRequiredToCommit();
 		logger.log(Level.INFO, "hashes required to commit: "+nHashes);
 		logger.log(Level.INFO, "[Press enter to commit updates (single threaded)]");
+		sc.nextLine();
 		long startTime2 = System.currentTimeMillis();
 		byte[] newCommitment  = mpt.commitment();
 		long endTime2 = System.currentTimeMillis();		
 		logger.log(Level.INFO, "...new commitment: "+Utils.byteArrayAsHexString(newCommitment));
-
 		long duration1 = endTime1 - startTime1;
 		long duration2 = endTime2 - startTime2;
 		String timeTaken1 = formatter.format(duration1 / 1000d)+ " seconds";
@@ -82,6 +82,7 @@ public class ThroughputBenchmark {
 		int nHashes = mpt.countHashesRequiredToCommit();
 		logger.log(Level.INFO, "hashes required to commit: "+nHashes);
 		logger.log(Level.INFO, "[Press enter to commit updates (multi threaded)]");
+		sc.nextLine();
 		ExecutorService executorService = Executors.newCachedThreadPool();
 		long startTime2 = System.currentTimeMillis();
 		byte[] newCommitment = mpt.commitmentParallelized(executorService);
