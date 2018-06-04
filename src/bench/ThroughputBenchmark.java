@@ -46,7 +46,7 @@ public class ThroughputBenchmark {
 		long startTime2 = System.currentTimeMillis();
 		byte[] newCommitment  = mpt.commitment();
 		long endTime2 = System.currentTimeMillis();		
-		logger.log(Level.INFO, "new commitment: "+Utils.byteArrayAsHexString(newCommitment));
+		logger.log(Level.INFO, "...new commitment: "+Utils.byteArrayAsHexString(newCommitment));
 
 		long duration1 = endTime1 - startTime1;
 		long duration2 = endTime2 - startTime2;
@@ -62,12 +62,12 @@ public class ThroughputBenchmark {
 		List<Map.Entry<byte[], byte[]>> kvpairs = Utils.getKeyValuePairs(testSize, "throughput");
 		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(kvpairs);
 		byte[] initialCommit = mpt.commitment();
-		logger.log(Level.INFO, "initial commitment: "+Utils.byteArrayAsHexString(initialCommit));
+		logger.log(Level.INFO, "...initial commitment: "+Utils.byteArrayAsHexString(initialCommit));
 		int nEmptyLeafs = mpt.countEmptyLeafNodes();
 		int nNonEmptyLeafs = mpt.countNonEmptyLeafNodes();
 		int nInterior = mpt.countInteriorNodes();
 		logger.log(Level.INFO, "empty leafs: "+nEmptyLeafs
-				+"| nonempty leafs: "+nNonEmptyLeafs+"| interiro: "+nInterior);
+				+"| nonempty leafs: "+nNonEmptyLeafs+"| interior: "+nInterior);
 		
 		logger.log(Level.INFO, "[Press enter to start updates (single threaded)]");
 		sc.nextLine();
@@ -86,7 +86,7 @@ public class ThroughputBenchmark {
 		long startTime2 = System.currentTimeMillis();
 		byte[] newCommitment = mpt.commitmentParallelized(executorService);
 		long endTime2 = System.currentTimeMillis();		
-		logger.log(Level.INFO, "new commitment: "+Utils.byteArrayAsHexString(newCommitment));
+		logger.log(Level.INFO, "...new commitment: "+Utils.byteArrayAsHexString(newCommitment));
 
 		long duration1 = endTime1 - startTime1;
 		long duration2 = endTime2 - startTime2;
