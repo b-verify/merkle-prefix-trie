@@ -19,39 +19,87 @@ public class ThroughputBenchmark {
 	private static final NumberFormat formatter = new DecimalFormat("#0.000");
 	private static final Logger logger = Logger.getLogger(ThroughputBenchmark.class.getName());
 
-	public static void runExperiment(int testSize) {
+	public static void runExperimentSingleThreaded(int testSize) {
 		logger.log(Level.INFO, "running a throughput benchmark for "+testSize+" updates");
 		List<Map.Entry<byte[], byte[]>> kvpairs = Utils.getKeyValuePairs(testSize, "throughput");
 		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(kvpairs);
+		byte[] initialCommit = mpt.commitment();
+		logger.log(Level.INFO, "initial commitment: "+Utils.byteArrayAsHexString(initialCommit));
+		int nEmptyLeafs = mpt.countEmptyLeafNodes();
+		int nNonEmptyLeafs = mpt.countNonEmptyLeafNodes();
+		int nInterior = mpt.countInteriorNodes();
+		logger.log(Level.INFO, "empty leafs: "+nEmptyLeafs
+				+"| nonempty leafs: "+nNonEmptyLeafs+"| interiro: "+nInterior);
 		Scanner sc = new Scanner(System.in);
-		/*
-		 * Request proofs in parallel for EVERY ADS
-		 */
 		logger.log(Level.INFO, "[Press enter to start updates (single threaded)]");
 		sc.nextLine();
 		logger.log(Level.INFO, "...starting benchmark");
 		byte[] updatedValue = CryptographicDigest.hash("some stuff".getBytes());
 		long startTime1 = System.currentTimeMillis();
-		for(Map.Entry<byte[], byte[]> kvpair : kvpairs) {
+		// update 50% of the nodes
+		for(Map.Entry<byte[], byte[]> kvpair : kvpairs.subList(0, testSize/2)) {
 			mpt.insert(kvpair.getKey(), updatedValue);
 		}
 		long endTime1 = System.currentTimeMillis();
 		logger.log(Level.INFO, "...updates done");
-		int nNodes = mpt.countNodes();
 		int nHashes = mpt.countHashesRequiredToCommit();
-		logger.log(Level.INFO, "[Press enter to commit updates (multi threaded)]");
-		ExecutorService executorService = Executors.newCachedThreadPool();
+		logger.log(Level.INFO, "hashes required to commit: "+nHashes);
+		logger.log(Level.INFO, "[Press enter to commit updates (single threaded)]");
 		long startTime2 = System.currentTimeMillis();
-		mpt.commitmentParallelized(executorService);
+		byte[] newCommitment  = mpt.commitment();
 		long endTime2 = System.currentTimeMillis();		
+		logger.log(Level.INFO, "new commitment: "+Utils.byteArrayAsHexString(newCommitment));
 
 		long duration1 = endTime1 - startTime1;
 		long duration2 = endTime2 - startTime2;
 		String timeTaken1 = formatter.format(duration1 / 1000d)+ " seconds";
 		String timeTaken2 = formatter.format(duration2 / 1000d)+ " seconds";
 		logger.log(Level.INFO, "Time taken to PERFORM "+testSize+" updates "+timeTaken1);
-		logger.log(Level.INFO, "Time taken to COMMIT "+testSize+" (nodes: "+nNodes+"| hashes required: "+nHashes+
-				") "+timeTaken2);
+		logger.log(Level.INFO, "Time taken to COMMIT "+testSize+" updates "+timeTaken2);
+		logger.log(Level.INFO, "...done!");
+		sc.close();	
+	}
+	
+	public static void runExperimentParallel(int testSize) {
+		logger.log(Level.INFO, "running a throughput benchmark for "+testSize+" updates");
+		List<Map.Entry<byte[], byte[]>> kvpairs = Utils.getKeyValuePairs(testSize, "throughput");
+		MPTDictionaryFull mpt = Utils.makeMPTDictionaryFull(kvpairs);
+		byte[] initialCommit = mpt.commitment();
+		logger.log(Level.INFO, "initial commitment: "+Utils.byteArrayAsHexString(initialCommit));
+		int nEmptyLeafs = mpt.countEmptyLeafNodes();
+		int nNonEmptyLeafs = mpt.countNonEmptyLeafNodes();
+		int nInterior = mpt.countInteriorNodes();
+		logger.log(Level.INFO, "empty leafs: "+nEmptyLeafs
+				+"| nonempty leafs: "+nNonEmptyLeafs+"| interiro: "+nInterior);
+		Scanner sc = new Scanner(System.in);
+
+		
+		logger.log(Level.INFO, "[Press enter to start updates (single threaded)]");
+		sc.nextLine();
+		logger.log(Level.INFO, "...starting benchmark");
+		byte[] updatedValue = CryptographicDigest.hash("some stuff".getBytes());
+		long startTime1 = System.currentTimeMillis();
+		// update 50% of the nodes
+		for(Map.Entry<byte[], byte[]> kvpair : kvpairs.subList(0, testSize/2)) {
+			mpt.insert(kvpair.getKey(), updatedValue);
+		}
+		long endTime1 = System.currentTimeMillis();
+		logger.log(Level.INFO, "...updates done");
+		int nHashes = mpt.countHashesRequiredToCommit();
+		logger.log(Level.INFO, "hashes required to commit: "+nHashes);
+		logger.log(Level.INFO, "[Press enter to commit updates (multi threaded)]");
+		ExecutorService executorService = Executors.newCachedThreadPool();
+		long startTime2 = System.currentTimeMillis();
+		byte[] newCommitment = mpt.commitmentParallelized(executorService);
+		long endTime2 = System.currentTimeMillis();		
+		logger.log(Level.INFO, "new commitment: "+Utils.byteArrayAsHexString(newCommitment));
+
+		long duration1 = endTime1 - startTime1;
+		long duration2 = endTime2 - startTime2;
+		String timeTaken1 = formatter.format(duration1 / 1000d)+ " seconds";
+		String timeTaken2 = formatter.format(duration2 / 1000d)+ " seconds";
+		logger.log(Level.INFO, "Time taken to PERFORM "+testSize+" updates "+timeTaken1);
+		logger.log(Level.INFO, "Time taken to COMMIT "+testSize+" updates "+timeTaken2);
 		logger.log(Level.INFO, "...done!");
 		sc.close();	
 		executorService.shutdown();
@@ -65,6 +113,8 @@ public class ThroughputBenchmark {
 	}
 
 	public static void main(String[] args) {
-		runExperiment(1000000);
+		int n = 1000000;
+		runExperimentSingleThreaded(n);
+		runExperimentParallel(n);
 	}
 }
