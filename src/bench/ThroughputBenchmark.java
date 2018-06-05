@@ -48,28 +48,32 @@ public class ThroughputBenchmark {
 		for(Map.Entry<byte[], byte[]> kvpair : kvpairs.subList(0, nUpdatesToCommit)) {
 			this.mptToCommit.insert(kvpair.getKey(), NEW_VALUE);
 		}
+		logger.log(Level.INFO, "...# of nonempty leafs: "+this.mptToCommit.countNonEmptyLeafNodes());
+		logger.log(Level.INFO, "...# of empty leafs: "+this.mptToCommit.countEmptyLeafNodes());
+		logger.log(Level.INFO, "...# of interior nodes: "+this.mptToCommit.countInteriorNodes());
+		logger.log(Level.INFO, "...# of hashes required to commit: "+this.mptToCommit.countHashesRequiredToCommit());
 	}
 	
 	public MPTDictionaryFull performSingleUpdate() {
 		// update value of an existing key
-		this.mptToCommit.insert(this.kvpairs.get(0).getKey(), NEW_VALUE);
-		return this.mptToCommit;
+		this.mptToUpdate.insert(this.kvpairs.get(0).getKey(), NEW_VALUE);
+		return this.mptToUpdate;
 	}
 	
 	public MPTDictionaryFull performSingleInsert() {
 		// put in a new key-value
-		this.mptToCommit.insert(NEW_KEY, NEW_VALUE);
-		return this.mptToCommit;
+		this.mptToUpdate.insert(NEW_KEY, NEW_VALUE);
+		return this.mptToUpdate;
 	}
 	
 	public MPTDictionaryFull performSingleDelete() {
 		// delete a key-value mapping
-		this.mptToCommit.delete(this.kvpairs.get(0).getKey());
-		return this.mptToCommit;
+		this.mptToUpdate.delete(this.kvpairs.get(0).getKey());
+		return this.mptToUpdate;
 	}
 	
 	public byte[] commitSingleThreaded() {
-		return this.mptToUpdate.commitment();
+		return this.mptToCommit.commitment();
 	}
 	
 	public byte[] commitParallelized(ExecutorService workers) {
