@@ -14,8 +14,7 @@ public class ThroughputBenchmark {
 	private static final Logger logger = Logger.getLogger(ThroughputBenchmark.class.getName());	
 	private static final byte[] NEW_VALUE = CryptographicDigest.hash("some stuff".getBytes());
 	
-	private MPTDictionaryFull mptToUpdate;
-	private MPTDictionaryFull mptToCommit;
+	private MPTDictionaryFull mpt;
 	private List<Map.Entry<byte[], byte[]>> kvpairs;
 	private int nUpdates;
 	private int n;
@@ -27,19 +26,11 @@ public class ThroughputBenchmark {
 		this.kvpairs = Utils.getKeyValuePairs(this.n, "throughput");
 		
 		// mpt to update
-		this.mptToUpdate = Utils.makeMPTDictionaryFull(this.kvpairs);
-		byte[] initialCommit = this.mptToUpdate.commitment();
+		this.mpt = Utils.makeMPTDictionaryFull(this.kvpairs);
+		byte[] initialCommit = this.mpt.commitment();
 		
 		// should always be the same for deterministic benchmark
 		logger.log(Level.INFO, "...initial commitment: "+Utils.byteArrayAsHexString(initialCommit));		
-		
-		// mpt to commit 
-		this.mptToCommit = Utils.makeMPTDictionaryFull(this.kvpairs);
-		this.mptToCommit.commitment();
-		for(Map.Entry<byte[], byte[]> kvpair : kvpairs.subList(0, nUpdates)) {
-			mptToCommit.insert(kvpair.getKey(), NEW_VALUE);
-		}
-		
 	}
 	
 	public void printPerformUpdateDetails() {
@@ -57,18 +48,22 @@ public class ThroughputBenchmark {
 	}
 	
 	
-	public void performUpdates() {
+	public byte[] performUpdatesSingleThreadedCommits() {
 		for(Map.Entry<byte[], byte[]> kvpair : kvpairs.subList(0, nUpdates)) {
-			this.mptToUpdate.insert(kvpair.getKey(), NEW_VALUE);
+			this.mpt.insert(kvpair.getKey(), NEW_VALUE);
 		}
+		byte[] result = this.mpt.commitment();
+		return result;
+
 	}
 	
-	public void commitUpdatesSingleThreaded() {
-		this.mptToCommit.commitment();
-	}
 	
-	public void commitUpdatesParallelized(ExecutorService workers) {
-		this.mptToCommit.commitmentParallelized(workers);
+	public byte[] performUpdatesParallelizedCommits(ExecutorService workers) {
+		for(Map.Entry<byte[], byte[]> kvpair : kvpairs.subList(0, nUpdates)) {
+			this.mpt.insert(kvpair.getKey(), NEW_VALUE);
+		}
+		byte[] result = this.mpt.commitmentParallelized(workers);
+		return result;	
 	}
 	
 }
