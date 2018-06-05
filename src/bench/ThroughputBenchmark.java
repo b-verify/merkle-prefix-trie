@@ -10,6 +10,18 @@ import crypto.CryptographicDigest;
 import mpt.core.Utils;
 import mpt.dictionary.MPTDictionaryFull;
 
+/**
+ * This class exposes a benchmark interface that should be used
+ * by a Java microbenchmarking framework (e.g. JMH). 
+ * 
+ * It is good style to separate the benchmarking framework from 
+ * the library code that is being tested. To conform to this style
+ * the actual code required to run the benchmark is stored in a
+ * separate repo.
+ * 
+ * @author henryaspegren
+ *
+ */
 public class ThroughputBenchmark {
 	private static final Logger logger = Logger.getLogger(ThroughputBenchmark.class.getName());	
 	private static final byte[] NEW_VALUE = CryptographicDigest.hash("some stuff".getBytes());
